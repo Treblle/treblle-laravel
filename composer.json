@@ -3,7 +3,7 @@
     "type": "library",
     "description" : "Stay in tune with your APIs",
     "homepage": "https://treblle.com/",
-    "keywords": ["treblle", "api", "monitoring", "loggnig", "debuging", "documentation", "app development"],
+    "keywords": ["treblle", "api", "monitoring", "logging", "debuging", "documentation", "app development", "laravel"],
     "license": "MIT",
     "require": {
        "php": "^7.2",
