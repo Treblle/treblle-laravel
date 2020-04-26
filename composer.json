@@ -24,7 +24,7 @@
     "license": "MIT",
     "require": {
        "php": "^7.2",
-        "laravel/framework": "^6.0|^7.0",
+        "laravel/framework": "^6.0|^7.0"
     },
     "require-dev": {
     	"nesbot/carbon": "^2.0",
@@ -47,5 +47,5 @@
         "sort-packages": true
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
+    "prefer-stable": true
 }
