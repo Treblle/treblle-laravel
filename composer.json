@@ -1,16 +1,33 @@
 {
+	"type": "library",
     "name": "treblle/treblle-laravel",
-    "type": "library",
     "description" : "Stay in tune with your APIs",
     "homepage": "https://treblle.com/",
-    "keywords": ["treblle", "api", "monitoring", "logging", "debuging", "documentation", "app development", "laravel"],
+    "keywords": [
+    	"treblle", 
+    	"api", 
+    	"monitoring", 
+    	"logging", 
+    	"debuging", 
+    	"documentation", 
+    	"developer tools", 
+    	"laravel"
+    ],
+    "authors": [
+        {
+            "name": "Vedran Cindrić",
+            "email": "vedran@flip.hr",
+            "homepage": "https://treblle.com/",
+            "role": "Developer"
+        }
+    ],
     "license": "MIT",
     "require": {
        "php": "^7.2",
         "laravel/framework": "^6.0|^7.0",
-        "nesbot/carbon": "^2.0"
     },
     "require-dev": {
+    	"nesbot/carbon": "^2.0",
         "guzzlehttp/guzzle": "^6.0"
     },
     "autoload": {
@@ -18,15 +35,17 @@
             "Treblle\\": "src/"
         }
     },
-    "config": {
-        "preferred-install": "dist",
-        "sort-packages": true
-    },
     "extra": {
         "laravel": {
             "providers": [
                 "Treblle\\TreblleServiceProvider"
             ]
         }
-    }
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
 }
