@@ -19,14 +19,6 @@ class TreblleServiceProvider extends ServiceProvider {
             ], 'config');
         }
 
-        if(! config('treblle.api_key')) {
-            throw InvalidConfig::apiKeyMissing();
-        }
-
-        if(! config('treblle.project_id')) {
-            throw InvalidConfig::projectIdMissing();
-        }
-
         $router->aliasMiddleware('treblle', Treblle::class);
     }
 
