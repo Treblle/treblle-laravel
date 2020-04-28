@@ -36,7 +36,7 @@ class Treblle {
                     'method' => null,
                     'headers' => getallheaders(),
                     'body' => $this->maskFields($_REQUEST),
-                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input')))
+                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true))
                 ),
                 'response' => array(
                     'code' => null,
