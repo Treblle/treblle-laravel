@@ -17,16 +17,25 @@ class Treblle {
         $this->payload = array(
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
-            'version' => 0.3,
+            'version' => 0.5,
             'data' => array(
                 'server' => array(
                     'timezone' => config('app.timezone'),
-                    'os' => php_uname(),
-                    'language' => 'php-'.phpversion(),
-                    'sapi' => PHP_SAPI,
+                    'os' => array(
+                        'name' => php_uname('s'),
+                        'release' => php_uname('r'),
+                        'architecture' => php_uname('m')
+                    ),
                     'software' => null,
                     'signature' => null,
                     'protocol' => null,
+                    'encoding' => null
+                ),
+                'php' => array(
+                    'version' => phpversion(),
+                    'sapi' => PHP_SAPI,
+                    'expose_php' => $this->getIniValue('expose_php'),
+                    'display_errors' => $this->getIniValue('display_errors')
                 ),
                 'request' => array(
                     'timestamp' => Carbon::now('UTC')->format('Y-m-d H:i:s'),
@@ -39,6 +48,7 @@ class Treblle {
                     'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true))
                 ),
                 'response' => array(
+                    'headers' => $this->getResponseHeaders(),
                     'code' => null,
                     'size' => 0,
                     'load_time' => 0,
@@ -66,7 +76,6 @@ class Treblle {
         $this->payload['data']['server']['signature'] = $request->server('SERVER_SIGNATURE');
         $this->payload['data']['server']['protocol'] = $request->server('SERVER_PROTOCOL');
 
-        //$this->payload['data']['request']['headers'] = $request->headers->all();
         $this->payload['data']['request']['user_agent'] = $request->server('HTTP_USER_AGENT');
         $this->payload['data']['request']['ip'] = $request->ip();
         $this->payload['data']['request']['url'] = $request->url();
@@ -157,6 +166,51 @@ class Treblle {
                     $this->maskFields($data[$key]);
                 }
             }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get PHP configuration variables
+     * return @string
+     */
+    public function getIniValue($variable) {
+
+        $bool_value = filter_var(ini_get($variable), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        if(is_bool($bool_value)) {
+
+            if(ini_get($variable)) {
+                return 'On';
+            } else {
+                return 'Off';
+            }
+
+        } else {
+            return ini_get($variable);
+        }
+    }
+
+    /**
+     * Get response headers
+     * 
+     * return @array
+     */
+    public function getResponseHeaders() {
+        
+        $data = [];
+        $headers = headers_list();
+
+        if(is_array($headers) && ! empty($headers)) {
+            foreach ($headers as $header) {
+                $header = explode(':', $header);
+                $data[array_shift($header)] = trim(implode(':', $header));
+            }
+        }
+
+        if(empty($data)) {
+            return null;
         }
 
         return $data;
