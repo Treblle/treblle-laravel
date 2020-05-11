@@ -18,6 +18,7 @@ class Treblle {
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
             'version' => 0.5,
+            'sdk' => 'laravel',
             'data' => array(
                 'server' => array(
                     'timezone' => config('app.timezone'),
