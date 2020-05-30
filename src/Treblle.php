@@ -73,6 +73,10 @@ class Treblle {
 
     public function terminate($request, $response) {
 
+        if(in_array(App::environment(), config('services.treblle.exclude'))) {
+            exit;
+        }
+
         $this->payload['data']['server']['software'] = $request->server('SERVER_SOFTWARE');
         $this->payload['data']['server']['signature'] = $request->server('SERVER_SIGNATURE');
         $this->payload['data']['server']['protocol'] = $request->server('SERVER_PROTOCOL');
@@ -104,6 +108,7 @@ class Treblle {
 
         $guzzle = new Client;
         $guzzle->request('POST', 'https://rocknrolla.treblle.com', [
+            'timeout' => 5,
             'verify' => false,
             'headers' => [
                 'Content-Type' => 'application/json',
