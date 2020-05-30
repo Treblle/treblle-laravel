@@ -73,7 +73,7 @@ class Treblle {
 
     public function terminate($request, $response) {
 
-        if(in_array(env('APP_ENV'), config('treblle.exclude'))) {
+        if(in_array(config('app.env'), config('treblle.exclude'))) {
             exit;
         }
 
