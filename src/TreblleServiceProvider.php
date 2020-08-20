@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Treblle\Exceptions\InvalidConfig;
 
 /**
- * Register the Treblle middlware
+ * Register the Treblle middleware
  */
 class TreblleServiceProvider extends ServiceProvider {
 

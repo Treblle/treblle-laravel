@@ -12,33 +12,30 @@ class Treblle {
 
     public function __construct() {
 
-        $this->guzzle = new Client;
-
-        $this->payload = array(
+        $this->payload = [
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
-            'version' => 0.5,
+            'version' => 0.6,
             'sdk' => 'laravel',
-            'data' => array(
-                'server' => array(
+            'data' => [
+                'server' => [
                     'timezone' => config('app.timezone'),
-                    'os' => array(
+                    'os' => [
                         'name' => php_uname('s'),
                         'release' => php_uname('r'),
                         'architecture' => php_uname('m')
-                    ),
+                    ],
                     'software' => null,
                     'signature' => null,
                     'protocol' => null,
                     'encoding' => null
-                ),
-                'php' => array(
+                ],
+                'php' => [
                     'version' => phpversion(),
-                    'sapi' => PHP_SAPI,
                     'expose_php' => $this->getIniValue('expose_php'),
                     'display_errors' => $this->getIniValue('display_errors')
-                ),
-                'request' => array(
+                ],
+                'request' => [
                     'timestamp' => Carbon::now('UTC')->format('Y-m-d H:i:s'),
                     'ip' => null,
                     'url' => null,
@@ -47,19 +44,17 @@ class Treblle {
                     'headers' => getallheaders(),
                     'body' => $this->maskFields($_REQUEST),
                     'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true))
-                ),
-                'response' => array(
+                ],
+                'response' => [
                     'headers' => $this->getResponseHeaders(),
                     'code' => null,
                     'size' => 0,
                     'load_time' => 0,
                     'body' => null
-                ),
-                'errors' => array(),
-                'git' => $this->getGitCommit(),
-                'meta' => null
-            )
-        );
+                ],
+                'errors' => []
+            ]
+        ];
 
     }
 
@@ -80,6 +75,7 @@ class Treblle {
         $this->payload['data']['server']['software'] = $request->server('SERVER_SOFTWARE');
         $this->payload['data']['server']['signature'] = $request->server('SERVER_SIGNATURE');
         $this->payload['data']['server']['protocol'] = $request->server('SERVER_PROTOCOL');
+        $this->payload['data']['server']['encoding'] = $request->server('HTTP_ACCEPT_ENCODING');
 
         $this->payload['data']['request']['user_agent'] = $request->server('HTTP_USER_AGENT');
         $this->payload['data']['request']['ip'] = $request->ip();
@@ -95,29 +91,30 @@ class Treblle {
             $this->payload['data']['response']['size'] = strlen($response->content());
         } else {
             array_push($this->payload['data']['errors'],
-                array(
+                [
                     'source' => 'onException',
                     'type' => 'UNHANDLED_EXCEPTION',
                     'message' => $response->exception->getMessage(),
                     'file' => $response->exception->getFile(),
                     'line' => $response->exception->getLine()
-                )
+                ]
             );
         }
 
 
         $guzzle = new Client;
         $guzzle->request('POST', 'https://rocknrolla.treblle.com', [
-            'timeout' => 5,
+            'connect_timeout' => 10,
+            'timeout' => 10,
             'verify' => false,
             'headers' => [
                 'Content-Type' => 'application/json',
                 'x-api-key' => config('treblle.api_key')
             ], 
             'body' => json_encode(
-                array(
+                [
                     'body' => $this->payload
-                )
+                ]
             )
         ]);
 
@@ -132,28 +129,13 @@ class Treblle {
         }
     }
 
-    public function getGitCommit() {
-
-        exec('git rev-list --format=%B --max-count=1 HEAD', $commit);
-
-        if(!empty($commit)) {
-            return array(
-                'commit' => trim(ltrim($commit[0], 'commit')),
-                'message' => $commit[1]
-          );  
-        } else {
-            return null;
-        }
-
-    }
-
     /**
      * Mask fields
      * @return array
      */
     public function maskFields($data) {
 
-        $fields = ['password', 'pwd',  'secret', 'password_confirmation'];
+        $fields = ['password', 'pwd',  'secret', 'password_confirmation', 'cc', 'card_number', 'ccv'];
     
         if(!is_array($data)) {
             return;
