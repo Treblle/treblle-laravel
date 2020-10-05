@@ -135,7 +135,10 @@ class Treblle {
      */
     public function maskFields($data) {
 
-        $fields = ['password', 'pwd',  'secret', 'password_confirmation', 'cc', 'card_number', 'ccv'];
+        $fields = [
+            'password', 'pwd',  'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
+            'credit_score'
+        ];
     
         if(!is_array($data)) {
             return;
@@ -143,15 +146,15 @@ class Treblle {
 
         foreach ($data as $key => $value) {
 
-            foreach ($fields as $field) {
-                
-                if(preg_match('/'.$field.'/mi', $key)) {
-                    $data[$key] = str_repeat('*', strlen($value));
-                    continue;
-                }
-
-                if(is_array($value)) {
-                    $this->maskFields($data[$key]);
+            if(is_array($value)) {
+                $this->maskFields($data[$key]);
+            } else {
+                foreach ($fields as $field) {
+                    
+                    if(preg_match('/\b'.$field.'\b/mi', $key)) {
+                        $data[$key] = str_repeat('*', strlen($value));
+                        continue;
+                    }
                 }
             }
         }
