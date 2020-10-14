@@ -12,9 +12,11 @@ class TreblleServiceProvider extends ServiceProvider {
 
     public function boot(Router $router) {
 
-        $this->publishes([
-            __DIR__.'/../config/treblle.php' => config_path('treblle.php'),
-        ], 'config');
+    	if($this->app->runningInConsole()) {
+	        $this->publishes([
+	            __DIR__.'/../config/treblle.php' => config_path('treblle.php'),
+	        ], 'config');
+    	}
 
         $router->aliasMiddleware('treblle', Treblle::class);
     }
