@@ -68,8 +68,10 @@ class Treblle {
 
     public function terminate($request, $response) {
 
-        if(in_array(config('app.env'), config('treblle.exclude'))) {
-            exit;
+        if(config('treblle.exclude')) {
+            if(in_array(config('app.env'), config('treblle.exclude'))) {
+                exit;
+            }
         }
 
         $this->payload['data']['server']['software'] = $request->server('SERVER_SOFTWARE');
