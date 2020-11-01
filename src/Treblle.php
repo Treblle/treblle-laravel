@@ -15,10 +15,11 @@ class Treblle {
         $this->payload = [
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
-            'version' => 0.6,
+            'version' => 0.7,
             'sdk' => 'laravel',
             'data' => [
                 'server' => [
+                    'ip' => null,
                     'timezone' => config('app.timezone'),
                     'os' => [
                         'name' => php_uname('s'),
@@ -74,6 +75,7 @@ class Treblle {
             }
         }
 
+        $this->payload['data']['server']['ip'] = $request->server('SERVER_ADDR');
         $this->payload['data']['server']['software'] = $request->server('SERVER_SOFTWARE');
         $this->payload['data']['server']['signature'] = $request->server('SERVER_SIGNATURE');
         $this->payload['data']['server']['protocol'] = $request->server('SERVER_PROTOCOL');
