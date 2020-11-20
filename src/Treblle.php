@@ -15,7 +15,7 @@ class Treblle {
         $this->payload = [
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
-            'version' => 0.7,
+            'version' => 0.8,
             'sdk' => 'laravel',
             'data' => [
                 'server' => [
@@ -31,7 +31,8 @@ class Treblle {
                     'protocol' => null,
                     'encoding' => null
                 ],
-                'php' => [
+                'language' => [
+                    'name' => 'php',
                     'version' => phpversion(),
                     'expose_php' => $this->getIniValue('expose_php'),
                     'display_errors' => $this->getIniValue('display_errors')
@@ -115,11 +116,7 @@ class Treblle {
                 'Content-Type' => 'application/json',
                 'x-api-key' => config('treblle.api_key')
             ], 
-            'body' => json_encode(
-                [
-                    'body' => $this->payload
-                ]
-            )
+            'body' => json_encode($this->payload)
         ]);
 
     }
