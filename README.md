@@ -1,3 +1,4 @@
+
 # Treblle for Laravel
 Treblle makes it super easy to understand what’s going on with your APIs and the apps that use them. To get started with Treblle create a FREE account on <https://treblle.com>.
 
@@ -18,7 +19,14 @@ $ composer require treblle/treblle-laravel
 ```
 
 ## Getting started
-The first thing you need to do is create a FREE account on <https://treblle.com> to get an API key and Project ID. After you registred and created your project simply add the keys to your .env configuration like so:
+ You can get started with Treblle **directly from your Artisan console**. Just type in the following command:
+ 
+```bash
+$ php artisan treblle:start
+```
+The command will guide you to a process and allow you to create an account, login to your existing account, create a new project and get all the .ENV keys you need to start using Treblle. 
+
+If you prefer the good old fashion way then you need to do is create a FREE account on <https://treblle.com> to get an API key and Project ID. After you registered and created your project simply add the keys to your .ENV configuration like so:
 
 ```shell
 TREBLLE_API_KEY=
