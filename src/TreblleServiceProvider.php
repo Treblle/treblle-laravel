@@ -5,9 +5,8 @@ namespace Treblle;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Register the Treblle middleware
- */
+use Treblle\Commands\SetupCommand;
+
 class TreblleServiceProvider extends ServiceProvider {
 
     public function boot(Router $router) {
@@ -16,6 +15,10 @@ class TreblleServiceProvider extends ServiceProvider {
 	        $this->publishes([
 	            __DIR__.'/../config/treblle.php' => config_path('treblle.php'),
 	        ], 'config');
+
+            $this->commands([
+                SetupCommand::class,
+            ]);
     	}
 
         $router->aliasMiddleware('treblle', Treblle::class);
