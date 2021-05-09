@@ -147,7 +147,6 @@ class SetupCommand extends Command {
         $project_response = json_decode($project_request->getBody());
 
         $this->info('👏 Your project is ready! Add the following lines to your .ENV file and you are done!');
-        $this->newLine();
         $this->info('TREBLLE_API_KEY='.$user->api_key);
         $this->info('TREBLLE_PROJECT_ID='.$project_response->project->api_id);
 
