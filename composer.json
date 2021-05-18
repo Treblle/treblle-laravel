@@ -4,24 +4,22 @@
     "description" : "Stay in tune with your APIs",
     "homepage": "https://treblle.com/",
     "keywords": [
-    	"treblle", 
-    	"api", 
-    	"monitoring", 
-    	"logging", 
+        "laravel",
+    	"treblle",
+    	"api",
+    	"monitoring",
     	"debuging", 
-    	"documentation", 
-    	"developer tools", 
-    	"laravel"
+    	"documentation"
     ],
+    "license": "MIT",
     "authors": [
         {
             "name": "Vedran Cindrić",
-            "email": "vedran@flip.hr",
+            "email": "vedran@treblle.com",
             "homepage": "https://treblle.com/",
             "role": "Developer"
         }
     ],
-    "license": "MIT",
     "require": {
         "php": "^7.2.5|^8.0",
         "laravel/framework": "^6.0|^7.0|^8.0",

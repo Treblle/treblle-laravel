@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) Treblle INC. <vedran@flip.hr>
+Copyright (c) Treblle LTD. <vedran@treblle.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
