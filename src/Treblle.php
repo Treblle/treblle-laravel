@@ -70,8 +70,12 @@ class Treblle {
 
     public function terminate($request, $response) {
 
-        if(config('treblle.exclude')) {
-            if(in_array(config('app.env'), config('treblle.exclude'))) {
+        if(!config('treblle.api_key') && config('treblle.project_id')) {
+           exit;
+        }
+
+        if(config('treblle.ignored_enviroments')) {
+            if(in_array(config('app.env'),  explode(',', config('treblle.ignored_enviroments')))) {
                 exit;
             }
         }
@@ -109,8 +113,8 @@ class Treblle {
 
         $guzzle = new Client;
         $guzzle->request('POST', 'https://rocknrolla.treblle.com', [
-            'connect_timeout' => 10,
-            'timeout' => 10,
+            'connect_timeout' => 3,
+            'timeout' => 3,
             'verify' => false,
             'headers' => [
                 'Content-Type' => 'application/json',
@@ -118,6 +122,8 @@ class Treblle {
             ], 
             'body' => json_encode($this->payload)
         ]);
+
+        return;
 
     }
 
@@ -136,13 +142,17 @@ class Treblle {
      */
     public function maskFields($data) {
 
+        if(!is_array($data)) {
+            return;
+        }
+
         $fields = [
             'password', 'pwd',  'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
             'credit_score'
         ];
-    
-        if(!is_array($data)) {
-            return;
+
+        if(config('treblle.masked_fields')) {
+            $fields = array_unique(array_merge($fields, explode(',', config('treblle.masked_fields'))));
         }
 
         foreach ($data as $key => $value) {
@@ -151,7 +161,6 @@ class Treblle {
                 $this->maskFields($data[$key]);
             } else {
                 foreach ($fields as $field) {
-                    
                     if(preg_match('/\b'.$field.'\b/mi', $key)) {
                         $data[$key] = str_repeat('*', strlen($value));
                         continue;
