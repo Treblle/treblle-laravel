@@ -3,6 +3,8 @@
 namespace Treblle;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ConnectException;
 use Carbon\Carbon;
 use Closure;
 
@@ -112,16 +114,22 @@ class Treblle {
 
 
         $guzzle = new Client;
-        $guzzle->request('POST', 'https://rocknrolla.treblle.com', [
-            'connect_timeout' => 3,
-            'timeout' => 3,
-            'verify' => false,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'x-api-key' => config('treblle.api_key')
-            ], 
-            'body' => json_encode($this->payload)
-        ]);
+
+        try {
+            $guzzle->request('POST', 'https://rocknrolla.treblle.com', [
+                'connect_timeout' => 1,
+                'timeout' => 1,
+                'verify' => false,
+                'http_errors' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'x-api-key' => config('treblle.api_key')
+                ], 
+                'body' => json_encode($this->payload)
+            ]);
+        } catch (RequestException $e) {
+        } catch (ConnectException $e) {
+        }
 
         return;
 
