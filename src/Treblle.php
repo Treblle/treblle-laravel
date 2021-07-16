@@ -71,12 +71,12 @@ class Treblle {
     public function terminate($request, $response) {
 
         if(!config('treblle.api_key') && config('treblle.project_id')) {
-           exit;
+           return;
         }
 
         if(config('treblle.ignored_enviroments')) {
             if(in_array(config('app.env'),  explode(',', config('treblle.ignored_enviroments')))) {
-                exit;
+                return;
             }
         }
 
