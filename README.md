@@ -88,6 +88,8 @@ By default Treblle will ignore requests made on the **local** environment. If yo
 TREBLLE_MASKED_FIELDS=email,user_address,phone_number
 ```
 Treblle **masks sensitive information** from both the request and response data **before it even leaves your server**. The following parameters are automatically masked: password, pwd, secret, password_confirmation, cc, card_number, ccv, ssn, credit_score. You can add your own custom list by simply defining them as a comma separated list in the variable above.
+
+
 ## Support
 If you have problems of any kind feel free to reach out via <https://treblle.com> or email vedran@treblle.com and we'll do our best to help you out.
 
