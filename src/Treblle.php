@@ -67,7 +67,13 @@ class Treblle {
         
         $response = $next($request);
 
-        if (!config('treblle.use_fastcgi')) {
+        /**
+         * The terminate method is automatically called when the server supports the FastCGI protocol. 
+         * In the case the server does not support it, we fall back to manually calling the terminate method.
+         * 
+         * @see https://laravel.com/docs/8.x/middleware#terminable-middleware
+         */
+        if (!str_contains(php_sapi_name(), 'fcgi')) {
             $this->terminate($request, $response);
         }
 
