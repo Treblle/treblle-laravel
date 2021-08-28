@@ -66,7 +66,11 @@ class Treblle {
     public function handle($request, Closure $next) {
         
         $response = $next($request);
-        
+
+        if (!config('treblle.use_fastcgi')) {
+            $this->terminate($request, $response);
+        }
+
         return $response;
     }
 
