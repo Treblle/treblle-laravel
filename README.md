@@ -82,12 +82,12 @@ You can configure Treblle using just .ENV variables:
 ```shell
 TREBLLE_IGNORED_ENV=local,dev,test
 ```
-By default Treblle will ignore requests made on the **local** environment. If you want to change that you can define your own ignored environments, by using a comma separated list, or allow all environments by leaving the value empty.
+Define which enviroments Treblle should NOT LOG at all. By default Treblle will log all enviroments, including local. If you want to change that you can define your own ignored environments, by using a comma separated list, or allow all environments by leaving the value empty.
 
 ```shell
-TREBLLE_MASKED_FIELDS=email,user_address,phone_number
+TREBLLE_MASKED_FIELDS=email,user_address,phone_number,authorization
 ```
-Treblle **masks sensitive information** from both the request and response data **before it even leaves your server**. The following parameters are automatically masked: password, pwd, secret, password_confirmation, cc, card_number, ccv, ssn, credit_score. You can add your own custom list by simply defining them as a comma separated list in the variable above.
+Treblle **masks sensitive information** from both the request and response data as well as the request headers data **before it even leaves your server**. The following parameters are automatically masked: password, pwd, secret, password_confirmation, cc, card_number, ccv, ssn, credit_score. You can add your own custom list by simply defining them as a comma separated list in the variable above.
 
 
 ## Support

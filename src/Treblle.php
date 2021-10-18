@@ -17,7 +17,7 @@ class Treblle {
         $this->payload = [
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
-            'version' => 0.8,
+            'version' => 0.9,
             'sdk' => 'laravel',
             'data' => [
                 'server' => [
@@ -45,7 +45,7 @@ class Treblle {
                     'url' => null,
                     'user_agent' => null,
                     'method' => null,
-                    'headers' => getallheaders(),
+                    'headers' => $this->maskFields(getallheaders()),
                     'body' => $this->maskFields($_REQUEST),
                     'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true))
                 ],
@@ -166,7 +166,7 @@ class Treblle {
 
         $fields = [
             'password', 'pwd',  'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
-            'credit_score'
+            'credit_score', 'api_key'
         ];
 
         if(config('treblle.masked_fields')) {
@@ -180,7 +180,19 @@ class Treblle {
             } else {
                 foreach ($fields as $field) {
                     if(preg_match('/\b'.$field.'\b/mi', $key)) {
-                        $data[$key] = str_repeat('*', strlen($value));
+
+                        if(strtolower($field) == 'authorization') {
+                            $auth_string_parts = explode(' ', $value);
+
+                            if(count($auth_string_parts) > 1) {
+                                if(in_array(strtolower($auth_string_parts[0]), ['basic', 'bearer', 'negotiate'])) {
+                                    $data[$key] = $auth_string_parts[0].' '.str_repeat('*', strlen($auth_string_parts[1]));
+                                }
+                            }
+                        } else {
+                            $data[$key] = str_repeat('*', strlen($value));
+                        }
+
                         continue;
                     }
                 }
