@@ -11,7 +11,7 @@ use Treblle\Middlewares\TreblleMiddleware;
 
 class TreblleServiceProvider extends ServiceProvider
 {
-    public function boot(Router $router)
+    public function boot(Router $router): void
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -26,7 +26,7 @@ class TreblleServiceProvider extends ServiceProvider
         $router->aliasMiddleware('treblle', TreblleMiddleware::class);
     }
 
-    public function register()
+    public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/treblle.php', 'treblle');
     }
