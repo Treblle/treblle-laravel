@@ -35,15 +35,15 @@ class SetupCommand extends Command
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->apiKey,
-                    'User-Agent' => 'TreblleSetupCommand/0.1'
+                    'User-Agent' => 'TreblleSetupCommand/0.1',
                 ],
                 'form_params' => [
-                    'email' => $email
-                ]
+                    'email' => $email,
+                ],
             ]
         );
 
-        if ($lookupRequest->getStatusCode() != 200) {
+        if ($lookupRequest->getStatusCode() !== 200) {
             $this->error('We are having some problems at the moment. Please try again later!');
 
             return;
@@ -51,7 +51,7 @@ class SetupCommand extends Command
 
         $lookup_response = json_decode($lookupRequest->getBody());
 
-        if (!is_null($lookup_response->user)) {
+        if (! is_null($lookup_response->user)) {
             $this->info('Hello ' . $lookup_response->user->name . ', it looks like you already have an TreblleMiddleware account - let\'s log you in!');
             $password = $this->secret('🔒 What\'s your password?');
 
@@ -65,16 +65,16 @@ class SetupCommand extends Command
                     'verify' => false,
                     'headers' => [
                         'Authorization' => 'Bearer ' . $this->apiKey,
-                        'User-Agent' => 'TreblleSetupCommand/0.1'
+                        'User-Agent' => 'TreblleSetupCommand/0.1',
                     ],
                     'form_params' => [
                         'email' => $email,
-                        'password' => $password
-                    ]
+                        'password' => $password,
+                    ],
                 ]
             );
 
-            if ($login_request->getStatusCode() != 200) {
+            if ($login_request->getStatusCode() !== 200) {
                 $this->error('Your login data is incorrent! Please try again and make sure you type in the correct data!');
 
                 return;
@@ -99,17 +99,17 @@ class SetupCommand extends Command
                     'verify' => false,
                     'headers' => [
                         'Authorization' => 'Bearer ' . $this->apiKey,
-                        'User-Agent' => 'TreblleSetupCommand/0.1'
+                        'User-Agent' => 'TreblleSetupCommand/0.1',
                     ],
                     'form_params' => [
                         'email' => $email,
                         'password' => $password,
-                        'name' => $name
-                    ]
+                        'name' => $name,
+                    ],
                 ]
             );
 
-            if ($register_request->getStatusCode() != 200) {
+            if ($register_request->getStatusCode() !== 200) {
                 $this->error('We are having some problems at the moment. Please try again later!');
 
                 return;
@@ -133,16 +133,16 @@ class SetupCommand extends Command
                 'verify' => false,
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->apiKey,
-                    'User-Agent' => 'TreblleSetupCommand/0.1'
+                    'User-Agent' => 'TreblleSetupCommand/0.1',
                 ],
                 'form_params' => [
                     'name' => $project_name,
-                    'user' => $user->uuid
-                ]
+                    'user' => $user->uuid,
+                ],
             ]
         );
 
-        if ($project_request->getStatusCode() != 200) {
+        if ($project_request->getStatusCode() !== 200) {
             $this->error('We are having some problems at the moment. Please try again later!');
 
             return;

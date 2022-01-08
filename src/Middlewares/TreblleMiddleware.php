@@ -7,8 +7,8 @@ namespace Treblle\Middlewares;
 use Closure;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 class TreblleMiddleware
 {
@@ -28,18 +28,18 @@ class TreblleMiddleware
                     'os' => [
                         'name' => php_uname('s'),
                         'release' => php_uname('r'),
-                        'architecture' => php_uname('m')
+                        'architecture' => php_uname('m'),
                     ],
                     'software' => null,
                     'signature' => null,
                     'protocol' => null,
-                    'encoding' => null
+                    'encoding' => null,
                 ],
                 'language' => [
                     'name' => 'php',
                     'version' => phpversion(),
                     'expose_php' => $this->getPHPConfigValue('expose_php'),
-                    'display_errors' => $this->getPHPConfigValue('display_errors')
+                    'display_errors' => $this->getPHPConfigValue('display_errors'),
                 ],
                 'request' => [
                     'timestamp' => Carbon::now('UTC')->format('Y-m-d H:i:s'),
@@ -49,17 +49,17 @@ class TreblleMiddleware
                     'method' => null,
                     'headers' => $this->maskFields(getallheaders()),
                     'body' => $this->maskFields($_REQUEST),
-                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true))
+                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true)),
                 ],
                 'response' => [
                     'headers' => $this->getResponseHeaders(),
                     'code' => null,
                     'size' => 0,
                     'load_time' => 0,
-                    'body' => null
+                    'body' => null,
                 ],
-                'errors' => []
-            ]
+                'errors' => [],
+            ],
         ];
     }
 
@@ -76,7 +76,7 @@ class TreblleMiddleware
          *
          * @see https://laravel.com/docs/middleware#terminable-middleware
          */
-        if (!str_contains(php_sapi_name(), 'fcgi')) {
+        if (! str_contains(php_sapi_name(), 'fcgi')) {
             $this->terminate($request, $response);
         }
 
@@ -88,7 +88,7 @@ class TreblleMiddleware
      */
     public function terminate($request, $response)
     {
-        if (!config('treblle.api_key') && config('treblle.project_id')) {
+        if (! config('treblle.api_key') && config('treblle.project_id')) {
             return;
         }
 
@@ -123,7 +123,7 @@ class TreblleMiddleware
                     'type' => 'UNHANDLED_EXCEPTION',
                     'message' => $response->exception->getMessage(),
                     'file' => $response->exception->getFile(),
-                    'line' => $response->exception->getLine()
+                    'line' => $response->exception->getLine(),
                 ]
             );
         }
@@ -137,9 +137,9 @@ class TreblleMiddleware
                     'http_errors' => false,
                     'headers' => [
                         'Content-Type' => 'application/json',
-                        'x-api-key' => config('treblle.api_key')
+                        'x-api-key' => config('treblle.api_key'),
                     ],
-                    'body' => json_encode($this->payload)
+                    'body' => json_encode($this->payload),
                 ]);
         } catch (RequestException | ConnectException $e) {
         }
@@ -156,13 +156,13 @@ class TreblleMiddleware
 
     public function maskFields($data): array
     {
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             return [];
         }
 
         $fields = [
             'password', 'pwd', 'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
-            'credit_score', 'api_key'
+            'credit_score', 'api_key',
         ];
 
         if (config('treblle.masked_fields')) {
@@ -175,7 +175,7 @@ class TreblleMiddleware
             } else {
                 foreach ($fields as $field) {
                     if (preg_match('/\b' . $field . '\b/mi', $key)) {
-                        if (strtolower($field) == 'authorization') {
+                        if (strtolower($field) === 'authorization') {
                             $auth_string_parts = explode(' ', $value);
 
                             if (count($auth_string_parts) > 1) {
@@ -210,7 +210,7 @@ class TreblleMiddleware
         $data = [];
         $headers = headers_list();
 
-        if (is_array($headers) && !empty($headers)) {
+        if (is_array($headers) && ! empty($headers)) {
             foreach ($headers as $header) {
                 $header = explode(':', $header);
                 $data[array_shift($header)] = trim(implode(':', $header));
