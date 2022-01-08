@@ -11,7 +11,7 @@ class SetupCommand extends Command
 {
     // COMMAND SETUP
     protected $signature = 'treblle:start';
-    protected $description = 'Get up an running with TreblleMiddleware directly from the your console';
+    protected $description = 'Get up an running with Treblle directly from the your console';
 
     // API SETUP
     protected $apiKey = 'Y8fNzfhRab9FMeHXXbxT6Q0qqfmmTBKq';
@@ -22,7 +22,7 @@ class SetupCommand extends Command
      */
     public function handle()
     {
-        $this->info('🙏 Thank you for installing TreblleMiddleware for Laravel! Let\'s get you setup!');
+        $this->info('🙏 Thank you for installing Treblle for Laravel! Let\'s get you setup!');
         $email = $this->ask('📧 What\'s your email address?');
 
         $lookupRequest = (new GuzzleClient())->request(
@@ -51,8 +51,8 @@ class SetupCommand extends Command
 
         $lookup_response = json_decode($lookupRequest->getBody());
 
-        if (! is_null($lookup_response->user)) {
-            $this->info('Hello ' . $lookup_response->user->name . ', it looks like you already have an TreblleMiddleware account - let\'s log you in!');
+        if (!is_null($lookup_response->user)) {
+            $this->info('Hello ' . $lookup_response->user->name . ', it looks like you already have an Treblle account - let\'s log you in!');
             $password = $this->secret('🔒 What\'s your password?');
 
             $login_request = (new GuzzleClient())->request(
@@ -84,7 +84,7 @@ class SetupCommand extends Command
 
             $user = $login_response->user;
         } else {
-            $this->info('Looks like you don\'t have a TreblleMiddleware account yet. Let\'s create one quickly...');
+            $this->info('Looks like you don\'t have a Treblle account yet. Let\'s create one quickly...');
 
             $name = $this->ask('👨‍💻 What\'s your name?');
             $password = $this->secret('🔒 Enter a new password for your account');
@@ -120,7 +120,7 @@ class SetupCommand extends Command
             $user = $register_response->user;
         }
 
-        $this->info('🎉 Great. You\'r in. Now let\'s create a project on TreblleMiddleware for our API.');
+        $this->info('🎉 Great. You\'r in. Now let\'s create a project on Treblle for our API.');
         $project_name = $this->ask('What\'s the name of your API project?');
 
         $project_request = (new GuzzleClient())->request(

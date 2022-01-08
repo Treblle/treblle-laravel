@@ -2,17 +2,17 @@
 
 return [
     /*
-     * A valid TreblleMiddleware API key. You can get started for FREE by visiting https://treblle.com/
+     * A valid Treblle API key. You can get started for FREE by visiting https://treblle.com/
      */
     'api_key' => env('TREBLLE_API_KEY'),
 
     /*
-     * A valid TreblleMiddleware project ID. Create your first project on https://treblle.com/
+     * A valid Treblle project ID. Create your first project on https://treblle.com/
      */
     'project_id' => env('TREBLLE_PROJECT_ID'),
 
     /*
-     * Define which environments should TreblleMiddleware ignore and not monitor
+     * Define which environments should Treblle ignore and not monitor
      */
     'ignored_environments' => env('TREBLLE_IGNORED_ENV', 'local,dev,test'),
 
