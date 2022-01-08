@@ -6,15 +6,16 @@ namespace Treblle\Commands;
 
 use Illuminate\Console\Command;
 use GuzzleHttp\Client as GuzzleClient;
+use Symfony\Component\HttpFoundation\Response;
 
 class SetupCommand extends Command
 {
-    // COMMAND SETUP
     protected $signature = 'treblle:start';
+
     protected $description = 'Get up an running with Treblle directly from the your console';
 
-    // API SETUP
     protected $apiKey = 'Y8fNzfhRab9FMeHXXbxT6Q0qqfmmTBKq';
+
     protected $baseUrl = 'https://treblle.com/api/v1/';
 
     /**
@@ -25,34 +26,35 @@ class SetupCommand extends Command
         $this->info('🙏 Thank you for installing Treblle for Laravel! Let\'s get you setup!');
         $email = $this->ask('📧 What\'s your email address?');
 
-        $lookupRequest = (new GuzzleClient())->request(
-            'POST',
-            $this->baseUrl . 'auth/lookup',
-            [
-                'http_errors' => false,
-                'connect_timeout' => 3,
-                'timeout' => 3,
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->apiKey,
-                    'User-Agent' => 'TreblleSetupCommand/0.1',
-                ],
-                'form_params' => [
-                    'email' => $email,
-                ],
-            ]
-        );
+        $lookupRequest = (new GuzzleClient())
+            ->request(
+                'POST',
+                $this->baseUrl . 'auth/lookup',
+                [
+                    'http_errors' => false,
+                    'connect_timeout' => 3,
+                    'timeout' => 3,
+                    'verify' => false,
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->apiKey,
+                        'User-Agent' => 'TreblleSetupCommand/0.1',
+                    ],
+                    'form_params' => [
+                        'email' => $email,
+                    ],
+                ]
+            );
 
-        if ($lookupRequest->getStatusCode() !== 200) {
+        if ($lookupRequest->getStatusCode() !== Response::HTTP_OK) {
             $this->error('We are having some problems at the moment. Please try again later!');
 
             return;
         }
 
-        $lookup_response = json_decode($lookupRequest->getBody());
+        $lookupResponse = json_decode($lookupRequest->getBody());
 
-        if (!is_null($lookup_response->user)) {
-            $this->info('Hello ' . $lookup_response->user->name . ', it looks like you already have an Treblle account - let\'s log you in!');
+        if ($lookupResponse->user !== null) {
+            $this->info('Hello ' . $lookupResponse->user->name . ', it looks like you already have an Treblle account - let\'s log you in!');
             $password = $this->secret('🔒 What\'s your password?');
 
             $login_request = (new GuzzleClient())->request(
@@ -74,7 +76,7 @@ class SetupCommand extends Command
                 ]
             );
 
-            if ($login_request->getStatusCode() !== 200) {
+            if ($login_request->getStatusCode() !== Response::HTTP_OK) {
                 $this->error('Your login data is incorrent! Please try again and make sure you type in the correct data!');
 
                 return;
@@ -109,7 +111,7 @@ class SetupCommand extends Command
                 ]
             );
 
-            if ($register_request->getStatusCode() !== 200) {
+            if ($register_request->getStatusCode() !== Response::HTTP_OK) {
                 $this->error('We are having some problems at the moment. Please try again later!');
 
                 return;
@@ -121,9 +123,10 @@ class SetupCommand extends Command
         }
 
         $this->info('🎉 Great. You\'r in. Now let\'s create a project on Treblle for our API.');
-        $project_name = $this->ask('What\'s the name of your API project?');
 
-        $project_request = (new GuzzleClient())->request(
+        $projectName = $this->ask('What\'s the name of your API project?');
+
+        $projectRequest = (new GuzzleClient())->request(
             'POST',
             $this->baseUrl . 'projects/store',
             [
@@ -136,22 +139,22 @@ class SetupCommand extends Command
                     'User-Agent' => 'TreblleSetupCommand/0.1',
                 ],
                 'form_params' => [
-                    'name' => $project_name,
+                    'name' => $projectName,
                     'user' => $user->uuid,
                 ],
             ]
         );
 
-        if ($project_request->getStatusCode() !== 200) {
+        if ($projectRequest->getStatusCode() !== Response::HTTP_OK) {
             $this->error('We are having some problems at the moment. Please try again later!');
 
             return;
         }
 
-        $project_response = json_decode($project_request->getBody());
+        $projectResponse = json_decode($projectRequest->getBody());
 
         $this->info('👏 Your project is ready! Add the following lines to your .ENV file and you are done!');
         $this->info('TREBLLE_API_KEY=' . $user->api_key);
-        $this->info('TREBLLE_PROJECT_ID=' . $project_response->project->api_id);
+        $this->info('TREBLLE_PROJECT_ID=' . $projectResponse->project->api_id);
     }
 }
