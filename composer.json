@@ -21,25 +21,17 @@
     }
   ],
   "require": {
+    "ext-json": "*",
     "php": "^7.2.5|^8.0",
     "laravel/framework": "^6.0|^7.0|^8.0",
-    "nesbot/carbon": "^2.0",
-    "guzzlehttp/guzzle": "^5.0|^6.0|^7.0",
-    "ext-json": "*"
+    "guzzlehttp/guzzle": "^5.0|^6.0|^7.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^5.3",
-    "phpunit/phpunit": "^9.0",
     "friendsofphp/php-cs-fixer": "^3.0"
   },
   "autoload": {
     "psr-4": {
       "Treblle\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests/"
     }
   },
   "extra": {
