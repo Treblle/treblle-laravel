@@ -10,7 +10,6 @@ use Closure;
 
 class Treblle
 {
-
     protected $payload;
 
     public function __construct()
@@ -109,7 +108,8 @@ class Treblle
             $this->payload['data']['response']['body'] = json_decode($response->content());
             $this->payload['data']['response']['size'] = strlen($response->content());
         } else {
-            array_push($this->payload['data']['errors'],
+            array_push(
+                $this->payload['data']['errors'],
                 [
                     'source' => 'onException',
                     'type' => 'UNHANDLED_EXCEPTION',
@@ -120,7 +120,7 @@ class Treblle
             );
         }
 
-        $guzzle = new Client;
+        $guzzle = new Client();
 
         try {
             $guzzle->request('POST', 'https://rocknrolla.treblle.com', [

@@ -11,7 +11,6 @@ use Treblle\Commands\SetupCommand;
 
 class TreblleServiceProvider extends ServiceProvider
 {
-
     public function boot(Router $router)
     {
         if ($this->app->runningInConsole()) {

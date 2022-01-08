@@ -25,7 +25,7 @@ class SetupCommand extends Command
         $this->info('🙏 Thank you for installing Treblle for Laravel! Let\'s get you setup!');
         $email = $this->ask('📧 What\'s your email address?');
 
-        $lookupRequest = (new GuzzleClient)->request(
+        $lookupRequest = (new GuzzleClient())->request(
             'POST',
             $this->baseUrl . 'auth/lookup',
             [
@@ -55,7 +55,7 @@ class SetupCommand extends Command
             $this->info('Hello ' . $lookup_response->user->name . ', it looks like you already have an Treblle account - let\'s log you in!');
             $password = $this->secret('🔒 What\'s your password?');
 
-            $login_request = (new GuzzleClient)->request(
+            $login_request = (new GuzzleClient())->request(
                 'POST',
                 $this->baseUrl . 'auth/login',
                 [
@@ -89,7 +89,7 @@ class SetupCommand extends Command
             $name = $this->ask('👨‍💻 What\'s your name?');
             $password = $this->secret('🔒 Enter a new password for your account');
 
-            $register_request = (new GuzzleClient)->request(
+            $register_request = (new GuzzleClient())->request(
                 'POST',
                 $this->baseUrl . 'auth/register',
                 [
@@ -123,7 +123,7 @@ class SetupCommand extends Command
         $this->info('🎉 Great. You\'r in. Now let\'s create a project on Treblle for our API.');
         $project_name = $this->ask('What\'s the name of your API project?');
 
-        $project_request = (new GuzzleClient)->request(
+        $project_request = (new GuzzleClient())->request(
             'POST',
             $this->baseUrl . 'projects/store',
             [
