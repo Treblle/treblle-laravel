@@ -14,9 +14,8 @@ class SetupCommand extends Command
 
     protected $description = 'Get up an running with Treblle directly from the your console';
 
-    protected $apiKey = 'Y8fNzfhRab9FMeHXXbxT6Q0qqfmmTBKq';
-
-    protected $baseUrl = 'https://treblle.com/api/v1/';
+    private const BASE_URL = 'https://treblle.com/api/v1/';
+    private const API_KEY = 'Y8fNzfhRab9FMeHXXbxT6Q0qqfmmTBKq';
 
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
@@ -30,14 +29,14 @@ class SetupCommand extends Command
 
         $lookupRequest = $guzzleClient->request(
             'POST',
-            $this->baseUrl . 'auth/lookup',
+            self::BASE_URL . 'auth/lookup',
             [
                 'http_errors' => false,
                 'connect_timeout' => 3,
                 'timeout' => 3,
                 'verify' => false,
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Authorization' => 'Bearer ' . self::API_KEY,
                     'User-Agent' => 'TreblleSetupCommand/0.1',
                 ],
                 'form_params' => [
@@ -60,14 +59,14 @@ class SetupCommand extends Command
 
             $login_request = $guzzleClient->request(
                 'POST',
-                $this->baseUrl . 'auth/login',
+                self::BASE_URL . 'auth/login',
                 [
                     'http_errors' => false,
                     'connect_timeout' => 3,
                     'timeout' => 3,
                     'verify' => false,
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->apiKey,
+                        'Authorization' => 'Bearer ' . self::API_KEY,
                         'User-Agent' => 'TreblleSetupCommand/0.1',
                     ],
                     'form_params' => [
@@ -94,14 +93,14 @@ class SetupCommand extends Command
 
             $registerRequest = $guzzleClient->request(
                 'POST',
-                $this->baseUrl . 'auth/register',
+                self::BASE_URL . 'auth/register',
                 [
                     'http_errors' => false,
                     'connect_timeout' => 3,
                     'timeout' => 3,
                     'verify' => false,
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->apiKey,
+                        'Authorization' => 'Bearer ' . self::API_KEY,
                         'User-Agent' => 'TreblleSetupCommand/0.1',
                     ],
                     'form_params' => [
@@ -129,14 +128,14 @@ class SetupCommand extends Command
 
         $projectRequest = $guzzleClient->request(
             'POST',
-            $this->baseUrl . 'projects/store',
+            self::BASE_URL . 'projects/store',
             [
                 'http_errors' => false,
                 'connect_timeout' => 3,
                 'timeout' => 3,
                 'verify' => false,
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Authorization' => 'Bearer ' . self::API_KEY,
                     'User-Agent' => 'TreblleSetupCommand/0.1',
                 ],
                 'form_params' => [
