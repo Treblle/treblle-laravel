@@ -16,7 +16,7 @@ abstract class TestCase extends OrchestraTestCase
         $this->withoutExceptionHandling();
     }
 
-    protected function getPackageProviders(): array
+    protected function getPackageProviders($app): array
     {
         return [
             TreblleServiceProvider::class,
