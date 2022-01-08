@@ -1,14 +1,16 @@
 <?php
 
-namespace Treblle;
+declare(strict_types=1);
 
+namespace Treblle\Middlewares;
+
+use Closure;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ConnectException;
-use Carbon\Carbon;
-use Closure;
 
-class Treblle
+class TreblleMiddleware
 {
     protected $payload;
 
@@ -36,8 +38,8 @@ class Treblle
                 'language' => [
                     'name' => 'php',
                     'version' => phpversion(),
-                    'expose_php' => $this->getIniValue('expose_php'),
-                    'display_errors' => $this->getIniValue('display_errors')
+                    'expose_php' => $this->getPHPConfigValue('expose_php'),
+                    'display_errors' => $this->getPHPConfigValue('display_errors')
                 ],
                 'request' => [
                     'timestamp' => Carbon::now('UTC')->format('Y-m-d H:i:s'),
@@ -61,6 +63,9 @@ class Treblle
         ];
     }
 
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function handle($request, Closure $next)
     {
         $response = $next($request);
@@ -78,6 +83,9 @@ class Treblle
         return $response;
     }
 
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function terminate($request, $response)
     {
         if (!config('treblle.api_key') && config('treblle.project_id')) {
@@ -120,42 +128,36 @@ class Treblle
             );
         }
 
-        $guzzle = new Client();
-
         try {
-            $guzzle->request('POST', 'https://rocknrolla.treblle.com', [
-                'connect_timeout' => 1,
-                'timeout' => 1,
-                'verify' => false,
-                'http_errors' => false,
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'x-api-key' => config('treblle.api_key')
-                ],
-                'body' => json_encode($this->payload)
-            ]);
+            (new Client())
+                ->request('POST', 'https://rocknrolla.treblle.com', [
+                    'connect_timeout' => 1,
+                    'timeout' => 1,
+                    'verify' => false,
+                    'http_errors' => false,
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'x-api-key' => config('treblle.api_key')
+                    ],
+                    'body' => json_encode($this->payload)
+                ]);
         } catch (RequestException | ConnectException $e) {
         }
     }
 
-    public function getLoadTime()
+    public function getLoadTime(): float
     {
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
             return (float)microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
-        } else {
-            return (float)0.0000;
         }
+
+        return 0.0000;
     }
 
-    /**
-     * Mask fields
-     *
-     * @return array
-     */
-    public function maskFields($data)
+    public function maskFields($data): array
     {
         if (!is_array($data)) {
-            return;
+            return [];
         }
 
         $fields = [
@@ -169,7 +171,7 @@ class Treblle
 
         foreach ($data as $key => $value) {
             if (is_array($value)) {
-                $this->maskFields($data[$key]);
+                $this->maskFields($value);
             } else {
                 foreach ($fields as $field) {
                     if (preg_match('/\b' . $field . '\b/mi', $key)) {
@@ -192,30 +194,18 @@ class Treblle
         return $data;
     }
 
-    /**
-     * Get PHP configuration variables
-     * return @string
-     */
-    public function getIniValue($variable)
+    public function getPHPConfigValue($variable): string
     {
-        $bool_value = filter_var(ini_get($variable), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        $isBooleanValue = filter_var(ini_get($variable), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
-        if (is_bool($bool_value)) {
-            if (ini_get($variable)) {
-                return 'On';
-            } else {
-                return 'Off';
-            }
-        } else {
-            return ini_get($variable);
+        if (is_bool($isBooleanValue)) {
+            return ini_get($variable) ? 'On' : 'Off';
         }
+
+        return ini_get($variable);
     }
 
-    /**
-     * Get response headers
-     * return @array
-     */
-    public function getResponseHeaders()
+    public function getResponseHeaders(): array
     {
         $data = [];
         $headers = headers_list();
@@ -225,10 +215,6 @@ class Treblle
                 $header = explode(':', $header);
                 $data[array_shift($header)] = trim(implode(':', $header));
             }
-        }
-
-        if (empty($data)) {
-            return null;
         }
 
         return $data;

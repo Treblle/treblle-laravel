@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Treblle;
 
 use Illuminate\Routing\Router;
-use Illuminate\Support\ServiceProvider;
-
 use Treblle\Commands\SetupCommand;
+use Illuminate\Support\ServiceProvider;
+use Treblle\Middlewares\TreblleMiddleware;
 
 class TreblleServiceProvider extends ServiceProvider
 {
@@ -23,7 +23,7 @@ class TreblleServiceProvider extends ServiceProvider
             ]);
         }
 
-        $router->aliasMiddleware('treblle', Treblle::class);
+        $router->aliasMiddleware('treblle', TreblleMiddleware::class);
     }
 
     public function register()
