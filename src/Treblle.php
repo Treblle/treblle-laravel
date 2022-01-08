@@ -8,12 +8,13 @@ use GuzzleHttp\Exception\ConnectException;
 use Carbon\Carbon;
 use Closure;
 
-class Treblle {
+class Treblle
+{
 
     protected $payload;
 
-    public function __construct() {
-
+    public function __construct()
+    {
         $this->payload = [
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
@@ -59,19 +60,17 @@ class Treblle {
                 'errors' => []
             ]
         ];
-
     }
 
-
-    public function handle($request, Closure $next) {
-        
+    public function handle($request, Closure $next)
+    {
         $response = $next($request);
 
         /**
-         * The terminate method is automatically called when the server supports the FastCGI protocol. 
+         * The terminate method is automatically called when the server supports the FastCGI protocol.
          * In the case the server does not support it, we fall back to manually calling the terminate method.
-         * 
-         * @see https://laravel.com/docs/8.x/middleware#terminable-middleware
+         *
+         * @see https://laravel.com/docs/middleware#terminable-middleware
          */
         if (!str_contains(php_sapi_name(), 'fcgi')) {
             $this->terminate($request, $response);
@@ -80,14 +79,14 @@ class Treblle {
         return $response;
     }
 
-    public function terminate($request, $response) {
-
-        if(!config('treblle.api_key') && config('treblle.project_id')) {
-           return;
+    public function terminate($request, $response)
+    {
+        if (!config('treblle.api_key') && config('treblle.project_id')) {
+            return;
         }
 
-        if(config('treblle.ignored_enviroments')) {
-            if(in_array(config('app.env'),  explode(',', config('treblle.ignored_enviroments')))) {
+        if (config('treblle.ignored_environments')) {
+            if (in_array(config('app.env'), explode(',', config('treblle.ignored_environments')))) {
                 return;
             }
         }
@@ -106,8 +105,7 @@ class Treblle {
         $this->payload['data']['response']['load_time'] = $this->getLoadTime();
         $this->payload['data']['response']['code'] = $response->status();
 
-        
-        if(empty($response->exception)) {
+        if (empty($response->exception)) {
             $this->payload['data']['response']['body'] = json_decode($response->content());
             $this->payload['data']['response']['size'] = strlen($response->content());
         } else {
@@ -122,7 +120,6 @@ class Treblle {
             );
         }
 
-
         $guzzle = new Client;
 
         try {
@@ -134,66 +131,59 @@ class Treblle {
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'x-api-key' => config('treblle.api_key')
-                ], 
+                ],
                 'body' => json_encode($this->payload)
             ]);
-        } catch (RequestException $e) {
-        } catch (ConnectException $e) {
+        } catch (RequestException | ConnectException $e) {
         }
-
-        return;
-
     }
 
-
-    public function getLoadTime() {
-        if(isset($_SERVER['REQUEST_TIME_FLOAT'])) {
-            return (float) microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+    public function getLoadTime()
+    {
+        if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
+            return (float)microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
         } else {
-            return (float) 0.0000;
+            return (float)0.0000;
         }
     }
 
     /**
      * Mask fields
+     *
      * @return array
      */
-    public function maskFields($data) {
-
-        if(!is_array($data)) {
+    public function maskFields($data)
+    {
+        if (!is_array($data)) {
             return;
         }
 
         $fields = [
-            'password', 'pwd',  'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
+            'password', 'pwd', 'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
             'credit_score', 'api_key'
         ];
 
-        if(config('treblle.masked_fields')) {
+        if (config('treblle.masked_fields')) {
             $fields = array_unique(array_merge($fields, explode(',', config('treblle.masked_fields'))));
         }
 
         foreach ($data as $key => $value) {
-
-            if(is_array($value)) {
+            if (is_array($value)) {
                 $this->maskFields($data[$key]);
             } else {
                 foreach ($fields as $field) {
-                    if(preg_match('/\b'.$field.'\b/mi', $key)) {
-
-                        if(strtolower($field) == 'authorization') {
+                    if (preg_match('/\b' . $field . '\b/mi', $key)) {
+                        if (strtolower($field) == 'authorization') {
                             $auth_string_parts = explode(' ', $value);
 
-                            if(count($auth_string_parts) > 1) {
-                                if(in_array(strtolower($auth_string_parts[0]), ['basic', 'bearer', 'negotiate'])) {
-                                    $data[$key] = $auth_string_parts[0].' '.str_repeat('*', strlen($auth_string_parts[1]));
+                            if (count($auth_string_parts) > 1) {
+                                if (in_array(strtolower($auth_string_parts[0]), ['basic', 'bearer', 'negotiate'])) {
+                                    $data[$key] = $auth_string_parts[0] . ' ' . str_repeat('*', strlen($auth_string_parts[1]));
                                 }
                             }
                         } else {
                             $data[$key] = str_repeat('*', strlen($value));
                         }
-
-                        continue;
                     }
                 }
             }
@@ -206,18 +196,16 @@ class Treblle {
      * Get PHP configuration variables
      * return @string
      */
-    public function getIniValue($variable) {
-
+    public function getIniValue($variable)
+    {
         $bool_value = filter_var(ini_get($variable), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
-        if(is_bool($bool_value)) {
-
-            if(ini_get($variable)) {
+        if (is_bool($bool_value)) {
+            if (ini_get($variable)) {
                 return 'On';
             } else {
                 return 'Off';
             }
-
         } else {
             return ini_get($variable);
         }
@@ -225,26 +213,24 @@ class Treblle {
 
     /**
      * Get response headers
-     * 
      * return @array
      */
-    public function getResponseHeaders() {
-        
+    public function getResponseHeaders()
+    {
         $data = [];
         $headers = headers_list();
 
-        if(is_array($headers) && ! empty($headers)) {
+        if (is_array($headers) && !empty($headers)) {
             foreach ($headers as $header) {
                 $header = explode(':', $header);
                 $data[array_shift($header)] = trim(implode(':', $header));
             }
         }
 
-        if(empty($data)) {
+        if (empty($data)) {
             return null;
         }
 
         return $data;
     }
-
 }
