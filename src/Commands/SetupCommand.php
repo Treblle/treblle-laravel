@@ -51,7 +51,7 @@ class SetupCommand extends Command
             return;
         }
 
-        $lookupResponse = json_decode($lookupRequest->getBody());
+        $lookupResponse = json_decode($lookupRequest->getBody()->getContents());
 
         if ($lookupResponse->user !== null) {
             $this->info('Hello ' . $lookupResponse->user->name . ', it looks like you already have an Treblle account - let\'s log you in!');
@@ -77,21 +77,21 @@ class SetupCommand extends Command
             );
 
             if ($login_request->getStatusCode() !== Response::HTTP_OK) {
-                $this->error('Your login data is incorrent! Please try again and make sure you type in the correct data!');
+                $this->error('Your login data is incorrect! Please try again and make sure you type in the correct data!');
 
                 return;
             }
 
-            $login_response = json_decode($login_request->getBody());
+            $loginResponse = json_decode($login_request->getBody()->getContents());
 
-            $user = $login_response->user;
+            $user = $loginResponse->user;
         } else {
             $this->info('Looks like you don\'t have a Treblle account yet. Let\'s create one quickly...');
 
             $name = $this->ask('👨‍💻 What\'s your name?');
             $password = $this->secret('🔒 Enter a new password for your account');
 
-            $register_request = (new GuzzleClient())->request(
+            $registerRequest = (new GuzzleClient())->request(
                 'POST',
                 $this->baseUrl . 'auth/register',
                 [
@@ -104,22 +104,22 @@ class SetupCommand extends Command
                         'User-Agent' => 'TreblleSetupCommand/0.1',
                     ],
                     'form_params' => [
+                        'name' => $name,
                         'email' => $email,
                         'password' => $password,
-                        'name' => $name,
                     ],
                 ]
             );
 
-            if ($register_request->getStatusCode() !== Response::HTTP_OK) {
+            if ($registerRequest->getStatusCode() !== Response::HTTP_OK) {
                 $this->error('We are having some problems at the moment. Please try again later!');
 
                 return;
             }
 
-            $register_response = json_decode($register_request->getBody());
+            $registerResponse = json_decode($registerRequest->getBody()->getContents());
 
-            $user = $register_response->user;
+            $user = $registerResponse->user;
         }
 
         $this->info('🎉 Great. You\'r in. Now let\'s create a project on Treblle for our API.');
@@ -151,9 +151,9 @@ class SetupCommand extends Command
             return;
         }
 
-        $projectResponse = json_decode($projectRequest->getBody());
+        $projectResponse = json_decode($projectRequest->getBody()->getContents());
 
-        $this->info('👏 Your project is ready! Add the following lines to your .ENV file and you are done!');
+        $this->info('👏 Your project is ready! Add the following lines to your .env file and you are done!');
         $this->info('TREBLLE_API_KEY=' . $user->api_key);
         $this->info('TREBLLE_PROJECT_ID=' . $projectResponse->project->api_id);
     }
