@@ -176,11 +176,11 @@ class TreblleMiddleware
                 foreach ($fields as $field) {
                     if (preg_match('/\b' . $field . '\b/mi', $key)) {
                         if (strtolower($field) === 'authorization') {
-                            $auth_string_parts = explode(' ', $value);
+                            $authStringParts = explode(' ', $value);
 
-                            if (count($auth_string_parts) > 1) {
-                                if (in_array(strtolower($auth_string_parts[0]), ['basic', 'bearer', 'negotiate'])) {
-                                    $data[$key] = $auth_string_parts[0] . ' ' . str_repeat('*', strlen($auth_string_parts[1]));
+                            if (count($authStringParts) > 1) {
+                                if (in_array(strtolower($authStringParts[0]), ['basic', 'bearer', 'negotiate'])) {
+                                    $data[$key] = $authStringParts[0] . ' ' . str_repeat('*', strlen($authStringParts[1]));
                                 }
                             }
                         } else {
