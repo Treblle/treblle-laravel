@@ -1,24 +1,23 @@
 <?php
 
 return [
-    
     /*
      * A valid Treblle API key. You can get started for FREE by visiting https://treblle.com/
      */
-    'api_key' => env('TREBLLE_API_KEY', ''),
+    'api_key' => env('TREBLLE_API_KEY'),
 
     /*
      * A valid Treblle project ID. Create your first project on https://treblle.com/
      */
-    'project_id' => env('TREBLLE_PROJECT_ID', ''),
+    'project_id' => env('TREBLLE_PROJECT_ID'),
 
     /*
      * Define which environments should Treblle ignore and not monitor
      */
-    'ignored_enviroments' => env('TREBLLE_IGNORED_ENV', ''),
+    'ignored_environments' => env('TREBLLE_IGNORED_ENV', 'local,dev,test'),
 
     /*
      * Define which fields should be masked before leaving the server
      */
-    'masked_fields' => env('TREBLLE_MASKED_FIELDS', ''),
+    'masked_fields' => env('TREBLLE_MASKED_FIELDS'),
 ];

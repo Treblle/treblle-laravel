@@ -1,0 +1,15 @@
+# exclude composer files
+/vendor/
+
+# exclude IDE files
+.idea
+.vscode
+
+# exclude caches
+.php-cs-fixer.cache
+
+# locally override if needed
+.php-cs-fixer
+
+# exclude because with package development it doesnt matter and reduces unnecessary merge conflicts
+composer.lock

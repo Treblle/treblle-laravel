@@ -1,19 +1,21 @@
 <?php
 
-namespace Treblle;
+declare(strict_types=1);
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\ConnectException;
-use Carbon\Carbon;
+namespace Treblle\Middlewares;
+
 use Closure;
+use Carbon\Carbon;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
-class Treblle {
-
+class TreblleMiddleware
+{
     protected $payload;
 
-    public function __construct() {
-
+    public function __construct()
+    {
         $this->payload = [
             'api_key' => config('treblle.api_key'),
             'project_id' => config('treblle.project_id'),
@@ -26,18 +28,18 @@ class Treblle {
                     'os' => [
                         'name' => php_uname('s'),
                         'release' => php_uname('r'),
-                        'architecture' => php_uname('m')
+                        'architecture' => php_uname('m'),
                     ],
                     'software' => null,
                     'signature' => null,
                     'protocol' => null,
-                    'encoding' => null
+                    'encoding' => null,
                 ],
                 'language' => [
                     'name' => 'php',
                     'version' => phpversion(),
-                    'expose_php' => $this->getIniValue('expose_php'),
-                    'display_errors' => $this->getIniValue('display_errors')
+                    'expose_php' => $this->getPHPConfigValue('expose_php'),
+                    'display_errors' => $this->getPHPConfigValue('display_errors'),
                 ],
                 'request' => [
                     'timestamp' => Carbon::now('UTC')->format('Y-m-d H:i:s'),
@@ -47,47 +49,51 @@ class Treblle {
                     'method' => null,
                     'headers' => $this->maskFields(getallheaders()),
                     'body' => $this->maskFields($_REQUEST),
-                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true))
+                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true)),
                 ],
                 'response' => [
                     'headers' => $this->getResponseHeaders(),
                     'code' => null,
                     'size' => 0,
                     'load_time' => 0,
-                    'body' => null
+                    'body' => null,
                 ],
-                'errors' => []
-            ]
+                'errors' => [],
+            ],
         ];
-
     }
 
-
-    public function handle($request, Closure $next) {
-        
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function handle($request, Closure $next)
+    {
         $response = $next($request);
 
         /**
-         * The terminate method is automatically called when the server supports the FastCGI protocol. 
+         * The terminate method is automatically called when the server supports the FastCGI protocol.
          * In the case the server does not support it, we fall back to manually calling the terminate method.
-         * 
-         * @see https://laravel.com/docs/8.x/middleware#terminable-middleware
+         *
+         * @see https://laravel.com/docs/middleware#terminable-middleware
          */
-        if (!str_contains(php_sapi_name(), 'fcgi')) {
+        if (! str_contains(php_sapi_name(), 'fcgi')) {
             $this->terminate($request, $response);
         }
 
         return $response;
     }
 
-    public function terminate($request, $response) {
-
-        if(!config('treblle.api_key') && config('treblle.project_id')) {
-           return;
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function terminate($request, $response)
+    {
+        if (! config('treblle.api_key') && config('treblle.project_id')) {
+            return;
         }
 
-        if(config('treblle.ignored_enviroments')) {
-            if(in_array(config('app.env'),  explode(',', config('treblle.ignored_enviroments')))) {
+        if (config('treblle.ignored_environments')) {
+            if (in_array(config('app.env'), explode(',', config('treblle.ignored_environments')))) {
                 return;
             }
         }
@@ -106,94 +112,80 @@ class Treblle {
         $this->payload['data']['response']['load_time'] = $this->getLoadTime();
         $this->payload['data']['response']['code'] = $response->status();
 
-        
-        if(empty($response->exception)) {
+        if (empty($response->exception)) {
             $this->payload['data']['response']['body'] = json_decode($response->content());
             $this->payload['data']['response']['size'] = strlen($response->content());
         } else {
-            array_push($this->payload['data']['errors'],
+            array_push(
+                $this->payload['data']['errors'],
                 [
                     'source' => 'onException',
                     'type' => 'UNHANDLED_EXCEPTION',
                     'message' => $response->exception->getMessage(),
                     'file' => $response->exception->getFile(),
-                    'line' => $response->exception->getLine()
+                    'line' => $response->exception->getLine(),
                 ]
             );
         }
 
-
-        $guzzle = new Client;
-
         try {
-            $guzzle->request('POST', 'https://rocknrolla.treblle.com', [
-                'connect_timeout' => 1,
-                'timeout' => 1,
-                'verify' => false,
-                'http_errors' => false,
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'x-api-key' => config('treblle.api_key')
-                ], 
-                'body' => json_encode($this->payload)
-            ]);
-        } catch (RequestException $e) {
-        } catch (ConnectException $e) {
-        }
-
-        return;
-
-    }
-
-
-    public function getLoadTime() {
-        if(isset($_SERVER['REQUEST_TIME_FLOAT'])) {
-            return (float) microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
-        } else {
-            return (float) 0.0000;
+            (new Client())
+                ->request('POST', 'https://rocknrolla.treblle.com', [
+                    'connect_timeout' => 1,
+                    'timeout' => 1,
+                    'verify' => false,
+                    'http_errors' => false,
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'x-api-key' => config('treblle.api_key'),
+                    ],
+                    'body' => json_encode($this->payload),
+                ]);
+        } catch (RequestException | ConnectException $e) {
         }
     }
 
-    /**
-     * Mask fields
-     * @return array
-     */
-    public function maskFields($data) {
+    public function getLoadTime(): float
+    {
+        if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
+            return (float)microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+        }
 
-        if(!is_array($data)) {
-            return;
+        return 0.0000;
+    }
+
+    public function maskFields($data): array
+    {
+        if (! is_array($data)) {
+            return [];
         }
 
         $fields = [
-            'password', 'pwd',  'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
-            'credit_score', 'api_key'
+            'password', 'pwd', 'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
+            'credit_score', 'api_key',
         ];
 
-        if(config('treblle.masked_fields')) {
+        if (config('treblle.masked_fields')) {
             $fields = array_unique(array_merge($fields, explode(',', config('treblle.masked_fields'))));
         }
 
         foreach ($data as $key => $value) {
-
-            if(is_array($value)) {
-                $this->maskFields($data[$key]);
+            if (is_array($value)) {
+                $this->maskFields($value);
             } else {
                 foreach ($fields as $field) {
-                    if(preg_match('/\b'.$field.'\b/mi', $key)) {
+                    if (preg_match('/\b' . $field . '\b/mi', $key)) {
+                        if (strtolower($field) === 'authorization') {
+                            $authStringParts = explode(' ', $value);
 
-                        if(strtolower($field) == 'authorization') {
-                            $auth_string_parts = explode(' ', $value);
-
-                            if(count($auth_string_parts) > 1) {
-                                if(in_array(strtolower($auth_string_parts[0]), ['basic', 'bearer', 'negotiate'])) {
-                                    $data[$key] = $auth_string_parts[0].' '.str_repeat('*', strlen($auth_string_parts[1]));
+                            if (count($authStringParts) > 1) {
+                                if (in_array(strtolower($authStringParts[0]), ['basic', 'bearer', 'negotiate'])) {
+                                    $data[$key] = $authStringParts[0] . ' ' . str_repeat('*', strlen($authStringParts[1]));
                                 }
                             }
                         } else {
                             $data[$key] = str_repeat('*', strlen($value));
                         }
-
-                        continue;
                     }
                 }
             }
@@ -202,49 +194,29 @@ class Treblle {
         return $data;
     }
 
-    /**
-     * Get PHP configuration variables
-     * return @string
-     */
-    public function getIniValue($variable) {
+    public function getPHPConfigValue($variable): string
+    {
+        $isBooleanValue = filter_var(ini_get($variable), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
-        $bool_value = filter_var(ini_get($variable), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-
-        if(is_bool($bool_value)) {
-
-            if(ini_get($variable)) {
-                return 'On';
-            } else {
-                return 'Off';
-            }
-
-        } else {
-            return ini_get($variable);
+        if (is_bool($isBooleanValue)) {
+            return ini_get($variable) ? 'On' : 'Off';
         }
+
+        return ini_get($variable);
     }
 
-    /**
-     * Get response headers
-     * 
-     * return @array
-     */
-    public function getResponseHeaders() {
-        
+    public function getResponseHeaders(): array
+    {
         $data = [];
         $headers = headers_list();
 
-        if(is_array($headers) && ! empty($headers)) {
+        if (is_array($headers) && ! empty($headers)) {
             foreach ($headers as $header) {
                 $header = explode(':', $header);
                 $data[array_shift($header)] = trim(implode(':', $header));
             }
         }
 
-        if(empty($data)) {
-            return null;
-        }
-
         return $data;
     }
-
 }
