@@ -76,7 +76,7 @@ class TreblleMiddleware
          *
          * @see https://laravel.com/docs/middleware#terminable-middleware
          */
-        if (! str_contains(php_sapi_name(), 'fcgi')) {
+        if (! str_contains(php_sapi_name(), 'fcgi') && !$this->httpServerIsOctane()) {
             $this->terminate($request, $response);
         }
 
@@ -218,5 +218,13 @@ class TreblleMiddleware
         }
 
         return $data;
+    }
+
+    /**
+     * @see https://github.com/laravel/octane/blob/1.x/src/Commands/StartSwooleCommand.php#L84
+     */
+    private function httpServerIsOctane(): bool
+    {
+        return (bool) env("LARAVEL_OCTANE");
     }
 }
