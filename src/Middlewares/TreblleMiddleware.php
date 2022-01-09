@@ -76,7 +76,7 @@ class TreblleMiddleware
          *
          * @see https://laravel.com/docs/middleware#terminable-middleware
          */
-        if (! str_contains(php_sapi_name(), 'fcgi') && !$this->httpServerIsOctane()) {
+        if (! str_contains(php_sapi_name(), 'fcgi') && ! $this->httpServerIsOctane()) {
             $this->terminate($request, $response);
         }
 
