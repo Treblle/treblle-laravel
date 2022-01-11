@@ -7,9 +7,11 @@
 
 # exclude caches
 .php-cs-fixer.cache
+.phpunit.result.cache
 
 # locally override if needed
 .php-cs-fixer
+.phpunit.xml
 
 # exclude because with package development it doesnt matter and reduces unnecessary merge conflicts
 composer.lock
