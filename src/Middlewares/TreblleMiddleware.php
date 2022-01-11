@@ -47,16 +47,15 @@ class TreblleMiddleware
                     'url' => null,
                     'user_agent' => null,
                     'method' => null,
-                    'headers' => $this->maskFields(getallheaders()),
-                    'body' => $this->maskFields($_REQUEST),
-                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true)),
+                    'headers' => '',
+                    'body' => ''
                 ],
                 'response' => [
-                    'headers' => $this->getResponseHeaders(),
+                    'headers' => '',
                     'code' => null,
                     'size' => 0,
                     'load_time' => 0,
-                    'body' => null,
+                    'body' => '',
                 ],
                 'errors' => [],
             ],
@@ -108,9 +107,23 @@ class TreblleMiddleware
         $this->payload['data']['request']['ip'] = $request->ip();
         $this->payload['data']['request']['url'] = $request->url();
         $this->payload['data']['request']['method'] = $request->method();
+        $this->payload['data']['request']['body'] = $this->maskFields($request->request->all());
+        $this->payload['data']['request']['headers'] = $this->maskFields(
+            collect($request->headers->all())->transform(function($item) {
+                return $item[0];
+            })
+            ->toArray()
+        );
 
         $this->payload['data']['response']['load_time'] = $this->getLoadTime();
         $this->payload['data']['response']['code'] = $response->status();
+
+        $this->payload['data']['response']['headers'] = $this->maskFields(
+            collect($response->headers->all())->transform(function($item) {
+                return $item[0];
+            })
+            ->toArray()
+        );
 
         if (empty($response->exception)) {
             $this->payload['data']['response']['body'] = json_decode($response->content());
@@ -203,21 +216,6 @@ class TreblleMiddleware
         }
 
         return ini_get($variable);
-    }
-
-    public function getResponseHeaders(): array
-    {
-        $data = [];
-        $headers = headers_list();
-
-        if (is_array($headers) && ! empty($headers)) {
-            foreach ($headers as $header) {
-                $header = explode(':', $header);
-                $data[array_shift($header)] = trim(implode(':', $header));
-            }
-        }
-
-        return $data;
     }
 
     /**
