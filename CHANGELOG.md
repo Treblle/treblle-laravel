@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Packages improvements ([!3](https://github.com/Treblle/treblle-laravel/pull/3))
+- Packages improvements ([#3](https://github.com/Treblle/treblle-laravel/pull/3))
 
 ### Fixed
 
