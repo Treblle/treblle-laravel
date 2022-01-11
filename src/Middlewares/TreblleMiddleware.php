@@ -160,14 +160,7 @@ class TreblleMiddleware
             return [];
         }
 
-        $fields = [
-            'password', 'pwd', 'secret', 'password_confirmation', 'cc', 'card_number', 'ccv', 'ssn',
-            'credit_score', 'api_key',
-        ];
-
-        if (config('treblle.masked_fields')) {
-            $fields = array_unique(array_merge($fields, explode(',', config('treblle.masked_fields'))));
-        }
+        $fields = config('treblle.masked_fields', []);
 
         foreach ($data as $key => $value) {
             if (is_array($value)) {

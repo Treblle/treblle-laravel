@@ -100,14 +100,41 @@ Define which environments Treblle should NOT LOG at all. By default, Treblle wil
 and test. If you want to change that you can define your own ignored environments by using a comma separated list, or
 allow all environments by leaving the value empty.
 
-```shell
-TREBLLE_MASKED_FIELDS=email,user_address,phone_number,authorization
-```
+### Masked fields
 
 Treblle **masks sensitive information** from both the request and response data as well as the request headers data
 **before it even leaves your server**. The following parameters are automatically masked: password, pwd, secret,
-password_confirmation, cc, card_number, ccv, ssn, credit_score. You can add your own custom list by simply defining them
-as a comma separated list in the variable above.
+password_confirmation, cc, card_number, ccv, ssn, credit_score. 
+
+You can customize this list by editing your configuration file. If you did not published your configuration file, run this command first:
+
+```bash
+php artisan vendor:publish --tag=treblle
+```
+
+This will create a file at "config/treblle.php". Then, open this file and tweak the masked fields:
+
+```php
+return [
+    // ...
+
+    /*
+     * Define which fields should be masked before leaving the server
+     */
+    'masked_fields' => [
+        'password',
+        'pwd',
+        'secret',
+        'password_confirmation',
+        'cc',
+        'card_number',
+        'ccv',
+        'ssn',
+        'credit_score',
+        'api_key',
+    ],
+];
+```
 
 ## Support
 
