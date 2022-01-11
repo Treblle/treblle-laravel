@@ -48,7 +48,7 @@ class TreblleMiddleware
                     'user_agent' => null,
                     'method' => null,
                     'headers' => '',
-                    'body' => ''
+                    'body' => '',
                 ],
                 'response' => [
                     'headers' => '',
@@ -109,7 +109,7 @@ class TreblleMiddleware
         $this->payload['data']['request']['method'] = $request->method();
         $this->payload['data']['request']['body'] = $this->maskFields($request->request->all());
         $this->payload['data']['request']['headers'] = $this->maskFields(
-            collect($request->headers->all())->transform(function($item) {
+            collect($request->headers->all())->transform(function ($item) {
                 return $item[0];
             })
             ->toArray()
@@ -119,7 +119,7 @@ class TreblleMiddleware
         $this->payload['data']['response']['code'] = $response->status();
 
         $this->payload['data']['response']['headers'] = $this->maskFields(
-            collect($response->headers->all())->transform(function($item) {
+            collect($response->headers->all())->transform(function ($item) {
                 return $item[0];
             })
             ->toArray()
