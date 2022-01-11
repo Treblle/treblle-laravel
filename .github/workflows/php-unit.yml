@@ -1,0 +1,37 @@
+name: Check if all phpunit tests are passing or not
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  php-unit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [ 7.2 ]
+        testbench: [ 5.3 ]
+        dependency-version: [ prefer-stable ]
+
+    name: PHP ${{ matrix.php }} - Testbench ${{ matrix.testbench }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+          coverage: none
+
+      - name: Install Dependencies
+        run: |
+          composer require "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+      - name: Execute Tests
+        run: vendor/bin/phpunit
