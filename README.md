@@ -59,30 +59,30 @@ TREBLLE_PROJECT_ID=YOUR_PROJECT_ID
 Open the **routes/api.php** and add the Treblle middleware to either a route group like so:
 
 ```php
-    Route::middleware(['treblle'])->group(function () {
-        
-        // YOUR API ROUTES GO HERE
-        Route::prefix('samples')->group(function () {
-            Route::get('{uuid}', [SampleController::class, 'view']);
-            Route::post('store', [SampleController::class, 'store']);
-        });
+Route::middleware(['treblle'])->group(function () {
 
-    });
+  // YOUR API ROUTES GO HERE
+  Route::prefix('samples')->group(function () {
+    Route::get('{uuid}', [SampleController::class, 'view']);
+    Route::post('store', [SampleController::class, 'store']);
+  });
+
+});
 ```
 
 or to an individual route like so:
 
 ```php
-    Route::group(function () {
-        Route::prefix('users')->group(function () {
-            
-            // IS LOGGED BY TREBLLE
-            Route::get('{uuid}', [UserController::class, 'view'])->middleware('treblle');
+Route::group(function () {
+  Route::prefix('users')->group(function () {
 
-            // IS NOT LOGGED BY TREBLLE
-            Route::post('{uuid}/update', [UserController::class, 'update']);
-        });
-    });
+    // IS LOGGED BY TREBLLE
+    Route::get('{uuid}', [UserController::class, 'view'])->middleware('treblle');
+
+    // IS NOT LOGGED BY TREBLLE
+    Route::post('{uuid}/update', [UserController::class, 'update']);
+  });
+});
 ```
 
 You're all set. Next time someone makes a request to your API you will see it in real-time on your Treblle dashboard
