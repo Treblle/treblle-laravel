@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Treblle\Test\Commands;
 
 use Treblle\Test\TestCase;
-use Treblle\Client\TreblleClient;
+use Treblle\Clients\TreblleClient;
 use Illuminate\Support\Facades\Http;
 
 class SetUpCommandTest extends TestCase

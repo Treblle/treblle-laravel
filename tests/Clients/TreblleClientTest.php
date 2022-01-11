@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Test\Client;
+namespace Treblle\Test\Clients;
 
 use Treblle\Test\TestCase;
-use Treblle\Client\TreblleClient;
-use Illuminate\Support\Facades\Http;
+use Treblle\Clients\TreblleClient;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
 
 class TreblleClientTest extends TestCase
 {
@@ -44,7 +44,7 @@ class TreblleClientTest extends TestCase
             TreblleClient::BASE_URL . 'auth/login' => Http::response(['user' => 'test_user']),
         ]);
 
-        $response = (new TreblleClient())->register('test_user', 'test@test.test', 'test_password');
+        $response = (new TreblleClient())->login('test@test.test', 'test_password');
 
         self::assertInstanceOf(Response::class, $response);
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Client;
+namespace Treblle\Clients;
 
 use Illuminate\Support\Facades\Http;
 

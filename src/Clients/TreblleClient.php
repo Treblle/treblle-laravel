@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Client;
+namespace Treblle\Clients;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Treblle\Test\Client\TreblleClientTest;
+use Treblle\Test\Clients\TreblleClientTest;
 
 class TreblleClient
 {

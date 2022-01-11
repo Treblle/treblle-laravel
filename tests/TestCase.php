@@ -19,7 +19,7 @@ class TestCase extends BaseTestCase
     protected function getPackageProviders($app): array
     {
         return [
-            TreblleServiceProvider::class
+            TreblleServiceProvider::class,
         ];
     }
 }
