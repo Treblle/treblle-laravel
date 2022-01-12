@@ -18,7 +18,7 @@ Treblle to your API out of the box you get:
 ## Requirements
 
 * PHP 7.2+
-* Laravel 6+
+* Laravel 7+
 
 ## Dependencies
 
@@ -104,9 +104,10 @@ allow all environments by leaving the value empty.
 
 Treblle **masks sensitive information** from both the request and response data as well as the request headers data
 **before it even leaves your server**. The following parameters are automatically masked: password, pwd, secret,
-password_confirmation, cc, card_number, ccv, ssn, credit_score. 
+password_confirmation, cc, card_number, ccv, ssn, credit_score.
 
-You can customize this list by editing your configuration file. If you did not published your configuration file, run this command first:
+You can customize this list by editing your configuration file. If you did not published your configuration file, run
+this command first:
 
 ```bash
 php artisan vendor:publish --tag=treblle
