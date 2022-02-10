@@ -11,7 +11,7 @@ use Treblle\Test\TestCase;
 
 class TreblleClientTest extends TestCase
 {
-    public function testGivenEmailToAuthLookUpReturnsValidResponse()
+    public function testGivenEmailToAuthLookUpReturnsValidResponse(): void
     {
         TreblleClient::fake([
             TreblleClient::BASE_URL.'auth/lookup' => Http::response(['user' => null]),
@@ -22,7 +22,7 @@ class TreblleClientTest extends TestCase
         $this->assertInstanceOf(Response::class, $response);
     }
 
-    public function testGivenNameEmailAndPasswordToRegisterReturnsRegisteredUserInfo()
+    public function testGivenNameEmailAndPasswordToRegisterReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
             TreblleClient::BASE_URL.'auth/register' => Http::response(['user' => 'test_user']),
@@ -35,7 +35,7 @@ class TreblleClientTest extends TestCase
         $this->assertEquals('test_user', $response->object()->user);
     }
 
-    public function testGivenEmailAndPasswordToLoginReturnsRegisteredUserInfo()
+    public function testGivenEmailAndPasswordToLoginReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
             TreblleClient::BASE_URL.'auth/login' => Http::response(['user' => 'test_user']),
@@ -48,7 +48,7 @@ class TreblleClientTest extends TestCase
         $this->assertEquals('test_user', $response->object()->user);
     }
 
-    public function testGivenProjectNameAndUserUuidToCreateProjectReturnsRegisteredUserInfo()
+    public function testGivenProjectNameAndUserUuidToCreateProjectReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
             TreblleClient::BASE_URL.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
