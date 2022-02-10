@@ -1,17 +1,16 @@
 {
     "name": "treblle/treblle-laravel",
     "description": "Stay in tune with your APIs",
-    "homepage": "https://treblle.com/",
+    "license": "MIT",
     "type": "library",
     "keywords": [
-        "laravel",
-        "treblle",
         "api",
-        "monitoring",
         "debuging",
-        "documentation"
+        "documentation",
+        "laravel",
+        "monitoring",
+        "treblle"
     ],
-    "license": "MIT",
     "authors": [
         {
             "name": "Vedran Cindrić",
@@ -20,16 +19,19 @@
             "role": "Developer"
         }
     ],
+    "homepage": "https://treblle.com/",
     "require": {
+        "php": "^7.2.5 || ^8.0",
         "ext-json": "*",
-        "php": "^7.2.5|^8.0",
-        "laravel/framework": "^7.0|^8.0",
-        "guzzlehttp/guzzle": "^6.5.0|^7.0"
+        "guzzlehttp/guzzle": "^6.5.0 || ^7.0",
+        "laravel/framework": "^7.0 || ^8.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
-        "orchestra/testbench": "^5.0|^6.0"
+        "orchestra/testbench": "^5.0 || ^6.0"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Treblle\\": "src/"
@@ -40,17 +42,15 @@
             "Treblle\\Test\\": "tests/"
         }
     },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
     "extra": {
         "laravel": {
             "providers": [
                 "Treblle\\TreblleServiceProvider"
             ]
         }
-    },
-    "config": {
-        "preferred-install": "dist",
-        "sort-packages": true
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }
