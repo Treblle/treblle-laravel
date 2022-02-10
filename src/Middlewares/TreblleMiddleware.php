@@ -47,16 +47,15 @@ class TreblleMiddleware
                     'url' => null,
                     'user_agent' => null,
                     'method' => null,
-                    'headers' => $this->maskFields(getallheaders()),
-                    'body' => $this->maskFields($_REQUEST),
-                    'raw' => $this->maskFields(json_decode(file_get_contents('php://input'), true)),
+                    'headers' => '',
+                    'body' => '',
                 ],
                 'response' => [
-                    'headers' => $this->getResponseHeaders(),
+                    'headers' => '',
                     'code' => null,
                     'size' => 0,
                     'load_time' => 0,
-                    'body' => null,
+                    'body' => '',
                 ],
                 'errors' => [],
             ],
@@ -110,7 +109,24 @@ class TreblleMiddleware
         $this->payload['data']['request']['method'] = $request->method();
 
         $this->payload['data']['response']['load_time'] = $this->getLoadTime();
+        $this->payload['data']['request']['body'] = $this->maskFields($request->request->all());
+
+        $this->payload['data']['request']['headers'] = $this->maskFields(
+            collect($request->headers->all())->transform(function ($item) {
+                return $item[0];
+            })
+            ->toArray()
+        );
+
+        
         $this->payload['data']['response']['code'] = $response->status();
+
+        $this->payload['data']['response']['headers'] = $this->maskFields(
+            collect($response->headers->all())->transform(function ($item) {
+                return $item[0];
+            })
+            ->toArray()
+        );
 
         if (empty($response->exception)) {
             $this->payload['data']['response']['body'] = json_decode($response->content());
@@ -145,6 +161,9 @@ class TreblleMiddleware
         }
     }
 
+    /*
+    * @see https://github.com/Treblle/treblle-laravel/issues/31
+    */
     public function getLoadTime(): float
     {
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
@@ -214,10 +233,10 @@ class TreblleMiddleware
     }
 
     /**
-     * @see https://github.com/laravel/octane/blob/1.x/src/Commands/StartSwooleCommand.php#L84
+     * Vapor guys say use this: https://github.com/laravel/vapor-core/blob/25417002c9d3d1fb878d25703fca247827ff7f2c/src/Console/Commands/OctaneStatusCommand.php#L42
      */
     private function httpServerIsOctane(): bool
     {
-        return (bool) env('LARAVEL_OCTANE');
+        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
 }
