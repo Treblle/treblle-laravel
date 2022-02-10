@@ -118,7 +118,6 @@ class TreblleMiddleware
             ->toArray()
         );
 
-        
         $this->payload['data']['response']['code'] = $response->status();
 
         $this->payload['data']['response']['headers'] = $this->maskFields(
