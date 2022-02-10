@@ -11,57 +11,53 @@ use Treblle\Test\TestCase;
 
 class TreblleClientTest extends TestCase
 {
-    /** @test */
-    public function given_email_to_auth_look_up_returns_valid_response()
+    public function testGivenEmailToAuthLookUpReturnsValidResponse()
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL . 'auth/lookup' => Http::response(['user' => null]),
+            TreblleClient::BASE_URL.'auth/lookup' => Http::response(['user' => null]),
         ]);
 
         $response = (new TreblleClient())->authLookup('test@test.test');
 
-        self::assertInstanceOf(Response::class, $response);
+        $this->assertInstanceOf(Response::class, $response);
     }
 
-    /** @test */
-    public function given_name_email_and_password_to_register_returns_registered_user_info()
+    public function testGivenNameEmailAndPasswordToRegisterReturnsRegisteredUserInfo()
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL . 'auth/register' => Http::response(['user' => 'test_user']),
+            TreblleClient::BASE_URL.'auth/register' => Http::response(['user' => 'test_user']),
         ]);
 
         $response = (new TreblleClient())->register('test_user', 'test@test.test', 'test_password');
 
-        self::assertInstanceOf(Response::class, $response);
+        $this->assertInstanceOf(Response::class, $response);
 
-        self::assertEquals('test_user', $response->object()->user);
+        $this->assertEquals('test_user', $response->object()->user);
     }
 
-    /** @test */
-    public function given_email_and_password_to_login_returns_registered_user_info()
+    public function testGivenEmailAndPasswordToLoginReturnsRegisteredUserInfo()
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL . 'auth/login' => Http::response(['user' => 'test_user']),
+            TreblleClient::BASE_URL.'auth/login' => Http::response(['user' => 'test_user']),
         ]);
 
         $response = (new TreblleClient())->login('test@test.test', 'test_password');
 
-        self::assertInstanceOf(Response::class, $response);
+        $this->assertInstanceOf(Response::class, $response);
 
-        self::assertEquals('test_user', $response->object()->user);
+        $this->assertEquals('test_user', $response->object()->user);
     }
 
-    /** @test */
-    public function given_project_name_and_user_uuid_to_create_project_returns_registered_user_info()
+    public function testGivenProjectNameAndUserUuidToCreateProjectReturnsRegisteredUserInfo()
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL . 'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
+            TreblleClient::BASE_URL.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
         ]);
 
         $response = (new TreblleClient())->createProject('test_project', 'test_uuid');
 
-        self::assertInstanceOf(Response::class, $response);
+        $this->assertInstanceOf(Response::class, $response);
 
-        self::assertEquals('test_id', $response->object()->project->api_id);
+        $this->assertEquals('test_id', $response->object()->project->api_id);
     }
 }
