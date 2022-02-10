@@ -32,7 +32,7 @@ class TreblleClientTest extends TestCase
 
         $this->assertNotEmpty($response);
 
-        $this->assertEquals('test_user', $response->object()->user);
+        $this->assertSame('test_user', $response->object()->user);
     }
 
     public function testGivenEmailAndPasswordToLoginReturnsRegisteredUserInfo(): void
@@ -45,7 +45,7 @@ class TreblleClientTest extends TestCase
 
         $this->assertNotEmpty($response);
 
-        $this->assertEquals('test_user', $response->object()->user);
+        $this->assertSame('test_user', $response->object()->user);
     }
 
     public function testGivenProjectNameAndUserUuidToCreateProjectReturnsRegisteredUserInfo(): void
@@ -58,6 +58,6 @@ class TreblleClientTest extends TestCase
 
         $this->assertNotEmpty($response);
 
-        $this->assertEquals('test_id', $response->object()->project->api_id);
+        $this->assertSame('test_id', $response->object()->project->api_id);
     }
 }
