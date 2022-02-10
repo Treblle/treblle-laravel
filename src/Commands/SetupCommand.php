@@ -35,7 +35,7 @@ class SetupCommand extends Command
         $lookupResponse = $lookupRequest->object();
 
         if ($lookupResponse->user !== null) {
-            $this->info('Hello ' . $lookupResponse->user->name . ', it looks like you already have an Treblle account - let\'s log you in!');
+            $this->info('Hello '.$lookupResponse->user->name.', it looks like you already have an Treblle account - let\'s log you in!');
             $password = $this->secret('🔒 What\'s your password?');
 
             $loginRequest = $treblleClient->login($email, $password);
@@ -83,7 +83,7 @@ class SetupCommand extends Command
         $projectResponse = $projectRequest->object();
 
         $this->info('👏 Your project is ready! Add the following lines to your .env file and you are done!');
-        $this->info('TREBLLE_API_KEY=' . $user->api_key);
-        $this->info('TREBLLE_PROJECT_ID=' . $projectResponse->project->api_id);
+        $this->info('TREBLLE_API_KEY='.$user->api_key);
+        $this->info('TREBLLE_PROJECT_ID='.$projectResponse->project->api_id);
     }
 }

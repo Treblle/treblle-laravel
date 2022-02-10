@@ -70,7 +70,7 @@ class TreblleMiddleware
     {
         $response = $next($request);
 
-        /**
+        /*
          * The terminate method is automatically called when the server supports the FastCGI protocol.
          * In the case the server does not support it, we fall back to manually calling the terminate method.
          *
@@ -148,7 +148,7 @@ class TreblleMiddleware
     public function getLoadTime(): float
     {
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
-            return (float)microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+            return (float) microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
         }
 
         return 0.0000;
@@ -167,13 +167,13 @@ class TreblleMiddleware
                 $this->maskFields($value);
             } else {
                 foreach ($fields as $field) {
-                    if (preg_match('/\b' . $field . '\b/mi', $key)) {
+                    if (preg_match('/\b'.$field.'\b/mi', $key)) {
                         if (strtolower($field) === 'authorization') {
                             $authStringParts = explode(' ', $value);
 
                             if (count($authStringParts) > 1) {
                                 if (in_array(strtolower($authStringParts[0]), ['basic', 'bearer', 'negotiate'])) {
-                                    $data[$key] = $authStringParts[0] . ' ' . str_repeat('*', strlen($authStringParts[1]));
+                                    $data[$key] = $authStringParts[0].' '.str_repeat('*', strlen($authStringParts[1]));
                                 }
                             }
                         } else {
@@ -218,6 +218,6 @@ class TreblleMiddleware
      */
     private function httpServerIsOctane(): bool
     {
-        return (bool) env("LARAVEL_OCTANE");
+        return (bool) env('LARAVEL_OCTANE');
     }
 }

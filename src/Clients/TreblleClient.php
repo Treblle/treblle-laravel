@@ -73,6 +73,6 @@ class TreblleClient
                 'timeout' => 3,
                 'verify' => false,
             ])
-            ->post(self::BASE_URL . $url, $formParams);
+            ->post(self::BASE_URL.$url, $formParams);
     }
 }
