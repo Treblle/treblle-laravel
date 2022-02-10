@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle;
 
-use Treblle\Commands\SetupCommand;
 use Illuminate\Support\ServiceProvider;
+use Treblle\Commands\SetupCommand;
 use Treblle\Middlewares\TreblleMiddleware;
 
 class TreblleServiceProvider extends ServiceProvider
