@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Test\Clients;
+namespace Treblle\Tests\Clients;
 
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Treblle\Clients\TreblleClient;
-use Treblle\Test\TestCase;
+use Treblle\Tests\TestCase;
 
 class TreblleClientTest extends TestCase
 {

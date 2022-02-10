@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Test\Commands;
+namespace Treblle\Tests\Commands;
 
 use Illuminate\Support\Facades\Http;
 use Treblle\Clients\TreblleClient;
-use Treblle\Test\TestCase;
+use Treblle\Tests\TestCase;
 
 class SetUpCommandTest extends TestCase
 {
