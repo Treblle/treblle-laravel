@@ -19,7 +19,7 @@ class TreblleClientTest extends TestCase
     {
         parent::setUp();
 
-        $this->treblleClient = new TreblleClient;
+        $this->treblleClient = new TreblleClient();
     }
 
     public function testGivenEmailToAuthLookUpReturnsValidResponse(): void
