@@ -11,13 +11,25 @@ use Treblle\Test\TestCase;
 
 class TreblleClientTest extends TestCase
 {
+    /**
+     * @var \Treblle\Clients\TreblleClient
+     */
+    private $treblleClient;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->treblleClient = new TreblleClient;
+    }
+
     public function testGivenEmailToAuthLookUpReturnsValidResponse(): void
     {
         TreblleClient::fake([
             TreblleClient::BASE_URL.'auth/lookup' => Http::response(['user' => null]),
         ]);
 
-        $response = (new TreblleClient())->authLookup('test@test.test');
+        $response = $this->treblleClient->authLookup('test@test.test');
 
         $this->assertNotEmpty($response);
     }
@@ -28,7 +40,7 @@ class TreblleClientTest extends TestCase
             TreblleClient::BASE_URL.'auth/register' => Http::response(['user' => 'test_user']),
         ]);
 
-        $response = (new TreblleClient())->register('test_user', 'test@test.test', 'test_password');
+        $response = $this->treblleClient->register('test_user', 'test@test.test', 'test_password');
 
         $this->assertNotEmpty($response);
 
@@ -41,7 +53,7 @@ class TreblleClientTest extends TestCase
             TreblleClient::BASE_URL.'auth/login' => Http::response(['user' => 'test_user']),
         ]);
 
-        $response = (new TreblleClient())->login('test@test.test', 'test_password');
+        $response = $this->treblleClient->login('test@test.test', 'test_password');
 
         $this->assertNotEmpty($response);
 
@@ -54,7 +66,7 @@ class TreblleClientTest extends TestCase
             TreblleClient::BASE_URL.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
         ]);
 
-        $response = (new TreblleClient())->createProject('test_project', 'test_uuid');
+        $response = $this->treblleClient->createProject('test_project', 'test_uuid');
 
         $this->assertNotEmpty($response);
 
