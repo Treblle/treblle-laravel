@@ -19,7 +19,7 @@ class TreblleClientTest extends TestCase
 
         $response = (new TreblleClient())->authLookup('test@test.test');
 
-        $this->assertInstanceOf(Response::class, $response);
+        $this->assertNotEmpty($response);
     }
 
     public function testGivenNameEmailAndPasswordToRegisterReturnsRegisteredUserInfo(): void
@@ -30,7 +30,7 @@ class TreblleClientTest extends TestCase
 
         $response = (new TreblleClient())->register('test_user', 'test@test.test', 'test_password');
 
-        $this->assertInstanceOf(Response::class, $response);
+        $this->assertNotEmpty($response);
 
         $this->assertEquals('test_user', $response->object()->user);
     }
@@ -43,7 +43,7 @@ class TreblleClientTest extends TestCase
 
         $response = (new TreblleClient())->login('test@test.test', 'test_password');
 
-        $this->assertInstanceOf(Response::class, $response);
+        $this->assertNotEmpty($response);
 
         $this->assertEquals('test_user', $response->object()->user);
     }
@@ -56,7 +56,7 @@ class TreblleClientTest extends TestCase
 
         $response = (new TreblleClient())->createProject('test_project', 'test_uuid');
 
-        $this->assertInstanceOf(Response::class, $response);
+        $this->assertNotEmpty($response);
 
         $this->assertEquals('test_id', $response->object()->project->api_id);
     }
