@@ -42,7 +42,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Treblle\\Test\\": "tests/"
+            "Treblle\\Tests\\": "tests/"
         }
     },
     "config": {

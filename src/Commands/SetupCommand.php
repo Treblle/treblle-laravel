@@ -6,7 +6,6 @@ namespace Treblle\Commands;
 
 use Illuminate\Console\Command;
 use Treblle\Clients\TreblleClient;
-use Treblle\Test\Commands\SetUpCommandTest;
 
 class SetupCommand extends Command
 {
