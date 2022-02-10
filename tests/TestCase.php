@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle\Test;
 
-use Treblle\TreblleServiceProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Treblle\TreblleServiceProvider;
 
 class TestCase extends BaseTestCase
 {

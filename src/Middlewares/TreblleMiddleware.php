@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle\Middlewares;
 
-use Closure;
 use Carbon\Carbon;
+use Closure;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;

@@ -10,7 +10,7 @@
 .phpunit.result.cache
 
 # locally override if needed
-.php-cs-fixer
+.php-cs-fixer.php
 .phpunit.xml
 
 # exclude because with package development it doesnt matter and reduces unnecessary merge conflicts

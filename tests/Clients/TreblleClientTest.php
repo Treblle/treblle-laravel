@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Treblle\Test\Clients;
 
-use Treblle\Test\TestCase;
-use Treblle\Clients\TreblleClient;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Treblle\Clients\TreblleClient;
+use Treblle\Test\TestCase;
 
 class TreblleClientTest extends TestCase
 {
