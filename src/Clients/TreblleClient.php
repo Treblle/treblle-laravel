@@ -66,12 +66,6 @@ class TreblleClient
                 'Content-Type' => 'application/json',
                 'User-Agent' => 'TreblleSetupCommand/0.1',
             ])
-            ->withOptions([
-                'http_errors' => false,
-                'connect_timeout' => 3,
-                'timeout' => 3,
-                'verify' => false,
-            ])
             ->post(self::BASE_URL.$url, $formParams);
     }
 }
