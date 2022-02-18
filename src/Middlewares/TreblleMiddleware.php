@@ -165,6 +165,10 @@ class TreblleMiddleware
     */
     public function getLoadTime(): float
     {
+        if($this->httpServerIsOctane()) {
+            return (float) microtime(true) - (float) Cache::store('octane')->get('treblle_start');
+        }
+
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
             return (float) microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
         }
@@ -236,6 +240,6 @@ class TreblleMiddleware
      */
     private function httpServerIsOctane(): bool
     {
-        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
+        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']) || isset($_SERVER['LARAVEL_OCTANE']);
     }
 }

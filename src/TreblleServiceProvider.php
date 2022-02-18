@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Treblle;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Cache;
+use Laravel\Octane\Events\RequestReceived;
 use Treblle\Commands\SetupCommand;
 use Treblle\Middlewares\TreblleMiddleware;
 
@@ -27,6 +29,12 @@ class TreblleServiceProvider extends ServiceProvider
             ]);
         }
 
+        if($this->httpServerIsOctane()) {
+            $this->app['events']->listen(RequestReceived::class, function () {
+                Cache::store('octane')->put('treblle_start', microtime(true));
+            });
+        }
+
         $this->app['router']->aliasMiddleware('treblle', TreblleMiddleware::class);
     }
 
@@ -38,5 +46,15 @@ class TreblleServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/treblle.php', 'treblle');
+    }
+
+    /**
+     * Figure out if server is using Octane
+     *
+     * @return bool
+     */
+    private function httpServerIsOctane(): bool
+    {
+        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']) || isset($_SERVER['LARAVEL_OCTANE']);
     }
 }
