@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\ServiceProvider;
 use Laravel\Octane\Events\RequestReceived;
 use Treblle\Commands\SetupCommand;
 use Treblle\Middlewares\TreblleMiddleware;
@@ -29,7 +29,7 @@ class TreblleServiceProvider extends ServiceProvider
             ]);
         }
 
-        if($this->httpServerIsOctane()) {
+        if ($this->httpServerIsOctane()) {
             $this->app['events']->listen(RequestReceived::class, function () {
                 Cache::store('octane')->put('treblle_start', microtime(true));
             });

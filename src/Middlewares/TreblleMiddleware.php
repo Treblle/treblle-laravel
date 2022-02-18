@@ -165,7 +165,7 @@ class TreblleMiddleware
     */
     public function getLoadTime(): float
     {
-        if($this->httpServerIsOctane()) {
+        if ($this->httpServerIsOctane()) {
             return (float) microtime(true) - (float) Cache::store('octane')->get('treblle_start');
         }
 
