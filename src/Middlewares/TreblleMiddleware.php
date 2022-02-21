@@ -189,7 +189,7 @@ class TreblleMiddleware
                 $this->maskFields($value);
             } else {
                 foreach ($fields as $field) {
-                    if (preg_match('/\b'.$field.'\b/mi', $key)) {
+                    if (preg_match('/\b'.$field.'\b/mi', strval($key))) {
                         if (strtolower($field) === 'authorization') {
                             $authStringParts = explode(' ', $value);
 
