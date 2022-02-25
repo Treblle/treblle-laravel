@@ -163,7 +163,9 @@ class TreblleMiddleware
         }
 
         // PROVIDE A FALLBACK IN CASE SOMEONE FORGOT TO CLEAR CACHE
-        $fields = config('treblle.masked_fields', [
+        $fields = config(
+            'treblle.masked_fields',
+            [
                 'password',
                 'pwd',
                 'secret',
@@ -177,8 +179,7 @@ class TreblleMiddleware
             ]
         );
 
-
-        if(!empty($fields)) {
+        if (!empty($fields)) {
             foreach ($data as $key => $value) {
                 if (is_array($value)) {
                     $this->maskFields($value);
