@@ -49,12 +49,11 @@ class TreblleServiceProvider extends ServiceProvider
     }
 
     /**
-     * Figure out if server is using Octane
-     *
-     * @return bool
+     * Determine if server is running Octane
      */
     private function httpServerIsOctane(): bool
     {
-        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']) || isset($_SERVER['LARAVEL_OCTANE']);
+        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
+  
 }

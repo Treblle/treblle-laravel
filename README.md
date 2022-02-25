@@ -13,6 +13,7 @@ Treblle to your API out of the box you get:
 * Quality scoring
 * One-click testing
 * API management on the go
+* Supports Laravel Vapor and Laravel Octane
 * and more...
 
 ## Requirements

@@ -6,9 +6,7 @@ namespace Treblle\Middlewares;
 
 use Carbon\Carbon;
 use Closure;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\{Http, Cache};
 
 class TreblleMiddleware
 {
@@ -62,11 +60,9 @@ class TreblleMiddleware
         ];
     }
 
-    /**
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
     public function handle($request, Closure $next)
     {
+
         $response = $next($request);
 
         /*
@@ -82,9 +78,6 @@ class TreblleMiddleware
         return $response;
     }
 
-    /**
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
     public function terminate($request, $response)
     {
         if (! config('treblle.api_key') && config('treblle.project_id')) {
@@ -143,26 +136,15 @@ class TreblleMiddleware
             );
         }
 
-        try {
-            (new Client())
-                ->request('POST', 'https://rocknrolla.treblle.com', [
-                    'connect_timeout' => 1,
-                    'timeout' => 1,
-                    'verify' => false,
-                    'http_errors' => false,
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                        'x-api-key' => config('treblle.api_key'),
-                    ],
-                    'body' => json_encode($this->payload),
-                ]);
-        } catch (RequestException | ConnectException $e) {
-        }
+
+        Http::withHeaders([
+            'x-api-key' => config('treblle.api_key'),
+        ])
+        ->timeout(2)
+        ->post('https://rocknrolla.treblle.com', $this->payload);
+        
     }
 
-    /*
-    * @see https://github.com/Treblle/treblle-laravel/issues/31
-    */
     public function getLoadTime(): float
     {
         if ($this->httpServerIsOctane()) {
@@ -236,10 +218,10 @@ class TreblleMiddleware
     }
 
     /**
-     * Vapor guys say use this: https://github.com/laravel/vapor-core/blob/25417002c9d3d1fb878d25703fca247827ff7f2c/src/Console/Commands/OctaneStatusCommand.php#L42
+     * Determine if server is running Octane
      */
     private function httpServerIsOctane(): bool
     {
-        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']) || isset($_SERVER['LARAVEL_OCTANE']);
+        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
 }
