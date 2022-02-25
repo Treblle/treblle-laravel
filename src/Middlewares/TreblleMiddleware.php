@@ -162,24 +162,40 @@ class TreblleMiddleware
             return [];
         }
 
-        $fields = config('treblle.masked_fields', []);
+        // PROVIDE A FALLBACK IN CASE SOMEONE FORGOT TO CLEAR CACHE
+        $fields = config('treblle.masked_fields', [
+                'password',
+                'pwd',
+                'secret',
+                'password_confirmation',
+                'cc',
+                'card_number',
+                'ccv',
+                'ssn',
+                'credit_score',
+                'api_key',
+            ]
+        );
 
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $this->maskFields($value);
-            } else {
-                foreach ($fields as $field) {
-                    if (preg_match('/\b'.$field.'\b/mi', (string) $key)) {
-                        if (strtolower($field) === 'authorization') {
-                            $authStringParts = explode(' ', $value);
 
-                            if (count($authStringParts) > 1) {
-                                if (in_array(strtolower($authStringParts[0]), ['basic', 'bearer', 'negotiate'])) {
-                                    $data[$key] = $authStringParts[0].' '.str_repeat('*', strlen($authStringParts[1]));
+        if(!empty($fields)) {
+            foreach ($data as $key => $value) {
+                if (is_array($value)) {
+                    $this->maskFields($value);
+                } else {
+                    foreach ($fields as $field) {
+                        if (preg_match('/\b'.$field.'\b/mi', (string) $key)) {
+                            if (strtolower($field) === 'authorization') {
+                                $authStringParts = explode(' ', $value);
+
+                                if (count($authStringParts) > 1) {
+                                    if (in_array(strtolower($authStringParts[0]), ['basic', 'bearer', 'negotiate'])) {
+                                        $data[$key] = $authStringParts[0].' '.str_repeat('*', strlen($authStringParts[1]));
+                                    }
                                 }
+                            } else {
+                                $data[$key] = str_repeat('*', strlen($value));
                             }
-                        } else {
-                            $data[$key] = str_repeat('*', strlen($value));
                         }
                     }
                 }
