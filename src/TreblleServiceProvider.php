@@ -55,5 +55,4 @@ class TreblleServiceProvider extends ServiceProvider
     {
         return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
-  
 }

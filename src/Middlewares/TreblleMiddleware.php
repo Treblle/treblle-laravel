@@ -6,7 +6,8 @@ namespace Treblle\Middlewares;
 
 use Carbon\Carbon;
 use Closure;
-use Illuminate\Support\Facades\{Http, Cache};
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class TreblleMiddleware
 {
@@ -62,7 +63,6 @@ class TreblleMiddleware
 
     public function handle($request, Closure $next)
     {
-
         $response = $next($request);
 
         /*
@@ -136,13 +136,11 @@ class TreblleMiddleware
             );
         }
 
-
         Http::withHeaders([
             'x-api-key' => config('treblle.api_key'),
         ])
         ->timeout(2)
         ->post('https://rocknrolla.treblle.com', $this->payload);
-        
     }
 
     public function getLoadTime(): float
