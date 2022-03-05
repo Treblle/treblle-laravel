@@ -1,3 +1,5 @@
+<img src="https://d224n10qh3hhwu.cloudfront.net/github/hero-laravel.jpg" alt="Treblle for Laravel" align="center">
+
 # Treblle for Laravel
 
 [![Latest Version](https://img.shields.io/packagist/v/treblle/treblle-laravel)](https://packagist.org/packages/treblle/treblle-laravel)
@@ -145,5 +147,5 @@ do our best to help you out.
 
 ## License
 
-Copyright 2021, Treblle Limited. Licensed under the MIT license:
+Copyright 2022., Treblle Limited. Licensed under the MIT license:
 http://www.opensource.org/licenses/mit-license.php
