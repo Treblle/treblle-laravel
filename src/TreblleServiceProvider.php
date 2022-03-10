@@ -53,6 +53,6 @@ class TreblleServiceProvider extends ServiceProvider
      */
     private function httpServerIsOctane(): bool
     {
-        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
+        return isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
 }
