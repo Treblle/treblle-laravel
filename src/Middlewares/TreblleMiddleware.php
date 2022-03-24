@@ -36,7 +36,7 @@ class TreblleMiddleware
                 ],
                 'language' => [
                     'name' => 'php',
-                    'version' => phpversion(),
+                    'version' => PHP_VERSION,
                     'expose_php' => $this->getPHPConfigValue('expose_php'),
                     'display_errors' => $this->getPHPConfigValue('display_errors'),
                 ],
@@ -71,7 +71,7 @@ class TreblleMiddleware
          *
          * @see https://laravel.com/docs/middleware#terminable-middleware
          */
-        if (! str_contains(php_sapi_name(), 'fcgi') && ! $this->httpServerIsOctane()) {
+        if (! str_contains(PHP_SAPI, 'fcgi') && ! $this->httpServerIsOctane()) {
             $this->terminate($request, $response);
         }
 
@@ -237,6 +237,6 @@ class TreblleMiddleware
      */
     private function httpServerIsOctane(): bool
     {
-        return (bool) isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
+        return isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
 }
