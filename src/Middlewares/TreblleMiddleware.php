@@ -195,7 +195,9 @@ class TreblleMiddleware
                                     }
                                 }
                             } else {
-                                $data[$key] = str_repeat('*', strlen($value));
+                                $data[$key] = $value != null
+                                    ? str_repeat('*', strlen($value))
+                                    : $value;
                             }
                         }
                     }
