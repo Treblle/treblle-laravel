@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Arr;
 
 class TreblleMiddleware
 {
@@ -140,7 +141,18 @@ class TreblleMiddleware
             'x-api-key' => config('treblle.api_key'),
         ])
         ->timeout(2)
-        ->post('https://rocknrolla.treblle.com', $this->payload);
+        ->post($this->getBaseUrl(), $this->payload);
+    }
+
+    public function getBaseUrl(): string
+    {
+        $urls = [
+            'https://rocknrolla.treblle.com',
+            'https://punisher.treblle.com',
+            'https://sicario.treblle.com',
+        ];
+
+        return Arr::random($urls);
     }
 
     public function getLoadTime(): float
