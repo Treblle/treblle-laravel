@@ -6,9 +6,9 @@ namespace Treblle\Middlewares;
 
 use Carbon\Carbon;
 use Closure;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Arr;
 
 class TreblleMiddleware
 {
