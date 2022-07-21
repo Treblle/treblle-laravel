@@ -99,7 +99,7 @@ class TreblleMiddleware
 
         $this->payload['data']['request']['user_agent'] = $request->server('HTTP_USER_AGENT');
         $this->payload['data']['request']['ip'] = $request->ip();
-        $this->payload['data']['request']['url'] = $request->url();
+        $this->payload['data']['request']['url'] = $request->fullUrl();
         $this->payload['data']['request']['method'] = $request->method();
 
         $this->payload['data']['response']['load_time'] = $this->getLoadTime();
