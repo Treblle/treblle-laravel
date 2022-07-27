@@ -9,6 +9,11 @@ use Closure;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\HttpClientException;
+use Illuminate\Http\Client\RequestException;
 
 class TreblleMiddleware
 {
@@ -137,11 +142,21 @@ class TreblleMiddleware
             );
         }
 
-        Http::withHeaders([
-            'x-api-key' => config('treblle.api_key'),
-        ])
-        ->timeout(2)
-        ->post($this->getBaseUrl(), $this->payload);
+        try {
+            Http::timeout(4)
+            ->withOptions([
+                'connect_timeout' => 4,
+                'verify' => false
+            ])
+            ->withHeaders([
+                'x-api-key' => config('treblle.api_key'),
+            ])
+            ->post($this->getBaseUrl(), $this->payload);
+        } catch(ConnectException $e) {
+        } catch(HttpClientException $e) {
+        } catch(RequestException $e) {
+        } catch(\Exception $e) {
+        }
     }
 
     public function getBaseUrl(): string
