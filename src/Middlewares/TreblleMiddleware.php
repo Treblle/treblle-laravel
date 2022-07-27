@@ -6,14 +6,12 @@ namespace Treblle\Middlewares;
 
 use Carbon\Carbon;
 use Closure;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\HttpClientException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Arr;
+
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class TreblleMiddleware
 {
@@ -146,16 +144,16 @@ class TreblleMiddleware
             Http::timeout(4)
             ->withOptions([
                 'connect_timeout' => 4,
-                'verify' => false
+                'verify' => false,
             ])
             ->withHeaders([
                 'x-api-key' => config('treblle.api_key'),
             ])
             ->post($this->getBaseUrl(), $this->payload);
-        } catch(ConnectException $e) {
-        } catch(HttpClientException $e) {
-        } catch(RequestException $e) {
-        } catch(\Exception $e) {
+        } catch (ConnectException $e) {
+        } catch (HttpClientException $e) {
+        } catch (RequestException $e) {
+        } catch (\Exception $e) {
         }
     }
 
