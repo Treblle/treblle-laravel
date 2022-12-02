@@ -11,7 +11,7 @@ class TreblleClient
 {
     use HasFake;
 
-    public const BASE_URL = 'https://treblle.com/api/v1/';
+    public const BASE_URL = 'https://app-api.treblle.com/v1/';
     private const API_KEY = 'Y8fNzfhRab9FMeHXXbxT6Q0qqfmmTBKq';
 
     /**
