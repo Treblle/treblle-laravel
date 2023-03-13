@@ -124,21 +124,7 @@ class TreblleMiddleware
             ->toArray()
         );
 
-        if (empty($response->exception)) {
-            $this->payload['data']['response']['body'] = json_decode($response->content());
-            $this->payload['data']['response']['size'] = strlen($response->content());
-        } else {
-            array_push(
-                $this->payload['data']['errors'],
-                [
-                    'source' => 'onException',
-                    'type' => 'UNHANDLED_EXCEPTION',
-                    'message' => $response->exception->getMessage(),
-                    'file' => $response->exception->getFile(),
-                    'line' => $response->exception->getLine(),
-                ]
-            );
-        }
+        $this->prepareResponseData($response);
 
         try {
             Http::timeout(4)
@@ -168,6 +154,11 @@ class TreblleMiddleware
         return Arr::random($urls);
     }
 
+    public function getPayload(): array
+    {
+        return $this->payload;
+    }
+
     public function getLoadTime(): float
     {
         if ($this->httpServerIsOctane()) {
@@ -179,6 +170,27 @@ class TreblleMiddleware
         }
 
         return 0.0000;
+    }
+
+    public function prepareResponseData($response): void
+    {
+        if (empty($response->exception)
+            or in_array(get_class($response->exception), config('treblle.ignore_exceptions', []))
+        ) {
+            $this->payload['data']['response']['body'] = json_decode($response->content());
+            $this->payload['data']['response']['size'] = strlen($response->content());
+        } else {
+            array_push(
+                $this->payload['data']['errors'],
+                [
+                    'source' => 'onException',
+                    'type' => 'UNHANDLED_EXCEPTION',
+                    'message' => $response->exception->getMessage(),
+                    'file' => $response->exception->getFile(),
+                    'line' => $response->exception->getLine(),
+                ]
+            );
+        }
     }
 
     public function maskFields($data): array

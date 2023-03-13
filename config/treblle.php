@@ -31,4 +31,11 @@ return [
         'credit_score',
         'api_key',
     ],
+
+    /**
+     * A list of exception classes that we do not want reported as error on treblle
+     */
+    'ignore_exceptions' => [
+        \Illuminate\Validation\ValidationException::class
+    ],
 ];
