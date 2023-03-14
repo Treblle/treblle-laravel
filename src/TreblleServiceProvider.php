@@ -5,18 +5,16 @@ declare(strict_types=1);
 namespace Treblle;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Octane\Events\RequestReceived;
+use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
+use Treblle\Contracts\TreblleClientContract;
 use Treblle\Middlewares\TreblleMiddleware;
 
-class TreblleServiceProvider extends ServiceProvider
+final class TreblleServiceProvider extends ServiceProvider
 {
-    /**
-     * Boot the service provider.
-     *
-     * @return void
-     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
@@ -45,7 +43,27 @@ class TreblleServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/treblle.php', 'treblle');
+        $this->mergeConfigFrom(
+            path: __DIR__.'/../config/treblle.php',
+            key: 'treblle',
+        );
+
+        $this->app->singleton(
+            abstract: TreblleClientContract::class,
+            concrete: static fn () => new TreblleClient(
+                request: Http::baseUrl(
+                    url: 'https://app-api.treblle.com/v1/',
+                )->withToken(
+                    token: 'Y8fNzfhRab9FMeHXXbxT6Q0qqfmmTBKq',
+                )->timeout(
+                    seconds: 15,
+                )->withHeaders([
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'User-Agent' => 'TreblleSetupCommand/0.1',
+                ]),
+            ),
+        );
     }
 
     /**

@@ -13,9 +13,9 @@ class SetUpCommandTest extends TestCase
     public function testIfLookupRequestDoesntFindUserThenWeAllowUserToRegister(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/lookup' => Http::response(['user' => null]),
-            TreblleClient::BASE_URL.'auth/register' => Http::response(['user' => ['uuid' => 'test', 'api_key' => 'test_key']]),
-            TreblleClient::BASE_URL.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
+            'https://*/auth/lookup' => Http::response(['user' => null]),
+            'https://*/auth/register' => Http::response(['user' => ['uuid' => 'test', 'api_key' => 'test_key']]),
+            'https://*/projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
         ]);
 
         $this->artisan('treblle:start')

@@ -6,29 +6,27 @@ namespace Treblle\Tests\Clients;
 
 use Illuminate\Support\Facades\Http;
 use Treblle\Clients\TreblleClient;
+use Treblle\Contracts\TreblleClientContract;
 use Treblle\Tests\TestCase;
 
 class TreblleClientTest extends TestCase
 {
-    /**
-     * @var \Treblle\Clients\TreblleClient
-     */
-    private $treblleClient;
-
-    protected function setUp(): void
+    private function client(): TreblleClientContract
     {
-        parent::setUp();
-
-        $this->treblleClient = new TreblleClient();
+        return app()->make(
+            abstract: TreblleClientContract::class,
+        );
     }
 
     public function testGivenEmailToAuthLookUpReturnsValidResponse(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/lookup' => Http::response(['user' => null]),
+            '*' => Http::response(['user' => null]),
         ]);
 
-        $response = $this->treblleClient->authLookup('test@test.test');
+        $response = $this
+            ->client()
+            ->authLookup('test@test.test');
 
         $this->assertNotEmpty($response);
     }
@@ -36,10 +34,12 @@ class TreblleClientTest extends TestCase
     public function testGivenNameEmailAndPasswordToRegisterReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/register' => Http::response(['user' => 'test_user']),
+            '*' => Http::response(['user' => 'test_user']),
         ]);
 
-        $response = $this->treblleClient->register('test_user', 'test@test.test', 'test_password');
+        $response = $this
+            ->client()
+            ->register('test_user', 'test@test.test', 'test_password');
 
         $this->assertNotEmpty($response);
 
@@ -49,10 +49,12 @@ class TreblleClientTest extends TestCase
     public function testGivenEmailAndPasswordToLoginReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/login' => Http::response(['user' => 'test_user']),
+            '*' => Http::response(['user' => 'test_user']),
         ]);
 
-        $response = $this->treblleClient->login('test@test.test', 'test_password');
+        $response = $this
+            ->client()
+            ->login('test@test.test', 'test_password');
 
         $this->assertNotEmpty($response);
 
@@ -62,10 +64,12 @@ class TreblleClientTest extends TestCase
     public function testGivenProjectNameAndUserUuidToCreateProjectReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
+            '*' => Http::response(['project' => ['api_id' => 'test_id']]),
         ]);
 
-        $response = $this->treblleClient->createProject('test_project', 'test_uuid');
+        $response = $this
+            ->client()
+            ->createProject('test_project', 'test_uuid');
 
         $this->assertNotEmpty($response);
 

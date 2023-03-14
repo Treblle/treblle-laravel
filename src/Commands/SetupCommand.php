@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Treblle\Commands;
 
 use Illuminate\Console\Command;
-use Treblle\Clients\TreblleClient;
+use Treblle\Contracts\TreblleClientContract;
 
 class SetupCommand extends Command
 {
@@ -16,10 +16,8 @@ class SetupCommand extends Command
     /**
      * @see SetUpCommandTest::if_lookup_request_doesnt_find_user_then_we_allow_user_to_register()
      */
-    public function handle()
+    public function handle(TreblleClientContract $treblleClient)
     {
-        $treblleClient = new TreblleClient();
-
         $this->info('🙏 Thank you for installing Treblle for Laravel! Let\'s get you setup!');
         $email = $this->ask('📧 What\'s your email address?');
 
