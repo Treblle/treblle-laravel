@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Commands;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Treblle\Clients\TreblleClient;
-use Treblle\Tests\TestCase;
+use Treblle\Core\Http\Endpoint;
+use Treblle\Tests\PackageTestCase;
 
-class SetUpCommandTest extends TestCase
+class SetUpCommandTest extends PackageTestCase
 {
     public function testIfLookupRequestDoesntFindUserThenWeAllowUserToRegister(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/lookup' => Http::response(['user' => null]),
-            TreblleClient::BASE_URL.'auth/register' => Http::response(['user' => ['uuid' => 'test', 'api_key' => 'test_key']]),
-            TreblleClient::BASE_URL.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
+            Arr::random(Endpoint::cases())->value.'auth/lookup' => Http::response(['user' => null]),
+            Arr::random(Endpoint::cases())->value.'auth/register' => Http::response(['user' => ['uuid' => 'test', 'api_key' => 'test_key']]),
+            Arr::random(Endpoint::cases())->value.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
         ]);
 
         $this->artisan('treblle:start')

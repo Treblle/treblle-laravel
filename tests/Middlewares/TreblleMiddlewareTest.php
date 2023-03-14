@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Treblle\Tests\Middlewares;
 
 use Treblle\Middlewares\TreblleMiddleware;
-use Treblle\Tests\TestCase;
+use Treblle\Tests\PackageTestCase;
 
-class TreblleMiddlewareTest extends TestCase
+class TreblleMiddlewareTest extends PackageTestCase
 {
     /**
      * @var TreblleMiddleware

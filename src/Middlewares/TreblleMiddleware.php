@@ -6,12 +6,12 @@ namespace Treblle\Middlewares;
 
 use Carbon\Carbon;
 use Closure;
-use Illuminate\Http\Client\HttpClientException;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Arr;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Throwable;
+use Treblle\Core\Http\Endpoint;
 
 class TreblleMiddleware
 {
@@ -128,16 +128,13 @@ class TreblleMiddleware
             $this->payload['data']['response']['body'] = json_decode($response->content());
             $this->payload['data']['response']['size'] = strlen($response->content());
         } else {
-            array_push(
-                $this->payload['data']['errors'],
-                [
-                    'source' => 'onException',
-                    'type' => 'UNHANDLED_EXCEPTION',
-                    'message' => $response->exception->getMessage(),
-                    'file' => $response->exception->getFile(),
-                    'line' => $response->exception->getLine(),
-                ]
-            );
+            $this->payload['data']['errors'][] = [
+                'source' => 'onException',
+                'type' => 'UNHANDLED_EXCEPTION',
+                'message' => $response->exception->getMessage(),
+                'file' => $response->exception->getFile(),
+                'line' => $response->exception->getLine(),
+            ];
         }
 
         try {
@@ -150,22 +147,15 @@ class TreblleMiddleware
                 'x-api-key' => config('treblle.api_key'),
             ])
             ->post($this->getBaseUrl(), $this->payload);
-        } catch (ConnectException $e) {
-        } catch (HttpClientException $e) {
-        } catch (RequestException $e) {
-        } catch (\Exception $e) {
+        } catch (Throwable) {
         }
     }
 
     public function getBaseUrl(): string
     {
-        $urls = [
-            'https://rocknrolla.treblle.com',
-            'https://punisher.treblle.com',
-            'https://sicario.treblle.com',
-        ];
-
-        return Arr::random($urls);
+        return Arr::random(
+            array: Endpoint::cases(),
+        );
     }
 
     public function getLoadTime(): float

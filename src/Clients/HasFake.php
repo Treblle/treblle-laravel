@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace Treblle\Clients;
 
+use Closure;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Http;
 
 trait HasFake
 {
-    /**
-     * Proxies a fake call to Illuminate\Http\Client\Factory::fake()
-     *
-     * @param null|callable|array $callback
-     */
-    public static function fake($callback = null): void
+    public static function fake(array|Closure|null $callback = null): Factory
     {
-        Http::fake($callback);
+        return Http::fake(
+            callback: $callback,
+        );
     }
 }
