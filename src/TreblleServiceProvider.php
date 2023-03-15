@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle;
 
+use Illuminate\Events\Dispatcher;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
@@ -11,6 +13,8 @@ use Laravel\Octane\Events\RequestReceived;
 use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
 use Treblle\Contracts\TreblleClientContract;
+use Treblle\Core\Contracts\Masking\MaskingContract;
+use Treblle\Core\Masking\FieldMasker;
 use Treblle\Middlewares\TreblleMiddleware;
 
 final class TreblleServiceProvider extends ServiceProvider
@@ -28,12 +32,26 @@ final class TreblleServiceProvider extends ServiceProvider
         }
 
         if ($this->httpServerIsOctane()) {
-            $this->app['events']->listen(RequestReceived::class, function () {
+            /**
+             * @var Dispatcher $events
+             */
+            $events = $this->app->make(
+                abstract: Dispatcher::class,
+            );
+
+            $events->listen(RequestReceived::class, function () {
                 Cache::store('octane')->put('treblle_start', microtime(true));
             });
         }
 
-        $this->app['router']->aliasMiddleware('treblle', TreblleMiddleware::class);
+        /**
+         * @var Router $router
+         */
+        $router = $this->app->make(
+            abstract: Router::class,
+        );
+
+        $router->aliasMiddleware('treblle', TreblleMiddleware::class);
     }
 
     /**
@@ -62,6 +80,13 @@ final class TreblleServiceProvider extends ServiceProvider
                     'Content-Type' => 'application/json',
                     'User-Agent' => 'TreblleSetupCommand/0.1',
                 ]),
+            ),
+        );
+
+        $this->app->singleton(
+            abstract: MaskingContract::class,
+            concrete: fn () => new FieldMasker(
+                fields: (array) config('treblle.masked_fields'),
             ),
         );
     }

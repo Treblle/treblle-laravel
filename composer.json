@@ -38,13 +38,15 @@
     },
     "require": {
         "php": "^8.0",
-        "ext-json": "*"
+        "ext-json": "*",
+        "treblle/treblle-sdk-core": "^0.0.2"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.15.1",
         "guzzlehttp/guzzle": "^7.5",
         "laravel/octane": "^1.5",
-        "orchestra/testbench": "^7.0 || ^8.0.8"
+        "orchestra/testbench": "^7.0 || ^8.0.8",
+        "phpstan/phpstan": "^1.10"
     },
     "extra": {
         "laravel": {
@@ -54,6 +56,9 @@
         }
     },
     "scripts": {
+        "stan": [
+            "./vendor/bin/phpstan analyse"
+        ],
         "test": [
             "./vendor/bin/phpunit"
         ]
