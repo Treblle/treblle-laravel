@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace Treblle\Middlewares;
 
-use Carbon\Carbon;
 use Closure;
-use Illuminate\Http\Client\HttpClientException;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Arr;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Treblle\Jobs\ProcessRequest;
 
 final class TreblleMiddleware
@@ -34,7 +29,7 @@ final class TreblleMiddleware
             }
 
             if (config('treblle.ignored_environments')) {
-                if (in_array(config('app.env'), explode(',', strval(config('treblle.ignored_environments'))))) {
+                if (in_array(config('app.env'), explode(',', (string) (config('treblle.ignored_environments'))))) {
                     return $response;
                 }
             }
@@ -52,7 +47,7 @@ final class TreblleMiddleware
     public function getLoadTime(): float
     {
         if ($this->httpServerIsOctane()) {
-            return (float) microtime(true) - floatval(Cache::store('octane')->get('treblle_start'));
+            return (float) microtime(true) - (float) (Cache::store('octane')->get('treblle_start'));
         }
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {

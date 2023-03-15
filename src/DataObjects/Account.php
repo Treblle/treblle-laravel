@@ -23,14 +23,14 @@ final class Account
     public static function fromRequest(array $data): self
     {
         return new self(
-            uuid: strval(data_get($data, 'user.uuid')),
-            firstName: strval(data_get($data, 'user.first_name')),
-            name: strval(data_get($data, 'user.name')),
-            email: strval(data_get($data, 'user.email')),
-            timezone: strval(data_get($data, 'user.timezone')),
-            initials: strval(data_get($data, 'user.initials')),
-            color: strval(data_get($data, 'user.color')),
-            apiKey: strval(data_get($data, 'user.api_key')),
+            uuid: (string) (data_get($data, 'user.uuid')),
+            firstName: (string) (data_get($data, 'user.first_name')),
+            name: (string) (data_get($data, 'user.name')),
+            email: (string) (data_get($data, 'user.email')),
+            timezone: (string) (data_get($data, 'user.timezone')),
+            initials: (string) (data_get($data, 'user.initials')),
+            color: (string) (data_get($data, 'user.color')),
+            apiKey: (string) (data_get($data, 'user.api_key')),
             settings: (array) (data_get($data, 'user.settings')),
         );
     }

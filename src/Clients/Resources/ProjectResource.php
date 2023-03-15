@@ -6,7 +6,6 @@ namespace Treblle\Clients\Resources;
 
 use Exception;
 use Illuminate\Http\Client\RequestException;
-use Illuminate\Http\Client\Response;
 use Treblle\Contracts\TreblleClientContract;
 use Treblle\DataObjects\Project;
 

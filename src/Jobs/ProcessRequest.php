@@ -41,7 +41,8 @@ final class ProcessRequest implements ShouldQueue
         public Request $request,
         public Response $response,
         public float $loadTime,
-    ) {}
+    ) {
+    }
 
     /**
      * @throws RequestException
@@ -108,17 +109,17 @@ final class ProcessRequest implements ShouldQueue
 
         return new Data(
             server: new Server(
-                ip: strval($this->request->server('SERVER_ADDR')),
-                timezone: strval(config('app.timezone')),
-                software: strval($this->request->server('SERVER_SOFTWARE')),
-                signature: strval($this->request->server('SERVER_SIGNATURE')),
-                protocol: strval($this->request->server('SERVER_PROTOCOL')),
+                ip: (string) ($this->request->server('SERVER_ADDR')),
+                timezone: (string) (config('app.timezone')),
+                software: (string) ($this->request->server('SERVER_SOFTWARE')),
+                signature: (string) ($this->request->server('SERVER_SIGNATURE')),
+                protocol: (string) ($this->request->server('SERVER_PROTOCOL')),
                 os: new OS(
                     name: php_uname('s'),
                     release: php_uname('r'),
                     architecture: php_uname('m'),
                 ),
-                encoding: strval($this->request->server('HTTP_ACCEPT_ENCODING')),
+                encoding: (string) ($this->request->server('HTTP_ACCEPT_ENCODING')),
             ),
             language: new Language(
                 name: 'php',
@@ -132,15 +133,15 @@ final class ProcessRequest implements ShouldQueue
             ),
             request: new RequestObject(
                 timestamp: Carbon::now('UTC')->format('Y-m-d H:i:s'),
-                ip: strval($this->request->ip()),
-                url: strval($this->request->fullUrl()),
-                user_agent: strval($this->request->server('HTTP_USER_AGENT')),
+                ip: (string) ($this->request->ip()),
+                url: (string) ($this->request->fullUrl()),
+                user_agent: (string) ($this->request->server('HTTP_USER_AGENT')),
                 method: Method::from(
                     value: $this->request->method(),
                 ),
                 headers: $masker->mask(
                     data: collect($this->request->headers->all())->transform(
-                        /** @phpstan-ignore-next-line  */
+                        /* @phpstan-ignore-next-line  */
                         callback: fn ($item) => collect($item)->first(),
                     )->toArray(),
                 ),
@@ -154,7 +155,7 @@ final class ProcessRequest implements ShouldQueue
             response: new ResponseObject(
                 headers: $masker->mask(
                     data: collect($this->response->headers->all())->transform(
-                        /** @phpstan-ignore-next-line  */
+                        /* @phpstan-ignore-next-line  */
                         callback: fn ($item) => collect($item)->first(),
                     )->toArray(),
                 ),
