@@ -29,13 +29,13 @@ final class Member
     public static function fromRequest(array $data): self
     {
         return new self(
-            uuid: strval(data_get($data, 'uuid')),
-            status: strval(data_get($data, 'status')),
-            name: strval(data_get($data, 'name')),
-            email: strval(data_get($data, 'email')),
-            initials: strval(data_get($data, 'initials')),
-            color: strval(data_get($data, 'color')),
-            inviteURL: strval(data_get($data, 'invite_url')),
+            uuid: (string) (data_get($data, 'uuid')),
+            status: (string) (data_get($data, 'status')),
+            name: (string) (data_get($data, 'name')),
+            email: (string) (data_get($data, 'email')),
+            initials: (string) (data_get($data, 'initials')),
+            color: (string) (data_get($data, 'color')),
+            inviteURL: (string) (data_get($data, 'invite_url')),
         );
     }
 }

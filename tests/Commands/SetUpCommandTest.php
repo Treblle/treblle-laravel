@@ -6,7 +6,6 @@ namespace Treblle\Tests\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Treblle\Clients\TreblleClient;
 use Treblle\Tests\TestCase;
 
 class SetUpCommandTest extends TestCase

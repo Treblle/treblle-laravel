@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Treblle\Clients\Resources;
 
 use Illuminate\Http\Client\RequestException;
-use Illuminate\Http\Client\Response;
 use Treblle\Contracts\TreblleClientContract;
 use Treblle\DataObjects\Account;
 use Treblle\DataObjects\User;
@@ -74,9 +73,9 @@ final class AuthResource
      * @param string $email
      * @param string $password
      *
-     * @return Account
      * @throws RequestException
      *
+     * @return Account
      */
     public function login(string $email, string $password): Account
     {
