@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Clients;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Treblle\Clients\TreblleClient;
 use Treblle\Contracts\TreblleClientContract;
-use Treblle\Core\Http\Endpoint;
 use Treblle\Tests\TestCase;
 
 class TreblleClientTest extends TestCase

@@ -17,6 +17,7 @@ final class SetupCommand extends Command
 
     /**
      * @param TreblleClientContract $treblleClient
+     *
      * @return int
      */
     public function handle(TreblleClientContract $treblleClient): int

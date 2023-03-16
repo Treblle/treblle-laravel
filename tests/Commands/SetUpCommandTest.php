@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Commands;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 use Treblle\Tests\TestCase;
 
 class SetUpCommandTest extends TestCase

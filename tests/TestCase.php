@@ -6,10 +6,10 @@ namespace Treblle\Tests;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
-use Treblle\TreblleServiceProvider;
 use InvalidArgumentException;
 use JsonException;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Treblle\TreblleServiceProvider;
 
 class TestCase extends BaseTestCase
 {
@@ -22,6 +22,7 @@ class TestCase extends BaseTestCase
 
     /**
      * @param Application $app
+     *
      * @return array<int,ServiceProvider>
      */
     protected function getPackageProviders($app): array
