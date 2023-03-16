@@ -2,6 +2,7 @@
 <phpunit
         bootstrap="vendor/autoload.php"
         colors="true"
+        cacheResult="false"
 >
     <testsuites>
         <testsuite name="Unit">

@@ -6,29 +6,30 @@ namespace Treblle\Tests\Clients;
 
 use Illuminate\Support\Facades\Http;
 use Treblle\Clients\TreblleClient;
+use Treblle\Contracts\TreblleClientContract;
 use Treblle\Tests\TestCase;
 
 class TreblleClientTest extends TestCase
 {
-    /**
-     * @var \Treblle\Clients\TreblleClient
-     */
-    private $treblleClient;
-
-    protected function setUp(): void
+    private function client(): TreblleClientContract
     {
-        parent::setUp();
-
-        $this->treblleClient = new TreblleClient();
+        return app()->make(
+            abstract: TreblleClientContract::class,
+        );
     }
 
     public function testGivenEmailToAuthLookUpReturnsValidResponse(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/lookup' => Http::response(['user' => null]),
+            '*' => Http::response(['user' => null]),
         ]);
 
-        $response = $this->treblleClient->authLookup('test@test.test');
+        $response = $this
+            ->client()
+            ->auth()
+            ->lookup(
+                email: 'test@test.test',
+            );
 
         $this->assertNotEmpty($response);
     }
@@ -36,39 +37,70 @@ class TreblleClientTest extends TestCase
     public function testGivenNameEmailAndPasswordToRegisterReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/register' => Http::response(['user' => 'test_user']),
+            '*' => Http::response(
+                body: $this->fixture(
+                    name: 'auth/register',
+                ),
+            ),
         ]);
 
-        $response = $this->treblleClient->register('test_user', 'test@test.test', 'test_password');
+        $response = $this
+            ->client()
+            ->auth()
+            ->register(
+                name: 'test_user',
+                email: 'test@test.test',
+                password: 'test_password',
+            );
 
         $this->assertNotEmpty($response);
 
-        $this->assertSame('test_user', $response->object()->user);
+        $this->assertSame('hello@treblle.com', $response->email);
     }
 
     public function testGivenEmailAndPasswordToLoginReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'auth/login' => Http::response(['user' => 'test_user']),
+            '*' => Http::response(
+                body: $this->fixture(
+                    name: 'auth/login',
+                ),
+            ),
         ]);
 
-        $response = $this->treblleClient->login('test@test.test', 'test_password');
+        $response = $this
+            ->client()
+            ->auth()
+            ->login(
+                email: 'test@test.test',
+                password: 'test_password',
+            );
 
         $this->assertNotEmpty($response);
 
-        $this->assertSame('test_user', $response->object()->user);
+        $this->assertSame('test_uuid', $response->uuid);
     }
 
     public function testGivenProjectNameAndUserUuidToCreateProjectReturnsRegisteredUserInfo(): void
     {
         TreblleClient::fake([
-            TreblleClient::BASE_URL.'projects/store' => Http::response(['project' => ['api_id' => 'test_id']]),
+            '*' => Http::response(
+                body: $this->fixture(
+                    name: 'projects/create',
+                ),
+            ),
         ]);
 
-        $response = $this->treblleClient->createProject('test_project', 'test_uuid');
+        $response = $this
+            ->client()
+            ->projects()
+            ->create(
+                name: 'test_project',
+                user: 'test_uuid',
+            );
 
         $this->assertNotEmpty($response);
 
-        $this->assertSame('test_id', $response->object()->project->api_id);
+        $this->assertSame('12345', $response->apiID);
     }
 }
