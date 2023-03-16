@@ -9,13 +9,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use JsonException;
-use Symfony\Component\HttpFoundation\Request;
 use Throwable;
 use Treblle\Contracts\TreblleClientContract;
 use Treblle\Core\Contracts\Masking\MaskingContract;
@@ -39,7 +40,7 @@ final class ProcessRequest implements ShouldQueue
 
     public function __construct(
         public Request $request,
-        public Response $response,
+        public JsonResponse|Response $response,
         public float $loadTime,
     ) {
     }
