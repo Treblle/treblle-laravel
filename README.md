@@ -3,7 +3,7 @@
 # Treblle for Laravel
 
 [![Latest Version](https://img.shields.io/packagist/v/treblle/treblle-laravel)](https://packagist.org/packages/treblle/treblle-laravel)
-[![PHP Version][https://img.shields.io/packagist/php-v/juststeveking/php-sdk.svg?style=flat-square]][https://php.net]
+[![PHP Version](https://img.shields.io/packagist/php-v/juststeveking/php-sdk.svg?style=flat-square)](https://php.net)
 [![Total Downloads](https://img.shields.io/packagist/dt/treblle/treblle-laravel)](https://packagist.org/packages/treblle/treblle-laravel)
 [![MIT Licence](https://img.shields.io/packagist/l/treblle/treblle-laravel)](LICENSE.md)
 
