@@ -4,37 +4,28 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Middlewares;
 
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Bus;
+use Treblle\Jobs\ProcessRequest;
 use Treblle\Middlewares\TreblleMiddleware;
-use Treblle\Tests\PackageTestCase;
+use Treblle\Tests\TestCase;
 
-class TreblleMiddlewareTest extends PackageTestCase
+class TreblleMiddlewareTest extends TestCase
 {
-    /**
-     * @var TreblleMiddleware
-     */
-    private $treblleMiddleware;
-
-    protected function setUp(): void
+    public function testJobIsDispatched(): void
     {
-        parent::setUp();
+        Bus::fake();
 
-        $this->treblleMiddleware = new TreblleMiddleware();
-    }
+        (new TreblleMiddleware())->handle(
+            request: Request::create(
+                uri: 'test',
+            ),
+            next: fn () => new Response(),
+        );
 
-    public function testRequestWithNullValueIsMaskedCorrectly(): void
-    {
-        $requestWithNullField = [
-            'cc' => null,
-            'otherValue' => 'something',
-            'password' => '1234',
-        ];
-
-        $maskedRequest = $this->treblleMiddleware->maskFields($requestWithNullField);
-
-        $this->assertEquals($maskedRequest, [
-            'cc' => null, // Should be left as null value
-            'otherValue' => 'something',
-            'password' => '****', // Should be masked
-        ]);
+        Bus::assertDispatched(
+            ProcessRequest::class,
+        );
     }
 }

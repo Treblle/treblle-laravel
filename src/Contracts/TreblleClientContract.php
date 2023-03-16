@@ -6,17 +6,39 @@ namespace Treblle\Contracts;
 
 use Closure;
 use Illuminate\Http\Client\Factory;
-use Illuminate\Http\Client\Response;
+use Illuminate\Http\Client\PendingRequest;
+use Treblle\Clients\Resources\AuthResource;
+use Treblle\Clients\Resources\ProjectResource;
 
 interface TreblleClientContract
 {
-    public static function fake(array|Closure|null $callback = null): Factory;
+    /**
+     * Fake a request using a proxy to Http::fake()
+     *
+     * @param array|Closure|null $callback
+     *
+     * @return Factory
+     */
+    public static function fake(null|array|Closure $callback = null): Factory;
 
-    public function authLookUp(string $email): Response;
+    /**
+     * Return the current PendingRequest object
+     *
+     * @return PendingRequest
+     */
+    public function request(): PendingRequest;
 
-    public function register(string $name, string $email, string $password): Response;
+    /**
+     * Send an Auth request
+     *
+     * @return AuthResource
+     */
+    public function auth(): AuthResource;
 
-    public function login(string $email, string $password): Response;
-
-    public function createProject(string $projectName, string $userUuid): Response;
+    /**
+     * Send a Projects request
+     *
+     * @return ProjectResource
+     */
+    public function projects(): ProjectResource;
 }

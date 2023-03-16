@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 
 trait HasFake
 {
-    public static function fake(array|Closure|null $callback = null): Factory
+    public static function fake(null|array|Closure $callback = null): Factory
     {
         return Http::fake(
             callback: $callback,

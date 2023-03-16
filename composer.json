@@ -2,8 +2,8 @@
     "name": "treblle/treblle-laravel",
     "description": "Stay in tune with your APIs",
     "license": "MIT",
-    "type": "library",
     "homepage": "https://treblle.com/",
+    "type": "library",
     "keywords": [
         "api",
         "debuging",
@@ -45,8 +45,9 @@
         "guzzlehttp/guzzle": "^7.5",
         "laravel/octane": "^1.5",
         "laravel/pint": "^1.6",
+        "friendsofphp/php-cs-fixer": "^3.15.1",
         "orchestra/testbench": "^7.0 || ^8.0.8",
-        "phpstan/phpstan": "^1.10.6"
+        "phpstan/phpstan": "^1.10"
     },
     "extra": {
         "laravel": {
@@ -60,7 +61,7 @@
             "./vendor/bin/pint"
         ],
         "stan": [
-            "./vendor/bin/phpstan"
+            "./vendor/bin/phpstan analyse"
         ],
         "test": [
             "./vendor/bin/phpunit"

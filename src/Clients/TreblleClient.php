@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Treblle\Clients;
 
-use Exception;
 use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\Response;
+use Treblle\Clients\Resources\AuthResource;
+use Treblle\Clients\Resources\ProjectResource;
 use Treblle\Contracts\TreblleClientContract;
-use Treblle\Core\Http\Method;
 
 final class TreblleClient implements TreblleClientContract
 {
@@ -20,66 +19,30 @@ final class TreblleClient implements TreblleClientContract
     }
 
     /**
-     * @throws Exception
-     * @see TreblleClientTest::given_email_to_auth_look_up_returns_valid_response()
+     * @return AuthResource
      */
-    public function authLookUp(string $email): Response
+    public function auth(): AuthResource
     {
-        return $this->request->send(
-            method: Method::POST->value,
-            url: 'auth/lookup',
-            options: [
-                'email' => $email,
-            ],
-        )->throw();
+        return new AuthResource(
+            client: $this,
+        );
     }
 
     /**
-     * @throws Exception
-     * @see TreblleClientTest::given_name_email_and_password_to_register_returns_registered_user_info()
+     * @return ProjectResource
      */
-    public function register(string $name, string $email, string $password): Response
+    public function projects(): ProjectResource
     {
-        return $this->request->send(
-            method: Method::POST->value,
-            url: 'auth/register',
-            options: [
-                'name' => $name,
-                'email' => $email,
-                'password' => $password,
-            ],
-        )->throw();
+        return new ProjectResource(
+            client: $this,
+        );
     }
 
     /**
-     * @throws Exception
-     * @see TreblleClientTest::given_email_and_password_to_login_returns_registered_user_info()
+     * @return PendingRequest
      */
-    public function login(string $email, string $password): Response
+    public function request(): PendingRequest
     {
-        return $this->request->send(
-            method: Method::POST->value,
-            url: 'auth/login',
-            options: [
-                'email' => $email,
-                'password' => $password,
-            ],
-        )->throw();
-    }
-
-    /**
-     * @throws Exception
-     * @see TreblleClientTest::given_project_name_and_user_uuid_to_create_project_returns_registered_user_info()
-     */
-    public function createProject(string $projectName, string $userUuid): Response
-    {
-        return $this->request->send(
-            method: Method::POST->value,
-            url: 'projects/store',
-            options: [
-                'name' => $projectName,
-                'user' => $userUuid,
-            ],
-        )->throw();
+        return $this->request;
     }
 }
