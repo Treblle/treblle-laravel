@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Queue\InteractsWithQueue;
@@ -39,7 +40,7 @@ final class ProcessRequest implements ShouldQueue
 
     public function __construct(
         public Request $request,
-        public Response $response,
+        public JsonResponse|Response $response,
         public float $loadTime,
     ) {
     }
