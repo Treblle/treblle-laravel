@@ -3,6 +3,7 @@
 # Treblle for Laravel
 
 [![Latest Version](https://img.shields.io/packagist/v/treblle/treblle-laravel)](https://packagist.org/packages/treblle/treblle-laravel)
+[![PHP Version][https://img.shields.io/packagist/php-v/juststeveking/php-sdk.svg?style=flat-square]][https://php.net]
 [![Total Downloads](https://img.shields.io/packagist/dt/treblle/treblle-laravel)](https://packagist.org/packages/treblle/treblle-laravel)
 [![MIT Licence](https://img.shields.io/packagist/l/treblle/treblle-laravel)](LICENSE.md)
 
@@ -20,14 +21,8 @@ Treblle to your API out of the box you get:
 
 ## Requirements
 
-* PHP 7.2+
-* Laravel 7+
-
-## Dependencies
-
-* [`laravel/framework`](https://packagist.org/packages/laravel/framework)
-* [`guzzlehttp/guzzle`](https://packagist.org/packages/guzzlehttp/guzzle)
-* [`nesbot/carbon`](https://packagist.org/packages/nesbot/carbon)
+* PHP 8.1+
+* Laravel 9+
 
 ## Installation
 
@@ -113,7 +108,7 @@ You can customize this list by editing your configuration file. If you did not p
 this command first:
 
 ```bash
-php artisan vendor:publish --tag=treblle
+php artisan vendor:publish --tag=treblle-config
 ```
 
 This will create a file at "config/treblle.php". Then, open this file and tweak the masked fields:
@@ -142,7 +137,7 @@ return [
 
 ## Support
 
-If you have problems of any kind feel free to reach out via <https://treblle.com> or email vedran@treblle.com, and we'll
+If you have problems of any kind feel free to reach out via <https://treblle.com> or email hello@treblle.com, and we'll
 do our best to help you out.
 
 ## License

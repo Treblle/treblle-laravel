@@ -24,7 +24,7 @@ final class TreblleServiceProvider extends ServiceProvider
                 paths: [
                     __DIR__.'/../../config/treblle.php' => config_path('treblle.php'),
                 ],
-                groups: 'config',
+                groups: 'treblle-config',
             );
 
             $this->commands(
@@ -66,7 +66,7 @@ final class TreblleServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(
             path: __DIR__.'/../../config/treblle.php',
-            key: 'treblle',
+            key: 'treblle-config',
         );
 
         $this->app->singleton(
