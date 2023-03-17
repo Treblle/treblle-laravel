@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Treblle\Middlewares;
 
 use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -12,7 +13,7 @@ use Treblle\Jobs\ProcessRequest;
 
 final class TreblleMiddleware
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next): Response|JsonResponse
     {
         $response = $next($request);
 
