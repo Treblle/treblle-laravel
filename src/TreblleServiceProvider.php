@@ -72,7 +72,7 @@ final class TreblleServiceProvider extends ServiceProvider
                 request: Http::baseUrl(
                     url: 'https://app-api.treblle.com/v1/',
                 )->withToken(
-                    token: 'Y8fNzfhRab9FMeHXXbxT6Q0qqfmmTBKq',
+                    token: config('treblle.api_key'),
                 )->timeout(
                     seconds: 15,
                 )->withHeaders([
