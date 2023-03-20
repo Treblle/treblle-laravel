@@ -66,21 +66,31 @@ final class TreblleServiceProvider extends ServiceProvider
             key: 'treblle',
         );
 
+
+
         $this->app->singleton(
             abstract: TreblleClientContract::class,
-            concrete: static fn () => new TreblleClient(
-                request: Http::baseUrl(
+            concrete: static function () {
+                $request = Http::baseUrl(
                     url: 'https://app-api.treblle.com/v1/',
-                )->withToken(
-                    token: config('treblle.api_key'),
                 )->timeout(
                     seconds: 15,
                 )->withHeaders([
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
                     'User-Agent' => 'TreblleSetupCommand/0.1',
-                ]),
-            ),
+                ]);
+
+                if (! empty(config('treblle.api_key'))) {
+                    $request->withToken(
+                        token: config('treblle.api_key'),
+                    );
+                }
+
+                return new TreblleClient(
+                    request: $request,
+                );
+            },
         );
 
         $this->app->singleton(
