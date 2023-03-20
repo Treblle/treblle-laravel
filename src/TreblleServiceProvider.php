@@ -66,8 +66,6 @@ final class TreblleServiceProvider extends ServiceProvider
             key: 'treblle',
         );
 
-
-
         $this->app->singleton(
             abstract: TreblleClientContract::class,
             concrete: static function () {
