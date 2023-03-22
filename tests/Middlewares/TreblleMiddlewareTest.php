@@ -12,11 +12,18 @@ use Treblle\Tests\TestCase;
 
 class TreblleMiddlewareTest extends TestCase
 {
+    public function getMiddleware(): TreblleMiddleware
+    {
+        return $this->app->make(
+            abstract: TreblleMiddleware::class,
+        );
+    }
+
     public function testJobIsDispatched(): void
     {
         Http::fake();
 
-        (new TreblleMiddleware())->handle(
+        $this->getMiddleware()->handle(
             request: Request::create(
                 uri: 'test',
             ),

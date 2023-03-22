@@ -97,6 +97,14 @@ final class TreblleServiceProvider extends ServiceProvider
                 fields: (array) config('treblle.masked_fields'),
             ),
         );
+
+        $this->app->bind(
+            abstract: TreblleMiddleware::class,
+            concrete: fn () => new TreblleMiddleware(
+                client: app()->make(TreblleClientContract::class),
+                masker: app()->make(MaskingContract::class),
+            ),
+        );
     }
 
     /**
