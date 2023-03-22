@@ -36,6 +36,11 @@ final class TreblleMiddleware
     ) {
     }
 
+    /**
+     * @throws RequestException
+     * @throws Throwable
+     * @throws JsonException
+     */
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
         /**
@@ -59,13 +64,17 @@ final class TreblleMiddleware
                     return $response;
                 }
             }
+
             /*
              * The terminate method is automatically called when the server supports the FastCGI protocol.
              * In the case the server does not support it, we fall back to manually calling the terminate method.
              *
              * @see https://laravel.com/docs/middleware#terminable-middleware
              */
-            $this->terminate($request, $response, $this->getLoadTime());
+            $this->terminate(
+                request: $request,
+                response: $response,
+            );
         }
 
         return $response;
@@ -76,13 +85,13 @@ final class TreblleMiddleware
      * @throws Throwable
      * @throws JsonException
      */
-    public function terminate(Request $request, JsonResponse|Response $response, int|float $loadTime): void
+    public function terminate(Request $request, JsonResponse|Response $response): void
     {
         $data = $this->buildPayload(
             masker: $this->masker,
             request: $request,
             response: $response,
-            loadTime: $loadTime,
+            loadTime: $this->getLoadTime(),
         );
 
         try {
