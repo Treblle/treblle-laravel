@@ -82,7 +82,7 @@ final class TreblleServiceProvider extends ServiceProvider
                 if (! empty(config('treblle.api_key'))) {
                     $request->withHeaders(
                         headers: [
-                            'x-api-key' => strval(config('treblle.api_key')),
+                            'x-api-key' => (string) (config('treblle.api_key')),
                         ]
                     );
                 }
