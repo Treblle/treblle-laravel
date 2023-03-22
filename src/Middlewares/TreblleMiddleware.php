@@ -15,6 +15,9 @@ final class TreblleMiddleware
 {
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
+        /**
+         * @var Response|JsonResponse $response
+         */
         $response = $next($request);
 
         /*
