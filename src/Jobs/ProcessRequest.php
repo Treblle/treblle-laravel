@@ -88,11 +88,7 @@ final class ProcessRequest implements ShouldQueue
 
         try {
             $responseBody = $masker->mask(
-                data: (array) json_decode(
-                    json: $this->response->content(),
-                    associative: true,
-                    flags: JSON_THROW_ON_ERROR,
-                ),
+                data: (array) json_decode($this->response->content(), true, 512, JSON_THROW_ON_ERROR),
             );
         } catch (Throwable $exception) {
             throw $exception;

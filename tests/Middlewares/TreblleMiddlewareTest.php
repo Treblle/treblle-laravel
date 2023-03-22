@@ -6,8 +6,7 @@ namespace Treblle\Tests\Middlewares;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Bus;
-use Treblle\Jobs\ProcessRequest;
+use Illuminate\Support\Facades\Http;
 use Treblle\Middlewares\TreblleMiddleware;
 use Treblle\Tests\TestCase;
 
@@ -15,17 +14,19 @@ class TreblleMiddlewareTest extends TestCase
 {
     public function testJobIsDispatched(): void
     {
-        Bus::fake();
+        Http::fake();
 
         (new TreblleMiddleware())->handle(
             request: Request::create(
                 uri: 'test',
             ),
-            next: fn () => new Response(),
+            next: fn () => new Response(
+                content: json_encode($this->fixture(
+                    name: 'projects/create',
+                ), JSON_THROW_ON_ERROR)
+            ),
         );
 
-        Bus::assertDispatched(
-            ProcessRequest::class,
-        );
+        Http::assertSentCount(1);
     }
 }

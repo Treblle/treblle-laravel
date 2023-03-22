@@ -81,7 +81,7 @@ final class TreblleServiceProvider extends ServiceProvider
 
                 if (! empty(config('treblle.api_key'))) {
                     $request->withToken(
-                        token: config('treblle.api_key'),
+                        token: strval(config('treblle.api_key')),
                     );
                 }
 
