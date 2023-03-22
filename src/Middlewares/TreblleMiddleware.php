@@ -76,7 +76,7 @@ final class TreblleMiddleware
      * @throws Throwable
      * @throws JsonException
      */
-    public function terminate(Request $request, Response $response, int|float $loadTime): void
+    public function terminate(Request $request, JsonResponse|Response $response, int|float $loadTime): void
     {
         $data = $this->buildPayload(
             masker: $this->masker,
@@ -130,7 +130,7 @@ final class TreblleMiddleware
     /**
      * @throws JsonException
      */
-    public function buildPayload(MaskingContract $masker, Request $request, Response $response, float|int $loadTime): Data
+    public function buildPayload(MaskingContract $masker, Request $request, JsonResponse|Response $response, float|int $loadTime): Data
     {
         $php = new PHP();
 
