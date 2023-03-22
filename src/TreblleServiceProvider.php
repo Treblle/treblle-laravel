@@ -80,8 +80,10 @@ final class TreblleServiceProvider extends ServiceProvider
                 ]);
 
                 if (! empty(config('treblle.api_key'))) {
-                    $request->withToken(
-                        token: (string) (config('treblle.api_key')),
+                    $request->withHeaders(
+                        headers: [
+                            'x-api-key' => strval(config('treblle.api_key')),
+                        ]
                     );
                 }
 
