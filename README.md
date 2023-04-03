@@ -1,37 +1,3 @@
-<img src="https://d224n10qh3hhwu.cloudfront.net/github/hero-laravel.jpg" alt="Treblle for Laravel" align="center">
-
-# Treblle for Laravel
-
-[![Latest Version](https://img.shields.io/packagist/v/treblle/treblle-laravel)](https://packagist.org/packages/treblle/treblle-laravel)
-[![PHP Version](https://img.shields.io/packagist/php-v/treblle/treblle-laravel.svg?style=flat-square)](https://php.net)
-[![Total Downloads](https://img.shields.io/packagist/dt/treblle/treblle-laravel)](https://packagist.org/packages/treblle/treblle-laravel)
-[![MIT Licence](https://img.shields.io/packagist/l/treblle/treblle-laravel)](LICENSE.md)
-
-Treblle makes it super easy to understand what’s going on with your APIs and the apps that use them. Just by adding
-Treblle to your API out of the box you get:
-
-* Real-time API monitoring and logging
-* Auto-generated API docs with OAS support
-* API analytics
-* Quality scoring
-* One-click testing
-* API management on the go
-* Supports Laravel Vapor and Laravel Octane
-* and more...
-
-## Requirements
-
-* PHP 8.1+
-* Laravel 9+
-
-## Installation
-
-Install Treblle for Laravel via [Composer](http://getcomposer.org/) by running the following command in your terminal:
-
-```bash
-composer require treblle/treblle-laravel
-```
-
 <div align="center">
   <img src="https://treblle-github.s3.amazonaws.com/header.png"/>
 </div>
