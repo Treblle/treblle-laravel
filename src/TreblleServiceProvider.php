@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Treblle;
 
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Cache;
@@ -17,7 +18,7 @@ use Treblle\Core\Contracts\Masking\MaskingContract;
 use Treblle\Core\Masking\FieldMasker;
 use Treblle\Middlewares\TreblleMiddleware;
 
-final class TreblleServiceProvider extends ServiceProvider
+final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
 {
     public function boot(): void
     {
@@ -115,5 +116,18 @@ final class TreblleServiceProvider extends ServiceProvider
     private function httpServerIsOctane(): bool
     {
         return isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides(): array
+    {
+        return [
+            MaskingContract::class,
+            TreblleClientContract::class
+        ];
     }
 }
