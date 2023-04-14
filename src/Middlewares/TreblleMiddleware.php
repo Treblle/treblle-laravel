@@ -66,7 +66,7 @@ final class TreblleMiddleware
                 return $response;
             }
 
-            if (TreblleMiddleware::isNotApprovedRequest(config('treblle.ignore_urls', []), $request)) {
+            if (! TreblleMiddleware::isApprovedRequest(config('treblle.ignore_urls', []), $request)) {
                 return $response;
             }
 
@@ -225,7 +225,7 @@ final class TreblleMiddleware
         );
     }
 
-    public static function isNotApprovedRequest(array $ignoredUrls, Request $request): bool
+    public static function isApprovedRequest(array $ignoredUrls, Request $request): bool
     {
         foreach ($ignoredUrls as $pattern) {
             if ($request->is($pattern)) {
