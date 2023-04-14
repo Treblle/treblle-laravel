@@ -66,7 +66,7 @@ final class TreblleMiddleware
                 return $response;
             }
 
-            if (TreblleMiddleware::isNotApprovedRequest(config('treblle.ignore_urls'), $request)) {
+            if (TreblleMiddleware::isNotApprovedRequest(config('treblle.ignore_urls', []), $request)) {
                 return $response;
             }
 

@@ -37,9 +37,7 @@ return [
      */
     'ignore_urls' => [
         'telescope*',
-        'vendor/telescope*',
         'horizon*',
-        'vendor/horizon*',
         'nova*'
     ],
 ];
