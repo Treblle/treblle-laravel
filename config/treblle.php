@@ -31,4 +31,15 @@ return [
         'credit_score',
         'api_key',
     ],
+
+    /*
+     * Define which web request urls you don't want monitoring for in your treblle dashboard
+     */
+    'ignore_urls' => [
+        'telescope*',
+        'vendor/telescope*',
+        'horizon*',
+        'vendor/horizon*',
+        'nova*'
+    ],
 ];

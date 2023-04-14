@@ -59,10 +59,15 @@ final class TreblleMiddleware
                 return $response;
             }
 
-            if (config('treblle.ignored_environments')) {
-                if (in_array(config('app.env'), explode(',', (string) (config('treblle.ignored_environments'))))) {
-                    return $response;
-                }
+            if (
+                config('treblle.ignored_environments') &&
+                in_array(config('app.env'), explode(',', (string)(config('treblle.ignored_environments'))))
+            ) {
+                return $response;
+            }
+
+            if (TreblleMiddleware::isNotApprovedRequest(config('treblle.ignore_urls'), $request)) {
+                return $response;
             }
 
             /*
@@ -218,5 +223,16 @@ final class TreblleMiddleware
             ),
             errors: $errors,
         );
+    }
+
+    public static function isNotApprovedRequest(array $ignoredUrls, Request $request): bool
+    {
+        foreach ($ignoredUrls as $pattern) {
+            if ($request->is($pattern)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
