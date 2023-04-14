@@ -7,6 +7,11 @@ return [
     'api_key' => env('TREBLLE_API_KEY'),
 
     /*
+     * Treblle domain url.
+     */
+    'domain' => env('TREBLLE_DOMAIN', 'https://app-api.treblle.com/v1/'),
+
+    /*
      * A valid Treblle project ID. Create your first project on https://treblle.com/
      */
     'project_id' => env('TREBLLE_PROJECT_ID'),

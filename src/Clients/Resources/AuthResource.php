@@ -26,14 +26,11 @@ final class AuthResource
      */
     public function lookup(string $email): User
     {
-        $response = $this->client->request()->send(
-            method: 'POST',
+        $response = $this->client->request()->post(
             url: 'auth/lookup',
-            options: [
-                'json' => [
-                    'email' => $email,
-                ],
-            ],
+            data: [
+                'email' => $email
+            ]
         )->throw();
 
         return User::fromRequest(
@@ -52,16 +49,13 @@ final class AuthResource
      */
     public function register(string $name, string $email, string $password): Account
     {
-        $response = $this->client->request()->send(
-            method: 'POST',
+        $response = $this->client->request()->post(
             url: 'auth/register',
-            options: [
-                'json' => [
-                    'name' => $name,
-                    'email' => $email,
-                    'password' => $password,
-                ],
-            ],
+            data: [
+                'name' => $name,
+                'email' => $email,
+                'password' => $password,
+            ]
         )->throw();
 
         return Account::fromRequest(
@@ -79,14 +73,11 @@ final class AuthResource
      */
     public function login(string $email, string $password): Account
     {
-        $response = $this->client->request()->send(
-            method: 'POST',
+        $response = $this->client->request()->post(
             url: 'auth/login',
-            options: [
-                'json' => [
-                    'email' => $email,
-                    'password' => $password,
-                ],
+            data: [
+                'email' => $email,
+                'password' => $password,
             ],
         )->throw();
 

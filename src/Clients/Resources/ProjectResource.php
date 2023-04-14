@@ -27,14 +27,11 @@ final class ProjectResource
      */
     public function create(string $name, string $user): Project
     {
-        $response = $this->client->request()->send(
-            method: 'POST',
+        $response = $this->client->request()->post(
             url: 'projects/store',
-            options: [
-                'json' => [
-                    'name' => $name,
-                    'user' => $user,
-                ],
+            data: [
+                'name' => $name,
+                'user' => $user,
             ],
         )->throw();
 
