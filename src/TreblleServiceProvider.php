@@ -40,6 +40,12 @@ final class TreblleServiceProvider extends ServiceProvider
             );
 
             $events->listen(RequestReceived::class, function () {
+                if (config('octane.server') === 'roadrunner') {
+                    Cache::put('treblle_start', microtime(true));
+
+                    return;
+                }
+
                 Cache::store('octane')->put('treblle_start', microtime(true));
             });
         }
