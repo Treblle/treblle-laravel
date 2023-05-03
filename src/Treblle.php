@@ -21,17 +21,17 @@ final class Treblle
      *
      * @param Endpoint $endpoint
      * @param Data $data
-     * @return Response
+     * @return void
      * @throws ConfigurationException|TreblleApiException
      */
-    public static function log(Endpoint $endpoint, Data $data): Response
+    public static function log(Endpoint $endpoint, Data $data): void
     {
         if (empty($apiKey = config('treblle.api_key'))) {
             throw ConfigurationException::noApiKey();
         }
 
         $data = array_merge([
-            'api_key' => config('treblle.api_key'),
+            'api_key' => $apiKey,
             'project_id' => config('treblle.project_id'),
             'version' => Treblle::VERSION,
             'sdk' => 'laravel',
@@ -46,15 +46,11 @@ final class Treblle
             data: $data,
         );
 
-        Log::info('request sent', $response->json());
-
         if ($response->failed()) {
             throw new TreblleApiException(
                 message: $response->reason(),
                 previous: $response->toException(),
             );
         }
-
-        return $response;
     }
 }
