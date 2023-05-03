@@ -45,7 +45,6 @@
         "guzzlehttp/guzzle": "^7.5.1",
         "laravel/octane": "^1.5.4",
         "laravel/pint": "^1.10",
-        "friendsofphp/php-cs-fixer": "^3.16.0",
         "orchestra/testbench": "^7.0 || ^8.5.1",
         "phpstan/phpstan": "^1.10.14"
     },
