@@ -88,7 +88,7 @@ final class TreblleServiceProvider extends ServiceProvider
                 if (! empty(config('treblle.api_key'))) {
                     $request->withHeaders(
                         headers: [
-                            'x-api-key' => (string) (config('treblle.api_key')),
+                            'x-api-key' => strval(config('treblle.api_key')),
                         ]
                     );
                 }
@@ -103,14 +103,6 @@ final class TreblleServiceProvider extends ServiceProvider
             abstract: MaskingContract::class,
             concrete: fn () => new FieldMasker(
                 fields: (array) config('treblle.masked_fields'),
-            ),
-        );
-
-        $this->app->bind(
-            abstract: TreblleMiddleware::class,
-            concrete: fn () => new TreblleMiddleware(
-                client: app()->make(TreblleClientContract::class),
-                masker: app()->make(MaskingContract::class),
             ),
         );
     }

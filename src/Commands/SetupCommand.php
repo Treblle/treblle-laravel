@@ -32,7 +32,7 @@ final class SetupCommand extends Command
 
         try {
             $user = $treblleClient->auth()->lookup(
-                email: (string) $email,
+                email: strval($email),
             );
         } catch (Throwable) {
             $this->components->error(
@@ -53,8 +53,8 @@ final class SetupCommand extends Command
 
             try {
                 $login = $treblleClient->auth()->login(
-                    email: (string) $email,
-                    password: (string) $password,
+                    email: strval($email),
+                    password: strval($password),
                 );
             } catch (Throwable) {
                 $this->components->error(
@@ -77,9 +77,9 @@ final class SetupCommand extends Command
 
             try {
                 $login = $treblleClient->auth()->register(
-                    name: (string) $name,
-                    email: (string) $email,
-                    password: (string) $password,
+                    name: strval($name),
+                    email: strval($email),
+                    password: strval($password),
                 );
             } catch (Throwable) {
                 $this->components->error(
@@ -100,7 +100,7 @@ final class SetupCommand extends Command
 
         try {
             $project = $treblleClient->projects()->create(
-                name: (string) $projectName,
+                name: strval($projectName),
                 user: (string) ($login->uuid),
             );
         } catch (Throwable) {
