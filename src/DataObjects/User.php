@@ -14,7 +14,7 @@ final class User
     public static function fromRequest(array $data): self
     {
         return new self(
-            name: (string) (data_get($data, 'user.name')),
+            name: strval(data_get($data, 'user.name')),
         );
     }
 }

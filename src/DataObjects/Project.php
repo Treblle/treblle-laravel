@@ -40,22 +40,22 @@ final class Project
     public static function fromRequest(array $data): self
     {
         $members = array_map(
-            callback: fn (mixed $member): Member => Member::fromRequest(
+            callback: static fn (mixed $member): Member => Member::fromRequest(
                 data: (array) $member,
             ),
             array: (array) data_get($data, 'members'),
         );
 
         return new self(
-            uuid: (string) (data_get($data, 'uuid')),
-            apiID: (string) (data_get($data, 'api_id')),
-            name: (string) (data_get($data, 'name')),
-            url: (string) (data_get($data, 'url')),
-            updated: (string) (data_get($data, 'updated')),
-            endpoints: (int) (data_get($data, 'endpoints')),
-            errors: (int) (data_get($data, 'errors')),
-            requests: (int) (data_get($data, 'requests')),
-            score: (int) (data_get($data, 'score')),
+            uuid: strval(data_get($data, 'uuid')),
+            apiID: strval(data_get($data, 'api_id')),
+            name: strval(data_get($data, 'name')),
+            url: strval(data_get($data, 'url')),
+            updated: strval(data_get($data, 'updated')),
+            endpoints: intval(data_get($data, 'endpoints')),
+            errors: intval(data_get($data, 'errors')),
+            requests: intval(data_get($data, 'requests')),
+            score: intval(data_get($data, 'score')),
             members: $members,
         );
     }

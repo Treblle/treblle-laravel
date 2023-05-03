@@ -87,10 +87,10 @@ final class TreblleMiddleware
     {
         if ($this->httpServerIsOctane()) {
             if (config('octane.server') === 'swoole') {
-                return (float) microtime(true) - (float) (Cache::store('octane')->get('treblle_start'));
+                return (float) microtime(true) - floatval(Cache::store('octane')->get('treblle_start'));
             }
 
-            return (float) microtime(true) - (float) (Cache::get('treblle_start'));
+            return (float) microtime(true) - floatval(Cache::get('treblle_start'));
         }
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
@@ -142,17 +142,17 @@ final class TreblleMiddleware
 
         return new Data(
             new Server(
-                (string) ($request->server('SERVER_ADDR')),
-                (string) (config('app.timezone')),
-                (string) ($request->server('SERVER_SOFTWARE')),
-                (string) ($request->server('SERVER_SIGNATURE')),
-                (string) ($request->server('SERVER_PROTOCOL')),
+                strval($request->server('SERVER_ADDR')),
+                strval(config('app.timezone')),
+                strval($request->server('SERVER_SOFTWARE')),
+                strval($request->server('SERVER_SIGNATURE')),
+                strval($request->server('SERVER_PROTOCOL')),
                 new OS(
                     php_uname('s'),
                     php_uname('r'),
                     php_uname('m'),
                 ),
-                (string) ($request->server('HTTP_ACCEPT_ENCODING')),
+                strval($request->server('HTTP_ACCEPT_ENCODING')),
             ),
             new Language(
                 'php',
@@ -166,9 +166,9 @@ final class TreblleMiddleware
             ),
             new RequestObject(
                 Carbon::now('UTC')->format('Y-m-d H:i:s'),
-                (string) $request->ip(),
+                strval($request->ip()),
                 $request->fullUrl(),
-                (string) $request->userAgent(),
+                strval($request->userAgent()),
                 Method::from(
                     $request->method(),
                 ),
