@@ -40,9 +40,9 @@ final class LaravelMiddleware
          * Manually call terminate on Octane when the octane server is running or when the PHP Fast CGI process is not running.
          * @link https://laravel.com/docs/middleware#terminable-middleware
          */
-        if (! str_contains(PHP_SAPI, 'fcgi') || isset($_SERVER['LARAVEL_OCTANE'])) {
-            $this->terminate($request,$response);
-        }
+//        if (! str_contains(PHP_SAPI, 'fcgi') || isset($_SERVER['LARAVEL_OCTANE'])) {
+//            $this->terminate($request,$response);
+//        }
 
         return $response;
     }
