@@ -13,9 +13,9 @@ use Laravel\Octane\Events\RequestReceived;
 use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
 use Treblle\Contracts\TreblleClientContract;
-use Treblle\Core\Contracts\Masking\MaskingContract;
-use Treblle\Core\Masking\FieldMasker;
+use Treblle\Middlewares\LaravelMiddleware;
 use Treblle\Middlewares\TreblleMiddleware;
+use Treblle\Utils\Masking\FieldMasker;
 
 final class TreblleServiceProvider extends ServiceProvider
 {
@@ -99,8 +99,10 @@ final class TreblleServiceProvider extends ServiceProvider
             },
         );
 
+        $this->app->singleton(LaravelMiddleware::class);
+
         $this->app->singleton(
-            abstract: MaskingContract::class,
+            abstract: FieldMasker::class,
             concrete: fn () => new FieldMasker(
                 fields: (array) config('treblle.masked_fields'),
             ),

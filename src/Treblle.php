@@ -6,10 +6,10 @@ namespace Treblle;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Treblle\Core\DataObjects\Data;
 use Treblle\Core\Http\Endpoint;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
+use Treblle\Utils\DataObjects\Data;
 
 final class Treblle
 {
