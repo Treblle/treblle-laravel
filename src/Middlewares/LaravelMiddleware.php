@@ -34,20 +34,7 @@ final class LaravelMiddleware
      */
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
-        $response = $next($request);
-
-        /**
-         * Manually call terminate on Octane when the octane server is running or when the PHP Fast CGI process is not running.
-         * @link https://laravel.com/docs/middleware#terminable-middleware
-         */
-//        if (! str_contains(PHP_SAPI, 'fcgi')) {
-//            $this->terminate(
-//                request: $request,
-//                response: $response,
-//            );
-//        }
-
-        return $response;
+        return $next($request);
     }
 
     /**
