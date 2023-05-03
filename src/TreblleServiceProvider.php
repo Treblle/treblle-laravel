@@ -13,7 +13,6 @@ use Laravel\Octane\Events\RequestReceived;
 use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
 use Treblle\Contracts\TreblleClientContract;
-use Treblle\Middlewares\LaravelMiddleware;
 use Treblle\Middlewares\TreblleMiddleware;
 use Treblle\Utils\Masking\FieldMasker;
 
@@ -99,7 +98,7 @@ final class TreblleServiceProvider extends ServiceProvider
             },
         );
 
-        $this->app->singleton(LaravelMiddleware::class);
+        $this->app->singleton(TreblleMiddleware::class);
 
         $this->app->singleton(
             abstract: FieldMasker::class,
