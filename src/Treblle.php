@@ -35,7 +35,7 @@ final class Treblle
             'project_id' => config('treblle.project_id'),
             'version' => Treblle::VERSION,
             'sdk' => 'laravel',
-        ], $data->__toArray());
+        ], ['data' => $data->__toArray()]);
 
         $response = Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
