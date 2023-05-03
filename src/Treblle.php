@@ -6,6 +6,7 @@ namespace Treblle;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Treblle\Core\Http\Endpoint;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
@@ -29,14 +30,23 @@ final class Treblle
             throw ConfigurationException::noApiKey();
         }
 
+        $data = array_merge([
+            'api_key' => config('treblle.api_key'),
+            'project_id' => config('treblle.project_id'),
+            'version' => Treblle::VERSION,
+            'sdk' => 'laravel',
+        ], $data->__toArray());
+
         $response = Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
         )->withUserAgent(
             userAgent: 'Treblle\Laravel/' . Treblle::VERSION,
         )->acceptJson()->asJson()->post(
             url: $endpoint->value,
-            data: $data->__toArray(),
+            data: $data,
         );
+
+        Log::info('request sent', $response->json());
 
         if ($response->failed()) {
             throw new TreblleApiException(

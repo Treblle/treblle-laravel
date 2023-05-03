@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Treblle\Factories;
 
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use JustSteveKing\Tools\Http\Enums\Method;
@@ -27,7 +28,7 @@ final class DataFactory
     {
     }
 
-    public function make(Request $request, Response $response, float|int $loadTime): Data
+    public function make(Request $request, JsonResponse|Response $response, float|int $loadTime): Data
     {
         $php = new PHP();
 
