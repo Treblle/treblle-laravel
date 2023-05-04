@@ -17,7 +17,7 @@ use Treblle\Exceptions\TreblleApiException;
 use Treblle\Factories\DataFactory;
 use Treblle\Treblle;
 
-final class TreblleMiddleware
+class TreblleMiddleware
 {
     /**
      * @param DataFactory $factory
