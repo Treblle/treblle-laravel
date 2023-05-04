@@ -23,7 +23,7 @@ class TreblleMiddleware
      * @param DataFactory $factory
      */
     public function __construct(
-        private readonly DataFactory $factory,
+        protected readonly DataFactory $factory,
     ) {}
 
     /**
