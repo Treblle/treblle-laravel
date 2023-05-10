@@ -66,7 +66,7 @@ class TreblleMiddleware
                 return (float) microtime(true) - floatval(Cache::store('octane')->get(app('treblle-identifier'));
             }
 
-            return (float) microtime(true) - floatval(Cache::get(app('treblle-identifier'));
+            return (float) microtime(true) - floatval(Cache::get(app('treblle-identifier')));
         }
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
