@@ -39,16 +39,17 @@ final class TreblleServiceProvider extends ServiceProvider
                 abstract: Dispatcher::class,
             );
 
-            $this->app->bind('treblle-identifier', Str::uuid()->toString());
+            $uuid = Str::uuid()->toString();
+            $this->app->bind('treblle-identifier',  fn () => $uuid);
 
-            $events->listen(RequestReceived::class, function () {
+            $events->listen(RequestReceived::class, function () use ($uuid) {
                 if (config('octane.server') === 'roadrunner') {
-                    Cache::put(app('treblle-identifier'), microtime(true));
+                    Cache::put($uuid, microtime(true));
 
                     return;
                 }
 
-                Cache::store('octane')->put(app('treblle-identifier'), microtime(true));
+                Cache::store('octane')->put($uuid, microtime(true));
             });
         }
 
