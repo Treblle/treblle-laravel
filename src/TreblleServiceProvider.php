@@ -9,6 +9,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Laravel\Octane\Events\RequestReceived;
 use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
@@ -38,14 +39,17 @@ final class TreblleServiceProvider extends ServiceProvider
                 abstract: Dispatcher::class,
             );
 
-            $events->listen(RequestReceived::class, function () {
+            $uuid = Str::uuid()->toString();
+            $this->app->bind('treblle-identifier',  fn () => $uuid);
+
+            $events->listen(RequestReceived::class, function () use ($uuid) {
                 if (config('octane.server') === 'roadrunner') {
-                    Cache::put('treblle_start', microtime(true));
+                    Cache::put($uuid, microtime(true));
 
                     return;
                 }
 
-                Cache::store('octane')->put('treblle_start', microtime(true));
+                Cache::store('octane')->put($uuid, microtime(true));
             });
         }
 
