@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
 use Psr\SimpleCache\InvalidArgumentException;
 use Treblle\Core\Http\Endpoint;
 use Treblle\Exceptions\ConfigurationException;
@@ -21,17 +20,17 @@ class TreblleMiddleware
 {
     /**
      * @param DataFactory $factory
+     * @param float $start
      */
     public function __construct(
         protected readonly DataFactory $factory,
-        protected float $start,
+        protected float $start = 0.00,
     ) {}
 
     /**
      * @param Request $request
      * @param Closure $next
      * @return Response|JsonResponse
-     * @throws ConfigurationException|InvalidArgumentException|TreblleApiException
      */
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
