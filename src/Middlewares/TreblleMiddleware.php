@@ -63,10 +63,10 @@ class TreblleMiddleware
     {
         if (isset($_SERVER['LARAVEL_OCTANE'])) {
             if (config('octane.server') === 'swoole') {
-                return (float) microtime(true) - floatval(Cache::store('octane')->get($request->fingerprint()));
+                return (float) microtime(true) - floatval(Cache::store('octane')->get(app('treblle-identifier'));
             }
 
-            return (float) microtime(true) - floatval(Cache::get($request->fingerprint()));
+            return (float) microtime(true) - floatval(Cache::get(app('treblle-identifier'));
         }
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
