@@ -50,7 +50,7 @@ class TreblleMiddleware
             data: $this->factory->make(
                 request: $request,
                 response: $response,
-                loadTime: $this->getLoadTime(),
+                loadTime: $this->getLoadTime(request: $request),
             )
         );
     }
@@ -59,14 +59,14 @@ class TreblleMiddleware
      * @return float
      * @throws InvalidArgumentException
      */
-    private function getLoadTime(): float
+    private function getLoadTime(Request $request): float
     {
         if (isset($_SERVER['LARAVEL_OCTANE'])) {
             if (config('octane.server') === 'swoole') {
-                return (float) microtime(true) - floatval(Cache::store('octane')->get('treblle_start'));
+                return (float) microtime(true) - floatval(Cache::store('octane')->get($request->fingerprint()));
             }
 
-            return (float) microtime(true) - floatval(Cache::get('treblle_start'));
+            return (float) microtime(true) - floatval(Cache::get($request->fingerprint()));
         }
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
