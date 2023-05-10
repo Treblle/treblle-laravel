@@ -24,6 +24,7 @@ class TreblleMiddleware
      */
     public function __construct(
         protected readonly DataFactory $factory,
+        protected float $start,
     ) {}
 
     /**
@@ -34,6 +35,8 @@ class TreblleMiddleware
      */
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
+        $this->start = microtime(true);
+
         return $next($request);
     }
 
@@ -50,29 +53,8 @@ class TreblleMiddleware
             data: $this->factory->make(
                 request: $request,
                 response: $response,
-                loadTime: $this->getLoadTime(request: $request),
+                loadTime: microtime(true) - $this->start,
             )
         );
-    }
-
-    /**
-     * @return float
-     * @throws InvalidArgumentException
-     */
-    private function getLoadTime(Request $request): float
-    {
-        if (isset($_SERVER['LARAVEL_OCTANE'])) {
-            if (config('octane.server') === 'swoole') {
-                return (float) microtime(true) - floatval(Cache::store('octane')->get(app('treblle-identifier')));
-            }
-
-            return (float) microtime(true) - floatval(Cache::get(app('treblle-identifier')));
-        }
-
-        if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
-            return (float) microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
-        }
-
-        return 0.0000;
     }
 }
