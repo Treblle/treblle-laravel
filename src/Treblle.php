@@ -24,7 +24,7 @@ final class Treblle
      * @return void
      * @throws ConfigurationException|TreblleApiException
      */
-    public static function log(Endpoint $endpoint, Data $data): void
+    public static function log(Endpoint $endpoint, Data $data, string $projectId = null): void
     {
         if (empty($apiKey = config('treblle.api_key'))) {
             throw ConfigurationException::noApiKey();
@@ -32,7 +32,7 @@ final class Treblle
 
         $data = array_merge([
             'api_key' => $apiKey,
-            'project_id' => config('treblle.project_id'),
+            'project_id' => $projectId ?? config('treblle.project_id'),
             'version' => Treblle::VERSION,
             'sdk' => 'laravel',
         ], ['data' => $data->__toArray()]);
