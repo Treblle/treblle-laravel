@@ -31,8 +31,10 @@ class TreblleMiddleware
      * @param Closure $next
      * @return Response|JsonResponse
      */
-    public function handle(Request $request, Closure $next): Response|JsonResponse
+    public function handle(Request $request, Closure $next, string $projectId = null): Response|JsonResponse
     {
+        $request->attributes->add(['projectId' => $projectId]);
+
         return $next($request);
     }
 
@@ -50,7 +52,8 @@ class TreblleMiddleware
                 request: $request,
                 response: $response,
                 loadTime: $this->getLoadTime(request: $request),
-            )
+            ),
+            projectId: $request->attributes->get('project_id')
         );
     }
 
