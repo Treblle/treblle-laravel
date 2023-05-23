@@ -30,7 +30,6 @@ class TreblleMiddleware
      * @param Request $request
      * @param Closure $next
      * @return Response|JsonResponse
-     * @throws ConfigurationException|InvalidArgumentException|TreblleApiException
      */
     public function handle(Request $request, Closure $next): Response|JsonResponse
     {
