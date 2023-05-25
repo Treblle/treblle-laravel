@@ -25,7 +25,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/treblle.php' => config_path('treblle.php'),
-            ], 'config');
+            ], 'treblle-config');
 
             $this->commands([
                 SetupCommand::class,
@@ -54,14 +54,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             });
         }
 
-        /**
-         * @var Router $router
-         */
-        $router = $this->app->make(
-            abstract: Router::class,
-        );
-
-        $router->aliasMiddleware('treblle', TreblleMiddleware::class);
+        $this->app['router']->aliasMiddleware('treblle', TreblleMiddleware::class);
     }
 
     /**
@@ -105,10 +98,12 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
 
         $this->app->singleton(TreblleMiddleware::class);
 
+        $fields = config('treblle.masked_fields');
+
         $this->app->singleton(
             abstract: FieldMasker::class,
             concrete: fn () => new FieldMasker(
-                fields: (array) config('treblle.masked_fields'),
+                fields: is_array($fields) ? $fields : [],
             ),
         );
     }
