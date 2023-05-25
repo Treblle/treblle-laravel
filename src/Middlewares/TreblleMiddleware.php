@@ -63,7 +63,7 @@ class TreblleMiddleware
      */
     private function getLoadTime(Request $request): float
     {
-        if (isset($_SERVER['LARAVEL_OCTANE'])) {
+        if (isset($_SERVER['OCTANE_DATABASE_SESSION_TTL'])) {
             if (config('octane.server') === 'swoole') {
                 return (float) microtime(true) - floatval(Cache::store('octane')->get(app('treblle-identifier')));
             }
