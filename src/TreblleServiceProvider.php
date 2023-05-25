@@ -55,7 +55,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             });
         }
 
-        $this->app[Kernel::class]->aliasMiddleware('treblle', TreblleMiddleware::class);
+        $this->app[Kernel::class]->pushMiddleware('treblle', TreblleMiddleware::class);
     }
 
     /**
