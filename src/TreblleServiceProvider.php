@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Treblle;
 
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Routing\Router;
@@ -54,7 +55,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             });
         }
 
-        $this->app['router']->aliasMiddleware('treblle', TreblleMiddleware::class);
+        $this->app[Kernel::class]->pushMiddleware('treblle', TreblleMiddleware::class);
     }
 
     /**
