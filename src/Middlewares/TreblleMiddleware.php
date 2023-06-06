@@ -35,13 +35,7 @@ class TreblleMiddleware
     {
         $request->attributes->add(['projectId' => $projectId]);
 
-        $response = $next($request);
-
-        if (! str_contains(PHP_SAPI, 'fcgi') && ! $this->httpServerIsOctane()) {
-            $this->terminate($request, $response);
-        }
-
-        return $response;
+        return $next($request);
     }
 
     /**
