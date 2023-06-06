@@ -70,7 +70,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             key: 'treblle',
         );
 
-        $this->app->singleton(
+        $this->app->bind(
             abstract: TreblleClientContract::class,
             concrete: static function () {
                 $request = Http::baseUrl(
@@ -97,7 +97,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             },
         );
 
-        $this->app->singleton(TreblleMiddleware::class);
+        $this->app->bind(TreblleMiddleware::class);
 
         $fields = config('treblle.masked_fields');
 
