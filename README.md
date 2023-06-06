@@ -92,7 +92,16 @@ you have them, simply add them to your `.ENV` file:
 TREBLLE_API_KEY=YOUR_API_KEY
 TREBLLE_PROJECT_ID=YOUR_PROJECT_ID
 ```
+## Enabling Treblle on your API
 
+Your first step should be to register Treblle into your in your middleware aliases in `app/Http/Kernel.php`:
+
+```php
+protected $middlewareAliases = [
+  // the rest of your middleware aliases
+  'treblle' => \Treblle\Middlewares\TreblleMiddleware::class,
+];
+```
 
 Open the **routes/api.php** and add the Treblle middleware to either a route group like so:
 
