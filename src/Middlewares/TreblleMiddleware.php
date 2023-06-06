@@ -35,7 +35,11 @@ class TreblleMiddleware
     {
         $request->attributes->add(['projectId' => $projectId]);
 
-        return $next($request);
+        $response = $next($request);
+
+        if (! str_contains(PHP_SAPI, 'fcgi') && ! $this->httpServerIsOctane()) {
+            $this->terminate($request, $response);
+        }
     }
 
     /**
@@ -68,7 +72,15 @@ class TreblleMiddleware
                 return (float) microtime(true) - floatval(Cache::store('octane')->get(app('treblle-identifier')));
             }
 
-            return (float) microtime(true) - floatval(Cache::get(app('treblle-identifier')));
+            if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
+                return (float) microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+            }
+
+            if (config('octane.server') === 'swoole') {
+                return (float) microtime(true) - floatval(Cache::get(app('treblle-identifier')));
+            }
+
+            return 0.0000;
         }
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
@@ -76,5 +88,10 @@ class TreblleMiddleware
         }
 
         return 0.0000;
+    }
+
+    private function httpServerIsOctane(): bool
+    {
+        return isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
 }
