@@ -40,6 +40,8 @@ class TreblleMiddleware
         if (! str_contains(PHP_SAPI, 'fcgi') && ! $this->httpServerIsOctane()) {
             $this->terminate($request, $response);
         }
+
+        return $response;
     }
 
     /**
