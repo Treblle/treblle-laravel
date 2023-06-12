@@ -26,31 +26,56 @@ final class Treblle
      */
     public static function log(Endpoint $endpoint, Data $data, string $projectId = null): void
     {
-        // Check if the application environment exists in the ignored environments.
-        if (in_array(config('app.env'), explode(',', config('treblle.ignored_environments')), true)) {
+        $treblleConfig = config('treblle', null);
+
+        if (is_null($treblleConfig)) {
             return;
         }
 
+        /** @var string $appEnvironment */
+        $appEnvironment = config('app.env', 'unknownEnvironment');
+        /** @var string $ignoredEnvironments */
+        $ignoredEnvironments = config('treblle.ignored_environments', '');
+
+        $ignored = explode(',', $ignoredEnvironments);
+
+        // Check if the application environment exists in the ignored environments.
+        if (in_array($appEnvironment, $ignored, true)) {
+            return;
+        }
+
+        $apiKey = config('treblle.api_key');
+        $configProjectId = config('treblle.project_id');
+
         // Check if the API key has been set
-        if (empty($apiKey = config('treblle.api_key'))) {
+        if (is_null($apiKey)) {
             throw ConfigurationException::noApiKey();
         }
 
-        $data = array_merge([
-            'api_key' => $apiKey,
-            'project_id' => $projectId ?? config('treblle.project_id'),
-            'version' => self::VERSION,
-            'sdk' => 'laravel',
-        ], ['data' => $data->__toArray()]);
+        $data = array_merge(
+            [
+                'api_key' => $apiKey,
+                'project_id' => $projectId ?? $configProjectId,
+                'version' => self::VERSION,
+                'sdk' => 'laravel',
+            ],
+            [
+                'data' => $data->__toArray(),
+            ]
+        );
 
         $response = Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
-        )->withUserAgent(
-            userAgent: 'Treblle\Laravel/' . self::VERSION,
-        )->acceptJson()->asJson()->post(
-            url: $endpoint->value,
-            data: $data,
-        );
+        )
+            ->withUserAgent(
+                userAgent: 'Treblle\Laravel/' . self::VERSION,
+            )
+            ->acceptJson()
+            ->asJson()
+            ->post(
+                url: $endpoint->value,
+                data: $data,
+            );
 
         if ($response->failed()) {
             throw new TreblleApiException(
