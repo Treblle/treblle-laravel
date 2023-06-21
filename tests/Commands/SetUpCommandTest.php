@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Treblle\Tests\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Treblle\Tests\TestCase;
 
@@ -23,7 +24,7 @@ class SetUpCommandTest extends TestCase
              ->expectsQuestion("👨‍💻 What's your name?", 'Test')
              ->expectsQuestion('🔒 Enter a new password for your account', 'password')
              ->expectsQuestion("What's the name of your API project?", 'test')
-             ->expectsOutputToContain('👏 Your project is ready! Add the following lines to your .env file and you are done!')
+             ->expectsOutputToContain('👏 Your project is ready! Below lines has been added to your .env file.')
 //            ->expectsOutputToContain('TREBLLE_API_KEY')
 //            ->expectsOutputToContain('TREBLLE_PROJECT_ID')
              ->assertExitCode(Command::SUCCESS);
