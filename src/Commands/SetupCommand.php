@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Treblle\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Throwable;
 use Treblle\Contracts\TreblleClientContract;
@@ -14,6 +16,10 @@ final class SetupCommand extends Command
     protected $signature = 'treblle:start';
 
     protected $description = 'Get up an running with Treblle directly from the your console';
+
+    protected const TREBLLE_API_KEY = 'TREBLLE_API_KEY';
+
+    protected const TREBLLE_PROJECT_ID = 'TREBLLE_PROJECT_ID';
 
     /**
      * @param TreblleClientContract $treblleClient
@@ -111,20 +117,68 @@ final class SetupCommand extends Command
             return SymfonyCommand::FAILURE;
         }
 
-        $this->components->info(
-            string: '👏 Your project is ready! Add the following lines to your .env file and you are done!',
-        );
-
         $apiKey = $login->apiKey;
         $projectId = $project->apiID;
 
+        $this->createEnvIfNeeded();
+        $this->updateTreblleVariable(self::TREBLLE_API_KEY, $apiKey);
+        $this->updateTreblleVariable(self::TREBLLE_PROJECT_ID, $projectId);
+
+        $this->components->info(
+            string: '👏 Your project is ready! Below lines has been added to your .env file.',
+        );
+
         $this->components->bulletList(
             elements: [
-                "TREBLLE_API_KEY=$apiKey",
-                "TREBLLE_PROJECT_ID=$projectId",
+                self::TREBLLE_API_KEY . "=$apiKey",
+                self::TREBLLE_PROJECT_ID . "=$projectId",
             ],
         );
 
         return SymfonyCommand::SUCCESS;
+    }
+
+    protected function createEnvIfNeeded(): void
+    {
+        if (! File::exists($this->environmentPath())) {
+            $this->components->info('Environment variable file (.env) not found. Creating one.');
+
+            exec('cp .env.example ' . $this->environmentPath());
+            exec('echo "'. self::TREBLLE_API_KEY .'=">>' . $this->environmentPath());
+            exec('echo "'. self::TREBLLE_PROJECT_ID .'=">>' . $this->environmentPath());
+        }
+
+        if (! $this->laravel['config']->get('treblle.api_key')) {
+            exec('echo "'. self::TREBLLE_API_KEY .'=">>' . $this->environmentPath());
+        }
+
+        if (! $this->laravel['config']->get('treblle.project_id')) {
+            exec('echo "'. self::TREBLLE_PROJECT_ID .'=">>' . $this->environmentPath());
+        }
+    }
+
+    protected function updateTreblleVariable(string $key, string|null $value): void
+    {
+        $envContents = File::get($this->environmentPath());
+
+        $envKeyValueToReplace = collect(explode(PHP_EOL, $envContents))
+            ->filter(fn ($variable) => str_contains($variable, $key))
+            ->first();
+
+        File::put(
+            $this->environmentPath(),
+            str_replace($envKeyValueToReplace ?? '', "$key=$value", $envContents)
+        );
+
+        $this->callSilently('config:clear');
+    }
+
+    protected function environmentPath(): string
+    {
+        if (method_exists($this->laravel, 'environmentFilePath')) {
+            return $this->laravel->environmentFilePath();
+        }
+
+        return $this->laravel->basePath('.env');
     }
 }
