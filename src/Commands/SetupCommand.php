@@ -6,7 +6,6 @@ namespace Treblle\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Throwable;
 use Treblle\Contracts\TreblleClientContract;
