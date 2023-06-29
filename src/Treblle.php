@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Treblle;
 
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Treblle\Core\Http\Endpoint;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
@@ -21,12 +19,13 @@ final class Treblle
      *
      * @param Endpoint $endpoint
      * @param Data $data
+     * @param string|null $projectId
      * @return void
      * @throws ConfigurationException|TreblleApiException
      */
     public static function log(Endpoint $endpoint, Data $data, string $projectId = null): void
     {
-        $treblleConfig = config('treblle', null);
+        $treblleConfig = config('treblle');
 
         if (is_null($treblleConfig)) {
             return;

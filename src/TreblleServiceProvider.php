@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Treblle;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +21,9 @@ use Treblle\Utils\Masking\FieldMasker;
 
 final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
@@ -125,7 +128,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
     public function provides(): array
     {
         return [
-            MaskingContract::class,
+            FieldMasker::class,
             TreblleClientContract::class
         ];
     }
