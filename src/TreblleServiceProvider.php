@@ -57,8 +57,6 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
                 Cache::store('octane')->put($uuid, microtime(true));
             });
         }
-
-        $this->app[Kernel::class]->pushMiddleware(TreblleMiddleware::class);
     }
 
     /**
