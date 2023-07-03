@@ -29,6 +29,7 @@ class TreblleMiddleware
     /**
      * @param Request $request
      * @param Closure $next
+     * @param string|null $projectId
      * @return Response|JsonResponse
      */
     public function handle(Request $request, Closure $next, string $projectId = null): Response|JsonResponse
@@ -53,11 +54,12 @@ class TreblleMiddleware
                 response: $response,
                 loadTime: $this->getLoadTime(request: $request),
             ),
-            projectId: $request->attributes->get('project_id')
+            projectId: $request->attributes->get('project_id') ?? \config('treblle.project_id')
         );
     }
 
     /**
+     * @param Request $request
      * @return float
      * @throws InvalidArgumentException
      */

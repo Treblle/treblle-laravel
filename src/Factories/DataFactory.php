@@ -23,7 +23,7 @@ use Treblle\Utils\Support\PHP;
 final class DataFactory
 {
     public function __construct(
-        private FieldMasker $masker,
+        private readonly FieldMasker $masker,
     )
     {
     }
