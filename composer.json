@@ -67,7 +67,7 @@
             "./vendor/bin/phpunit"
         ]
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "config": {
         "preferred-install": "dist",
