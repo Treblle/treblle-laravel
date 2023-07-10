@@ -4,14 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Middleware;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Http;
-use Psr\SimpleCache\InvalidArgumentException;
-use Treblle\Exceptions\ConfigurationException;
-use Treblle\Exceptions\TreblleApiException;
 use Treblle\Middlewares\TreblleMiddleware;
 use Treblle\Tests\TestCase;
 

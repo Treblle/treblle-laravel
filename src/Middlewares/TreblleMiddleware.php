@@ -8,8 +8,6 @@ use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Arr;
-use Psr\SimpleCache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
@@ -28,7 +26,8 @@ class TreblleMiddleware
      */
     public function __construct(
         protected readonly DataFactory $factory,
-    ) {}
+    ) {
+    }
 
     /**
      * @param Request $request

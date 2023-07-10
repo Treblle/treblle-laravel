@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Treblle;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Cache;
@@ -45,7 +44,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             );
 
             $uuid = Str::uuid()->toString();
-            $this->app->bind('treblle-identifier',  fn () => $uuid);
+            $this->app->bind('treblle-identifier', fn () => $uuid);
 
             $events->listen(RequestReceived::class, function () use ($uuid) {
                 if (config('octane.server') === 'roadrunner') {
