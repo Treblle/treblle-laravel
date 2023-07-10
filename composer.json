@@ -39,15 +39,14 @@
     "require": {
         "php": "^8.1",
         "ext-json": "*",
-        "treblle/treblle-sdk-core": "^0.0.3",
-        "treblle/utils": "^0.0.34"
+        "treblle/utils": "^0.1.1"
     },
     "require-dev": {
-        "guzzlehttp/guzzle": "^7.5.1",
-        "laravel/octane": "^1.5.4",
-        "laravel/pint": "^1.10",
-        "orchestra/testbench": "^7.0 || ^8.5.1",
-        "phpstan/phpstan": "^1.10.14"
+        "guzzlehttp/guzzle": "^7.7.0",
+        "laravel/octane": "^1.5.6",
+        "laravel/pint": "^1.10.3",
+        "orchestra/testbench": "^7.0 || ^8.5.9",
+        "phpstan/phpstan": "^1.10.25"
     },
     "extra": {
         "laravel": {

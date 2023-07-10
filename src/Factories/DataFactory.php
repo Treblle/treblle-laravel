@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use JustSteveKing\Tools\Http\Enums\Method;
 use Throwable;
 use Treblle\Utils\DataObjects\Data;
 use Treblle\Utils\DataObjects\Error;
@@ -17,6 +16,7 @@ use Treblle\Utils\DataObjects\OS;
 use Treblle\Utils\DataObjects\Request as RequestObject;
 use Treblle\Utils\DataObjects\Response as ResponseObject;
 use Treblle\Utils\DataObjects\Server;
+use Treblle\Utils\Http\Method;
 use Treblle\Utils\Masking\FieldMasker;
 use Treblle\Utils\Support\PHP;
 
@@ -24,8 +24,7 @@ final class DataFactory
 {
     public function __construct(
         private readonly FieldMasker $masker,
-    )
-    {
+    ) {
     }
 
     public function make(Request $request, JsonResponse|Response $response, float|int $loadTime): Data
@@ -91,8 +90,8 @@ final class DataFactory
                 ),
                 $this->masker->mask(
                     collect($request->headers->all())->transform(
-                    /* @phpstan-ignore-next-line */
-                        fn($item) => collect($item)->first(),
+                        /* @phpstan-ignore-next-line */
+                        fn ($item) => collect($item)->first(),
                     )->toArray(),
                 ),
                 $this->masker->mask(
@@ -105,8 +104,8 @@ final class DataFactory
             new ResponseObject(
                 $this->masker->mask(
                     collect($response->headers->all())->transform(
-                    /* @phpstan-ignore-next-line */
-                        fn($item) => collect($item)->first(),
+                        /* @phpstan-ignore-next-line */
+                        fn ($item) => collect($item)->first(),
                     )->toArray(),
                 ),
                 $response->status(),
