@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Treblle;
 
 use Illuminate\Support\Facades\Http;
-use Treblle\Core\Http\Endpoint;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
+use Treblle\Http\Endpoint;
 use Treblle\Utils\DataObjects\Data;
 
 final class Treblle
@@ -33,6 +33,7 @@ final class Treblle
 
         /** @var string $appEnvironment */
         $appEnvironment = config('app.env', 'unknownEnvironment');
+
         /** @var string $ignoredEnvironments */
         $ignoredEnvironments = config('treblle.ignored_environments', '');
 
@@ -65,16 +66,12 @@ final class Treblle
 
         $response = Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
-        )
-            ->withUserAgent(
-                userAgent: 'Treblle\Laravel/' . self::VERSION,
-            )
-            ->acceptJson()
-            ->asJson()
-            ->post(
-                url: $endpoint->value,
-                data: $data,
-            );
+        )->withUserAgent(
+            userAgent: 'Treblle\Laravel/' . self::VERSION,
+        )->acceptJson()->asJson()->post(
+            url: $endpoint->value,
+            data: $data,
+        );
 
         if ($response->failed()) {
             throw new TreblleApiException(

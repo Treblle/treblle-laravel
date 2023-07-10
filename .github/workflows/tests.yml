@@ -39,4 +39,4 @@ jobs:
           composer update --no-progress --prefer-dist --no-interaction
 
       - name: Execute the tests
-        run: vendor/bin/phpunit -vvv
+        run: vendor/bin/phpunit --testdox
