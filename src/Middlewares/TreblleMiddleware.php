@@ -51,6 +51,29 @@ class TreblleMiddleware
      */
     public function terminate(Request $request, JsonResponse|Response $response): void
     {
+        if (!function_exists('pcntl_fork')) {
+            $this->collectData($request, $response);
+            return;
+        }
+
+        $pid = pcntl_fork();
+
+        if ($this->isUnableToForkProcess($pid)) {
+            $this->collectData($request, $response);
+            return;
+        }
+
+        if ($this->isChildProcess($pid)) {
+            $this->collectData($request, $response);
+            $this->killProcessWithId((int)getmypid());
+        }
+    }
+
+    /**
+     * @throws ConfigurationException |TreblleApiException
+     */
+    protected function collectData(Request $request, JsonResponse|Response $response): void
+    {
         Treblle::log(
             endpoint: Endpoint::PUNISHER,
             data: $this->factory->make(
@@ -60,5 +83,20 @@ class TreblleMiddleware
             ),
             projectId: self::$project ?? (string) \config('treblle.project_id'),
         );
+    }
+
+    private function isChildProcess(int $pid): bool
+    {
+        return $pid === 0;
+    }
+
+    private function isUnableToForkProcess(int $pid): bool
+    {
+        return $pid === -1;
+    }
+
+    private function killProcessWithId(int $pid): void
+    {
+        strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? exec("taskkill /F /T /PID $pid") : exec("kill -9 $pid");
     }
 }
