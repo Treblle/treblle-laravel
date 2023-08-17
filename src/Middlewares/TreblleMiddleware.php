@@ -51,7 +51,7 @@ class TreblleMiddleware
      */
     public function terminate(Request $request, JsonResponse|Response $response): void
     {
-        if (!function_exists('pcntl_fork')) {
+        if (!function_exists('pcntl_fork') || isset($_ENV['OCTANE_DATABASE_SESSION_TTL'])) {
             $this->collectData($request, $response);
             return;
         }
