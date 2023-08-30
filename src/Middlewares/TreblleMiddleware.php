@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
@@ -45,11 +46,11 @@ class TreblleMiddleware
 
     /**
      * @param Request $request
-     * @param JsonResponse|Response $response
+     * @param JsonResponse|Response|SymfonyResponse $response
      * @return void
      * @throws ConfigurationException|TreblleApiException
      */
-    public function terminate(Request $request, JsonResponse|Response $response): void
+    public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
         if (!function_exists('pcntl_fork') || isset($_ENV['OCTANE_DATABASE_SESSION_TTL'])) {
             $this->collectData($request, $response);
@@ -72,7 +73,7 @@ class TreblleMiddleware
     /**
      * @throws ConfigurationException |TreblleApiException
      */
-    protected function collectData(Request $request, JsonResponse|Response $response): void
+    protected function collectData(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
         Treblle::log(
             endpoint: Endpoint::PUNISHER,
