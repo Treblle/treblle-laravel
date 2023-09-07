@@ -19,6 +19,7 @@ use Treblle\Utils\DataObjects\Server;
 use Treblle\Utils\Http\Method;
 use Treblle\Utils\Masking\FieldMasker;
 use Treblle\Utils\Support\PHP;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class DataFactory
 {
@@ -27,7 +28,7 @@ final class DataFactory
     ) {
     }
 
-    public function make(Request $request, JsonResponse|Response $response, float|int $loadTime): Data
+    public function make(Request $request, JsonResponse|Response|SymfonyResponse $response, float|int $loadTime): Data
     {
         $php = new PHP();
 
