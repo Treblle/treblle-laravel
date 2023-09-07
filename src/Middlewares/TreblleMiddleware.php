@@ -8,13 +8,15 @@ use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
 use Treblle\Factories\DataFactory;
 use Treblle\Http\Endpoint;
 use Treblle\Treblle;
+
+use function config;
+use function microtime;
 
 class TreblleMiddleware
 {
@@ -38,7 +40,7 @@ class TreblleMiddleware
      */
     public function handle(Request $request, Closure $next, string $projectId = null): Response|JsonResponse|SymfonyResponse
     {
-        self::$start = \microtime(true);
+        self::$start = microtime(true);
         self::$project = $projectId;
 
         return $next($request);
@@ -52,52 +54,14 @@ class TreblleMiddleware
      */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
-        if (!function_exists('pcntl_fork') || isset($_ENV['OCTANE_DATABASE_SESSION_TTL'])) {
-            $this->collectData($request, $response);
-            return;
-        }
-
-        $pid = pcntl_fork();
-
-        if ($this->isUnableToForkProcess($pid)) {
-            $this->collectData($request, $response);
-            return;
-        }
-
-        if ($this->isChildProcess($pid)) {
-            $this->collectData($request, $response);
-            $this->killProcessWithId((int)getmypid());
-        }
-    }
-
-    /**
-     * @throws ConfigurationException |TreblleApiException
-     */
-    protected function collectData(Request $request, JsonResponse|Response|SymfonyResponse $response): void
-    {
         Treblle::log(
             endpoint: Endpoint::PUNISHER,
             data: $this->factory->make(
                 request: $request,
                 response: $response,
-                loadTime: \microtime(true) - self::$start,
+                loadTime: microtime(true) - self::$start,
             ),
-            projectId: self::$project ?? (string) \config('treblle.project_id'),
+            projectId: self::$project ?? (string) config('treblle.project_id'),
         );
-    }
-
-    private function isChildProcess(int $pid): bool
-    {
-        return $pid === 0;
-    }
-
-    private function isUnableToForkProcess(int $pid): bool
-    {
-        return $pid === -1;
-    }
-
-    private function killProcessWithId(int $pid): void
-    {
-        strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? exec("taskkill /F /T /PID $pid") : exec("kill -9 $pid");
     }
 }
