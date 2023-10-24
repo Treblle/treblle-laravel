@@ -44,15 +44,17 @@ class TreblleMiddleware
         self::$start = microtime(true);
         self::$project = $projectId;
 
-        $request->headers->add([
-            'X-TREBLLE-TRACE-ID' => $id = Str::uuid(),
-        ]);
+        if (! $request->headers->has('X-TREBLLE-TRACE-ID')) {
+            $request->headers->add([
+                'X-TREBLLE-TRACE-ID' => $id = Str::uuid(),
+            ]);
+        }
 
         /** @var SymfonyResponse $response */
         $response = $next($request);
 
         $response->headers->add([
-            'X-TREBLLE-TRACE-ID' => $id,
+            'X-TREBLLE-TRACE-ID' => $request->headers->get('X-TREBLLE-TRACE-ID'),
         ]);
 
         return $response;
