@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Treblle\Exceptions\ConfigurationException;
 use Treblle\Exceptions\TreblleApiException;
@@ -55,7 +56,7 @@ class TreblleMiddleware
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
         Treblle::log(
-            endpoint: Endpoint::PUNISHER,
+            endpoint: Arr::random(Endpoint::cases()),
             data: $this->factory->make(
                 request: $request,
                 response: $response,
