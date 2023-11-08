@@ -11,21 +11,20 @@ use Treblle\Tests\TestCase;
 
 final class TreblleMiddlewareTest extends TestCase
 {
-    /**
-     * @test
-     * @return void
-     */
+    protected function newMiddleware(): TreblleMiddleware
+    {
+        return app()->make(
+            abstract: TreblleMiddleware::class,
+        );
+    }
+
+    /** @test */
     public function it_returns_a_response(): void
     {
         $request = new Request();
         $response = new Response();
 
-        /**
-         * @var TreblleMiddleware $middleware
-         */
-        $middleware = app()->make(
-            abstract: TreblleMiddleware::class,
-        );
+        $middleware = $this->newMiddleware();
 
         $middlewareResponse = $middleware->handle(
             request: $request,
@@ -35,6 +34,25 @@ final class TreblleMiddlewareTest extends TestCase
         $this->assertInstanceOf(
             expected: Response::class,
             actual: $middlewareResponse,
+        );
+    }
+
+    /** @test */
+    public function it_adds_trace_id_to_response(): void
+    {
+        $request = new Request();
+        $response = new Response();
+
+        $middleware = $this->newMiddleware();
+
+        $middlewareResponse = $middleware->handle(
+            request: $request,
+            next: fn () => $response,
+        );
+
+        $this->assertArrayHasKey(
+            key: 'x-treblle-trace-id',
+            array: $middlewareResponse->headers->all(),
         );
     }
 }
