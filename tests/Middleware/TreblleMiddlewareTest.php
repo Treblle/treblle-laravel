@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Middleware;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Treblle\Middlewares\TreblleMiddleware;
@@ -11,6 +12,9 @@ use Treblle\Tests\TestCase;
 
 final class TreblleMiddlewareTest extends TestCase
 {
+    /**
+     * @throws BindingResolutionException
+     */
     protected function newMiddleware(): TreblleMiddleware
     {
         return app()->make(

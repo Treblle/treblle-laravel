@@ -69,8 +69,9 @@ class TreblleMiddleware
      */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
+        dd($request);
         Treblle::log(
-            endpoint: Arr::random(Endpoint::cases()),
+            endpoint: 'https://debug.treblle.com/',//Arr::random(Endpoint::cases()),
             data: $this->factory->make(
                 request: $request,
                 response: $response,

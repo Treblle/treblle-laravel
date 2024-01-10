@@ -15,7 +15,6 @@ use Laravel\Octane\Events\RequestReceived;
 use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
 use Treblle\Contracts\TreblleClientContract;
-use Treblle\Middlewares\TreblleMiddleware;
 use Treblle\Utils\Masking\FieldMasker;
 
 final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
@@ -96,8 +95,6 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
                 );
             },
         );
-
-        $this->app->bind(TreblleMiddleware::class);
 
         $fields = config('treblle.masked_fields');
 
