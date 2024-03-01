@@ -29,7 +29,7 @@ final class Treblle
             return;
         }
 
-        if (! in_array(\config('app.env'), $treblleConfig['ignored_environments'], true)) {
+        if (! in_array(\config('app.env'), \explode(',', $treblleConfig['ignored_environments']), true)) {
             return;
         }
 
