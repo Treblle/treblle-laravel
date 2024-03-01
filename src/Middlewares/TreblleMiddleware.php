@@ -71,7 +71,7 @@ class TreblleMiddleware
     {
         if (!\in_array(config('app.env'), \explode('.', config('treblle.ignored_environments')), true)) {
             Treblle::log(
-                endpoint: 'https://debug.treblle.com/',//Arr::random(Endpoint::cases()),
+                endpoint: Arr::random(Endpoint::cases()),
                 data: $this->factory->make(
                     request: $request,
                     response: $response,
