@@ -69,15 +69,16 @@ class TreblleMiddleware
      */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
-        dd($request);
-        Treblle::log(
-            endpoint: 'https://debug.treblle.com/',//Arr::random(Endpoint::cases()),
-            data: $this->factory->make(
-                request: $request,
-                response: $response,
-                loadTime: microtime(true) - self::$start,
-            ),
-            projectId: self::$project ?? (string) config('treblle.project_id'),
-        );
+        if (!\in_array(config('app.env'), \explode('.', config('treblle.ignored_environments')), true)) {
+            Treblle::log(
+                endpoint: 'https://debug.treblle.com/',//Arr::random(Endpoint::cases()),
+                data: $this->factory->make(
+                    request: $request,
+                    response: $response,
+                    loadTime: microtime(true) - self::$start,
+                ),
+                projectId: self::$project ?? (string) config('treblle.project_id'),
+            );
+        }
     }
 }

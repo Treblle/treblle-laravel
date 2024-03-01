@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 use Treblle\Utils\DataObjects\Data;
 use Treblle\Utils\DataObjects\Error;
@@ -19,7 +20,6 @@ use Treblle\Utils\DataObjects\Server;
 use Treblle\Utils\Http\Method;
 use Treblle\Utils\Masking\FieldMasker;
 use Treblle\Utils\Support\PHP;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class DataFactory
 {
@@ -36,8 +36,8 @@ final class DataFactory
 
         try {
             $responseBody = $this->masker->mask(
-                (array)json_decode(
-                    $response->content(),
+                (array) json_decode(
+                    $response->getContent(),
                     true,
                     512,
                     JSON_THROW_ON_ERROR
@@ -47,7 +47,7 @@ final class DataFactory
             $responseBody = '{}';
         }
 
-        if (!empty($response->exception)) {
+        if (! empty($response->exception)) {
             $errors[] = new Error(
                 'onException',
                 'UNHANDLED_EXCEPTION',
@@ -59,17 +59,17 @@ final class DataFactory
 
         return new Data(
             new Server(
-                strval($request->server('SERVER_ADDR')),
-                strval(config('app.timezone')),
-                strval($request->server('SERVER_SOFTWARE')),
-                strval($request->server('SERVER_SIGNATURE')),
-                strval($request->server('SERVER_PROTOCOL')),
+                (string) $request->server('SERVER_ADDR'),
+                (string) config('app.timezone'),
+                (string) $request->server('SERVER_SOFTWARE'),
+                (string) $request->server('SERVER_SIGNATURE'),
+                (string) $request->server('SERVER_PROTOCOL'),
                 new OS(
                     php_uname('s'),
                     php_uname('r'),
                     php_uname('m'),
                 ),
-                strval($request->server('HTTP_ACCEPT_ENCODING')),
+                (string) $request->server('HTTP_ACCEPT_ENCODING'),
             ),
             new Language(
                 'php',
@@ -83,7 +83,7 @@ final class DataFactory
             ),
             new RequestObject(
                 Carbon::now('UTC')->format('Y-m-d H:i:s'),
-                strval($request->ip()),
+                (string) $request->ip(),
                 $request->fullUrl(),
                 strval($request->userAgent()),
                 Method::from(
@@ -109,8 +109,8 @@ final class DataFactory
                         fn ($item) => collect($item)->first(),
                     )->toArray(),
                 ),
-                $response->status(),
-                strlen($response->content()),
+                $response->getStatusCode(),
+                strlen($response->getContent()),
                 $loadTime,
                 $responseBody,
             ),
