@@ -59,8 +59,6 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
 
     /**
      * Register the service provider.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -85,7 +83,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
                 if (! empty(config('treblle.api_key'))) {
                     $request->withHeaders(
                         headers: [
-                            'x-api-key' => strval(config('treblle.api_key')),
+                            'x-api-key' => (string) config('treblle.api_key'),
                         ]
                     );
                 }
@@ -116,14 +114,12 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
 
     /**
      * Get the services provided by the provider.
-     *
-     * @return array
      */
     public function provides(): array
     {
         return [
             FieldMasker::class,
-            TreblleClientContract::class
+            TreblleClientContract::class,
         ];
     }
 }

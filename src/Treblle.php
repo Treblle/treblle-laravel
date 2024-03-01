@@ -10,6 +10,8 @@ use Treblle\Exceptions\TreblleApiException;
 use Treblle\Http\Endpoint;
 use Treblle\Utils\DataObjects\Data;
 
+use function in_array;
+
 final class Treblle
 {
     public const VERSION = '4.0.0';
@@ -17,17 +19,17 @@ final class Treblle
     /**
      * Send request and response payload to Treblle for processing.
      *
-     * @param Endpoint $endpoint
-     * @param Data $data
-     * @param string|null $projectId
-     * @return void
      * @throws ConfigurationException|TreblleApiException
      */
     public static function log(Endpoint $endpoint, Data $data, string $projectId = null): void
     {
-        $treblleConfig = config('treblle');
+        $treblleConfig = (array) config('treblle');
 
-        if (is_null($treblleConfig)) {
+        if ($treblleConfig['project_id'] === null || $treblleConfig['api_key'] === null) {
+            return;
+        }
+
+        if (! in_array(\config('app.env'), $treblleConfig['ignore_environments'], true)) {
             return;
         }
 
@@ -67,7 +69,7 @@ final class Treblle
         $response = Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
         )->withUserAgent(
-            userAgent: 'Treblle\Laravel/' . self::VERSION,
+            userAgent: 'Treblle\Laravel/'.self::VERSION,
         )->acceptJson()->asJson()->post(
             url: $endpoint->value,
             data: $data,
