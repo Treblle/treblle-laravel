@@ -29,9 +29,6 @@ final class Treblle
             return;
         }
 
-        if (! in_array(\config('app.env'), \explode(',', $treblleConfig['ignored_environments']), true)) {
-            return;
-        }
 
         /** @var string $appEnvironment */
         $appEnvironment = config('app.env', 'unknownEnvironment');
