@@ -6,7 +6,7 @@ namespace Treblle\Http;
 
 enum Endpoint: string
 {
-    case ROCK_N_ROLLA = 'https://rocknrolla.treblle.com';
-    case PUNISHER = 'https://punisher.treblle.com';
-    case SICARIO = 'https://sicario.treblle.com';
+    case ROCK_N_ROLLA = 'https://ingress.treblle.com';
+    case PUNISHER = 'https://ingress.treblle.com';
+    case SICARIO = 'https://ingress.treblle.com';
 }

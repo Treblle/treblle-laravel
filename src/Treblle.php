@@ -64,7 +64,10 @@ final class Treblle
         );
 
         $response = Http::withHeaders(
-            headers: ['X-API-KEY' => $apiKey],
+            headers: [
+                'X-API-KEY' => $apiKey,
+                'X-API-ID' => $projectId ?? $configProjectId,
+            ],
         )->withUserAgent(
             userAgent: 'Treblle\Laravel/'.self::VERSION,
         )->acceptJson()->asJson()->post(
