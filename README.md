@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://treblle-github.s3.amazonaws.com/header.png"/>
+  <img src="https://treblle-github.s3.us-east-1.amazonaws.com/github-header.jpg"/>
 </div>
 <div align="center">
 
