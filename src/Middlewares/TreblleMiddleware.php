@@ -59,13 +59,15 @@ class TreblleMiddleware
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
         if (strlen((string) $response->getContent()) > 2 * 1024 * 1024) {
-            Log::error(
-                message: 'Cannot send response over 2MB to Treblle.',
-                context: [
-                    'url' => $request->fullUrl(),
-                    'date' => now()->toDateTimeString(),
-                ]
-            );
+            if (! app()->environment('production')) {
+                Log::error(
+                    message: 'Cannot send response over 2MB to Treblle.',
+                    context: [
+                        'url' => $request->fullUrl(),
+                        'date' => now()->toDateTimeString(),
+                    ]
+                );
+            }
 
             return;
         }
