@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Treblle\Exceptions\ConfigurationException;
@@ -57,6 +58,19 @@ class TreblleMiddleware
      */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
+        if (strlen((string) $response->getContent()) > 2 * 1024 * 1024) {
+            Log::error(
+                message: 'Cannot send response over 2MB to Treblle.',
+                context: [
+                    'url' => $request->fullUrl(),
+                    'date' => now()->toDateTimeString(),
+                ]
+            );
+
+            return;
+        }
+
+
         Treblle::log(
             endpoint: Arr::random(Endpoint::cases()),
             data: $this->factory->make(
