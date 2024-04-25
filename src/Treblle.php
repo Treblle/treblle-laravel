@@ -71,12 +71,5 @@ final class Treblle
             url: $endpoint->value,
             data: $data,
         );
-
-        if ($response->failed()) {
-            throw new TreblleApiException(
-                message: $response->reason(),
-                previous: $response->toException(),
-            );
-        }
     }
 }
