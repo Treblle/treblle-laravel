@@ -95,6 +95,7 @@ class TestCase extends BaseTestCase
                 timestamp: (string) time(),
                 ip: '127.0.0.1',
                 url: '/',
+                route_path: 'test',
                 user_agent: 'Test_Suite',
                 method: Method::GET,
                 headers: [],

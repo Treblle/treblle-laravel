@@ -32,7 +32,7 @@ class TreblleMiddleware
     ) {
     }
 
-    public function handle(Request $request, Closure $next, string $projectId = null): Response|JsonResponse|SymfonyResponse
+    public function handle(Request $request, Closure $next, ?string $projectId = null): Response|JsonResponse|SymfonyResponse
     {
         self::$start = microtime(true);
         self::$project = $projectId;
@@ -71,7 +71,6 @@ class TreblleMiddleware
 
             return;
         }
-
 
         Treblle::log(
             endpoint: Arr::random(Endpoint::cases()),
