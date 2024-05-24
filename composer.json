@@ -39,7 +39,7 @@
     "require": {
         "php": "^8.1",
         "ext-json": "*",
-        "treblle/utils": "^0.3.1"
+        "treblle/utils": "^0.3.2"
     },
     "require-dev": {
         "guzzlehttp/guzzle": "^7.7.0",

@@ -85,6 +85,7 @@ final class DataFactory
                 Carbon::now('UTC')->format('Y-m-d H:i:s'),
                 (string) $request->ip(),
                 $request->fullUrl(),
+                $request->route(),
                 strval($request->userAgent()),
                 Method::from(
                     $request->method(),
