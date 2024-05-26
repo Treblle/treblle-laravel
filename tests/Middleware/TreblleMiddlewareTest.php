@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Treblle\Http\Endpoint;
 use Treblle\Middlewares\TreblleMiddleware;
@@ -105,6 +106,7 @@ final class TreblleMiddlewareTest extends TestCase
         $response = new Response($content);
 
         $request = Request::create('/test', 'GET');
+        Route::get('/test', fn () => $response);
         $middleware = $this->newMiddleware();
 
         $middleware->terminate($request, $response);
