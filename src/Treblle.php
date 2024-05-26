@@ -6,7 +6,6 @@ namespace Treblle;
 
 use Illuminate\Support\Facades\Http;
 use Treblle\Exceptions\ConfigurationException;
-use Treblle\Exceptions\TreblleApiException;
 use Treblle\Http\Endpoint;
 use Treblle\Utils\DataObjects\Data;
 
@@ -19,16 +18,15 @@ final class Treblle
     /**
      * Send request and response payload to Treblle for processing.
      *
-     * @throws ConfigurationException|TreblleApiException
+     * @throws ConfigurationException
      */
-    public static function log(Endpoint $endpoint, Data $data, string $projectId = null): void
+    public static function log(Endpoint $endpoint, Data $data, ?string $projectId = null): void
     {
         $treblleConfig = (array) config('treblle');
 
         if ($treblleConfig['project_id'] === null || $treblleConfig['api_key'] === null) {
             return;
         }
-
 
         /** @var string $appEnvironment */
         $appEnvironment = config('app.env', 'unknownEnvironment');

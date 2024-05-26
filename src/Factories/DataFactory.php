@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 use Treblle\Utils\DataObjects\Data;
@@ -37,7 +38,7 @@ final class DataFactory
         try {
             $responseBody = $this->masker->mask(
                 (array) json_decode(
-                    $response->getContent(),
+                    (string) $response->getContent(),
                     true,
                     512,
                     JSON_THROW_ON_ERROR
@@ -85,8 +86,8 @@ final class DataFactory
                 Carbon::now('UTC')->format('Y-m-d H:i:s'),
                 (string) $request->ip(),
                 $request->fullUrl(),
-                $request->route()?->getName(),
-                strval($request->userAgent()),
+                Route::getRoutes()->match($request)->action['as'] ?? null,
+                (string) $request->userAgent(),
                 Method::from(
                     $request->method(),
                 ),
@@ -111,7 +112,7 @@ final class DataFactory
                     )->toArray(),
                 ),
                 $response->getStatusCode(),
-                strlen($response->getContent()),
+                \strlen((string) $response->getContent()),
                 $loadTime,
                 $responseBody,
             ),
