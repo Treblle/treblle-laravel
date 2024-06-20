@@ -86,7 +86,7 @@ final class DataFactory
                 Carbon::now('UTC')->format('Y-m-d H:i:s'),
                 (string) $request->ip(),
                 $request->fullUrl(),
-                Route::getRoutes()->match($request)->action['as'] ?? null,
+                $request->route()?->toSymfonyRoute()->getPath(),
                 (string) $request->userAgent(),
                 Method::from(
                     $request->method(),
