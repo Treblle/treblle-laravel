@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 use Treblle\Utils\DataObjects\Data;
@@ -71,7 +70,7 @@ final class DataFactory
                     php_uname('m'),
                 ),
                 (string) $request->server('HTTP_ACCEPT_ENCODING'),
-                $request->host(),
+                (string) $request->server('SERVER_NAME', gethostname()),
             ),
             new Language(
                 'php',
