@@ -84,6 +84,7 @@ class TestCase extends BaseTestCase
                     architecture: 'arm',
                 ),
                 encoding: 'gzip',
+                hostname: 'localhost',
             ),
             language: new Language(
                 name: 'PHP',

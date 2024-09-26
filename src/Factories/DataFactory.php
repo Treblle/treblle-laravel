@@ -71,6 +71,7 @@ final class DataFactory
                     php_uname('m'),
                 ),
                 (string) $request->server('HTTP_ACCEPT_ENCODING'),
+                $request->host(),
             ),
             new Language(
                 'php',
