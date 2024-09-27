@@ -70,7 +70,7 @@ final class DataFactory
                     php_uname('m'),
                 ),
                 (string) $request->server('HTTP_ACCEPT_ENCODING'),
-                (string) $request->server('SERVER_NAME', gethostname()),
+                (string) gethostname(),
             ),
             new Language(
                 'php',
