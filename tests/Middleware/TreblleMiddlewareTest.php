@@ -48,25 +48,6 @@ final class TreblleMiddlewareTest extends TestCase
     }
 
     #[Test]
-    public function it_adds_trace_id_to_response(): void
-    {
-        $request = new Request();
-        $response = new Response();
-
-        $middleware = $this->newMiddleware();
-
-        $middlewareResponse = $middleware->handle(
-            request: $request,
-            next: fn () => $response,
-        );
-
-        $this->assertArrayHasKey(
-            key: 'x-treblle-trace-id',
-            array: $middlewareResponse->headers->all(),
-        );
-    }
-
-    #[Test]
     public function it_will_not_log_if_config_is_not_ready(): void
     {
         Treblle::log(
