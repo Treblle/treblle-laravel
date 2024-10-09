@@ -8,12 +8,10 @@ use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Treblle\Exceptions\ConfigurationException;
-use Treblle\Exceptions\TreblleApiException;
 use Treblle\Factories\DataFactory;
 use Treblle\Http\Endpoint;
 use Treblle\Treblle;
@@ -34,30 +32,26 @@ class TreblleMiddleware
 
     public function handle(Request $request, Closure $next, ?string $projectId = null): Response|JsonResponse|SymfonyResponse
     {
-        self::$start = microtime(true);
         self::$project = $projectId;
 
+        return $next($request);
+    }
+
+    /**
+     * @throws ConfigurationException
+     */
+    public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
+    {
         if (! $request->headers->has('X-TREBLLE-TRACE-ID')) {
             $request->headers->add([
                 'X-TREBLLE-TRACE-ID' => $id = Str::uuid(),
             ]);
         }
 
-        /** @var SymfonyResponse $response */
-        $response = $next($request);
-
         $response->headers->add([
             'X-TREBLLE-TRACE-ID' => $request->headers->get('X-TREBLLE-TRACE-ID'),
         ]);
 
-        return $response;
-    }
-
-    /**
-     * @throws ConfigurationException|TreblleApiException
-     */
-    public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
-    {
         if (strlen((string) $response->getContent()) > 2 * 1024 * 1024) {
             if (! app()->environment('production')) {
                 Log::error(
@@ -73,11 +67,13 @@ class TreblleMiddleware
         }
 
         Treblle::log(
-            endpoint: Arr::random(Endpoint::cases()),
+            endpoint: Endpoint::random(),
             data: $this->factory->make(
                 request: $request,
                 response: $response,
-                loadTime: microtime(true) - self::$start,
+                loadTime: $_SERVER['REQUEST_TIME_FLOAT']
+                    ?? (defined('LARAVEL_START') ? LARAVEL_START : null)
+                    ?? microtime(true),
             ),
             projectId: self::$project ?? (string) config('treblle.project_id'),
         );
