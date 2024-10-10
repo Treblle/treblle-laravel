@@ -10,17 +10,18 @@ use Treblle\Http\Endpoint;
 use Treblle\Utils\DataObjects\Data;
 
 use function in_array;
+use function is_string;
 
 final class Treblle
 {
-    public const VERSION = '4.0.0';
+    public const VERSION = '4.6.4';
 
     /**
      * Send request and response payload to Treblle for processing.
      *
      * @throws ConfigurationException
      */
-    public static function log(Endpoint $endpoint, Data $data, ?string $projectId = null): void
+    public static function log(string|Endpoint $endpoint, Data $data, ?string $projectId = null): void
     {
         $treblleConfig = (array) config('treblle');
 
@@ -44,7 +45,6 @@ final class Treblle
         $apiKey = config('treblle.api_key');
         $configProjectId = config('treblle.project_id');
 
-        // Check if the API key has been set
         if (is_null($apiKey)) {
             throw ConfigurationException::noApiKey();
         }
@@ -61,12 +61,12 @@ final class Treblle
             ]
         );
 
-        $response = Http::withHeaders(
+        Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
         )->withUserAgent(
             userAgent: 'Treblle\Laravel/'.self::VERSION,
         )->acceptJson()->asJson()->post(
-            url: $endpoint->value,
+            url: is_string($endpoint) ? $endpoint : $endpoint->value,
             data: $data,
         );
     }

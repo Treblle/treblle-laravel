@@ -67,7 +67,7 @@ class TreblleMiddleware
         }
 
         Treblle::log(
-            endpoint: Endpoint::random(),
+            endpoint: config('treblle.endpoint', Endpoint::random()),
             data: $this->factory->make(
                 request: $request,
                 response: $response,

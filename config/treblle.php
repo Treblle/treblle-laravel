@@ -2,6 +2,11 @@
 
 return [
     /*
+     * An override while debugging.
+     */
+    'url' => null,
+
+    /*
      * A valid Treblle API key. You can get started for FREE by visiting https://treblle.com/
      */
     'api_key' => env('TREBLLE_API_KEY'),
