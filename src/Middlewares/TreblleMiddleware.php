@@ -71,11 +71,16 @@ class TreblleMiddleware
             data: $this->factory->make(
                 request: $request,
                 response: $response,
-                loadTime: $_SERVER['REQUEST_TIME_FLOAT']
-                    ?? (defined('LARAVEL_START') ? LARAVEL_START : null)
-                    ?? microtime(true),
+                loadTime: microtime(true) - $this->startTime(),
             ),
             projectId: self::$project ?? (string) config('treblle.project_id'),
         );
+    }
+
+    private function startTime(): float
+    {
+        return $_SERVER['REQUEST_TIME_FLOAT']
+            ?? (defined('LARAVEL_START') ? LARAVEL_START : null)
+            ?? microtime(true);
     }
 }
