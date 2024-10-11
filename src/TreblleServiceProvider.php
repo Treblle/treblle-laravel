@@ -7,6 +7,7 @@ namespace Treblle;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +17,8 @@ use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
 use Treblle\Contracts\TreblleClientContract;
 use Treblle\Utils\Masking\FieldMasker;
+use function config;
+use function implode;
 
 final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
 {
@@ -55,6 +58,17 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
                 Cache::store('octane')->put($uuid, microtime(true));
             });
         }
+
+        AboutCommand::add(
+            section: 'Treblle',
+            data: static fn (): array => [
+                'Version' => Treblle::VERSION,
+                'URL' => config('treblle.url'),
+                'Project ID' => config('treblle.project_id'),
+                'API Key' => config('treblle.api_key'),
+                'Ignored Environments' => config('treblle.ignore_environments'),
+            ],
+        );
     }
 
     /**
