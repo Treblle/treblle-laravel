@@ -21,7 +21,7 @@ final class Treblle
      *
      * @throws ConfigurationException
      */
-    public static function log(string|Endpoint $endpoint, Data $data, ?string $projectId = null): void
+    public static function log(null|string|Endpoint $endpoint, Data $data, ?string $projectId = null): void
     {
         $treblleConfig = (array) config('treblle');
 
@@ -61,12 +61,18 @@ final class Treblle
             ]
         );
 
+        if (null === $endpoint) {
+            $finalEndpoint = Endpoint::random()->value;
+        } else {
+            $finalEndpoint = is_string($endpoint) ? $endpoint : $endpoint->value;
+        }
+
         Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
         )->withUserAgent(
             userAgent: 'Treblle\Laravel/'.self::VERSION,
         )->acceptJson()->asJson()->post(
-            url: is_string($endpoint) ? $endpoint : $endpoint->value,
+            url: $finalEndpoint,
             data: $data,
         );
     }
