@@ -34,17 +34,18 @@ final class DataFactory
 
         $errors = [];
 
-        try {
-            $responseBody = $this->masker->mask(
-                (array) json_decode(
-                    (string) $response->getContent(),
-                    true,
-                    512,
-                    JSON_THROW_ON_ERROR
-                ),
-            );
-        } catch (Throwable) {
-            $responseBody = '{}';
+        $responseContent = (string) $response->getContent();
+        $responseBody = '{}';
+
+        if (!empty($responseContent)) {
+            $decodedJson = json_decode($responseContent, true, 512);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                try {
+                    $responseBody = $this->masker->mask((array) $decodedJson);
+                } catch (Throwable) {
+                    // Handle masking error by falling back to '{}'
+                }
+            }
         }
 
         if (! empty($response->exception)) {
