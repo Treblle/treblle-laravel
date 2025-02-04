@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Treblle;
 
 use function config;
+use Illuminate\Routing\Router;
 use Treblle\Commands\SetupCommand;
 use Illuminate\Support\ServiceProvider;
+use Treblle\Middlewares\TreblleMiddleware;
 use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Contracts\Support\DeferrableProvider;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
@@ -23,6 +29,9 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
                 SetupCommand::class,
             ]);
         }
+
+        $router = $this->app->make(Router::class);
+        $router->aliasMiddleware('treblle', TreblleMiddleware::class);
 
         AboutCommand::add(
             section: 'Treblle',
