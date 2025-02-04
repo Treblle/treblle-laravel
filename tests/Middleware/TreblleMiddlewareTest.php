@@ -4,30 +4,20 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Middleware;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
+use Treblle\Treblle;
+use Treblle\Http\Endpoint;
+use Treblle\Tests\TestCase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
-use Treblle\Http\Endpoint;
 use Treblle\Middlewares\TreblleMiddleware;
-use Treblle\Tests\TestCase;
-use Treblle\Treblle;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class TreblleMiddlewareTest extends TestCase
 {
-    /**
-     * @throws BindingResolutionException
-     */
-    protected function newMiddleware(): TreblleMiddleware
-    {
-        return app()->make(
-            abstract: TreblleMiddleware::class,
-        );
-    }
-
     #[Test]
     public function it_returns_a_response(): void
     {
@@ -60,13 +50,11 @@ final class TreblleMiddlewareTest extends TestCase
     }
 
     #[Test]
-    public function logs_error_for_response_over_2mb()
+    public function logs_error_for_response_over_2mb(): void
     {
         Log::shouldReceive('error')
             ->once()
-            ->withArgs(function ($message, $context) {
-                return $message === 'Cannot send response over 2MB to Treblle.';
-            });
+            ->withArgs(fn ($message, $context) => 'Cannot send response over 2MB to Treblle.' === $message);
 
         $largeContent = str_repeat('a', 2 * 1024 * 1024 + 1); // Just over 2MB
         $response = new Response($largeContent);
@@ -91,5 +79,15 @@ final class TreblleMiddlewareTest extends TestCase
         $middleware = $this->newMiddleware();
 
         $middleware->terminate($request, $response);
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    protected function newMiddleware(): TreblleMiddleware
+    {
+        return app()->make(
+            abstract: TreblleMiddleware::class,
+        );
     }
 }

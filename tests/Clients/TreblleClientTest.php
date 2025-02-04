@@ -4,20 +4,13 @@ declare(strict_types=1);
 
 namespace Treblle\Tests\Clients;
 
-use Illuminate\Support\Facades\Http;
-use Treblle\Clients\TreblleClient;
-use Treblle\Contracts\TreblleClientContract;
 use Treblle\Tests\TestCase;
+use Treblle\Clients\TreblleClient;
+use Illuminate\Support\Facades\Http;
+use Treblle\Contracts\TreblleClientContract;
 
-class TreblleClientTest extends TestCase
+final class TreblleClientTest extends TestCase
 {
-    private function client(): TreblleClientContract
-    {
-        return app()->make(
-            abstract: TreblleClientContract::class,
-        );
-    }
-
     public function testGivenEmailToAuthLookUpReturnsValidResponse(): void
     {
         TreblleClient::fake([
@@ -102,5 +95,12 @@ class TreblleClientTest extends TestCase
         $this->assertNotEmpty($response);
 
         $this->assertSame('12345', $response->apiID);
+    }
+
+    private function client(): TreblleClientContract
+    {
+        return app()->make(
+            abstract: TreblleClientContract::class,
+        );
     }
 }

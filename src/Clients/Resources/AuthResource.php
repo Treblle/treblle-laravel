@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Treblle\Clients\Resources;
 
+use Treblle\DataObjects\User;
+use Treblle\DataObjects\Account;
 use Illuminate\Http\Client\RequestException;
 use Treblle\Contracts\TreblleClientContract;
-use Treblle\DataObjects\Account;
-use Treblle\DataObjects\User;
 
 final class AuthResource
 {
     public function __construct(
         private TreblleClientContract $client,
     ) {
-        //
+
     }
 
     /**

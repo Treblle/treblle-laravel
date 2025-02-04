@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace Treblle;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Contracts\Support\DeferrableProvider;
-use Illuminate\Events\Dispatcher;
-use Illuminate\Foundation\Console\AboutCommand;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\ServiceProvider;
+use function config;
 use Illuminate\Support\Str;
-use Laravel\Octane\Events\RequestReceived;
+use Illuminate\Events\Dispatcher;
 use Treblle\Clients\TreblleClient;
 use Treblle\Commands\SetupCommand;
-use Treblle\Contracts\TreblleClientContract;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Treblle\Utils\Masking\FieldMasker;
-use function config;
-use function implode;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Octane\Events\RequestReceived;
+use Treblle\Contracts\TreblleClientContract;
+use Illuminate\Foundation\Console\AboutCommand;
+use Illuminate\Contracts\Support\DeferrableProvider;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
 {
@@ -29,7 +28,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/treblle.php' => config_path('treblle.php'),
+                __DIR__ . '/../config/treblle.php' => config_path('treblle.php'),
             ], 'treblle-config');
 
             $this->commands([
@@ -48,8 +47,8 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             $uuid = Str::uuid()->toString();
             $this->app->bind('treblle-identifier', fn () => $uuid);
 
-            $events->listen(RequestReceived::class, function () use ($uuid) {
-                if (config('octane.server') === 'roadrunner') {
+            $events->listen(RequestReceived::class, function () use ($uuid): void {
+                if ('roadrunner' === config('octane.server')) {
                     Cache::put($uuid, microtime(true));
 
                     return;
@@ -77,7 +76,7 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
     public function register(): void
     {
         $this->mergeConfigFrom(
-            path: __DIR__.'/../config/treblle.php',
+            path: __DIR__ . '/../config/treblle.php',
             key: 'treblle',
         );
 
@@ -119,14 +118,6 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
     }
 
     /**
-     * Determine if server is running Octane
-     */
-    private function httpServerIsOctane(): bool
-    {
-        return isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
-    }
-
-    /**
      * Get the services provided by the provider.
      */
     public function provides(): array
@@ -135,5 +126,13 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
             FieldMasker::class,
             TreblleClientContract::class,
         ];
+    }
+
+    /**
+     * Determine if server is running Octane
+     */
+    private function httpServerIsOctane(): bool
+    {
+        return isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
     }
 }

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Treblle\Commands;
 
-use Illuminate\Console\Command;
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Throwable;
+use Illuminate\Console\Command;
 use Treblle\Contracts\TreblleClientContract;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 final class SetupCommand extends Command
 {
@@ -32,7 +32,7 @@ final class SetupCommand extends Command
 
         try {
             $user = $treblleClient->auth()->lookup(
-                email: strval($email),
+                email: (string) $email,
             );
         } catch (Throwable) {
             $this->components->error(
@@ -44,7 +44,7 @@ final class SetupCommand extends Command
 
         if (! empty($user->name)) {
             $this->components->info(
-                string: "Hello, $user->name, it looks like you already have an Treblle account - let\'s log you in!",
+                string: "Hello, {$user->name}, it looks like you already have an Treblle account - let\'s log you in!",
             );
 
             $password = $this->secret(
@@ -53,8 +53,8 @@ final class SetupCommand extends Command
 
             try {
                 $login = $treblleClient->auth()->login(
-                    email: strval($email),
-                    password: strval($password),
+                    email: (string) $email,
+                    password: (string) $password,
                 );
             } catch (Throwable) {
                 $this->components->error(
@@ -77,9 +77,9 @@ final class SetupCommand extends Command
 
             try {
                 $login = $treblleClient->auth()->register(
-                    name: strval($name),
-                    email: strval($email),
-                    password: strval($password),
+                    name: (string) $name,
+                    email: (string) $email,
+                    password: (string) $password,
                 );
             } catch (Throwable) {
                 $this->components->error(
@@ -100,7 +100,7 @@ final class SetupCommand extends Command
 
         try {
             $project = $treblleClient->projects()->create(
-                name: strval($projectName),
+                name: (string) $projectName,
                 user: (string) ($login->uuid),
             );
         } catch (Throwable) {
@@ -120,8 +120,8 @@ final class SetupCommand extends Command
 
         $this->components->bulletList(
             elements: [
-                "TREBLLE_API_KEY=$apiKey",
-                "TREBLLE_PROJECT_ID=$projectId",
+                "TREBLLE_API_KEY={$apiKey}",
+                "TREBLLE_PROJECT_ID={$projectId}",
             ],
         );
 

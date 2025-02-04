@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Treblle;
 
-use Illuminate\Support\Facades\Http;
-use Treblle\Exceptions\ConfigurationException;
+use function in_array;
+use function is_string;
 use Treblle\Http\Endpoint;
 use Treblle\Utils\DataObjects\Data;
 
-use function in_array;
-use function is_string;
+use Illuminate\Support\Facades\Http;
+use Treblle\Exceptions\ConfigurationException;
 
 final class Treblle
 {
@@ -25,7 +25,7 @@ final class Treblle
     {
         $treblleConfig = (array) config('treblle');
 
-        if ($treblleConfig['project_id'] === null || $treblleConfig['api_key'] === null) {
+        if (null === $treblleConfig['project_id'] || null === $treblleConfig['api_key']) {
             return;
         }
 
@@ -45,7 +45,7 @@ final class Treblle
         $apiKey = config('treblle.api_key');
         $configProjectId = config('treblle.project_id');
 
-        if (is_null($apiKey)) {
+        if (null === $apiKey) {
             throw ConfigurationException::noApiKey();
         }
 
@@ -70,7 +70,7 @@ final class Treblle
         Http::withHeaders(
             headers: ['X-API-KEY' => $apiKey],
         )->withUserAgent(
-            userAgent: 'Treblle\Laravel/'.self::VERSION,
+            userAgent: 'Treblle\Laravel/' . self::VERSION,
         )->acceptJson()->asJson()->post(
             url: $finalEndpoint,
             data: $data,

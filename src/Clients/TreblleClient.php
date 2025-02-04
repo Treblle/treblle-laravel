@@ -6,8 +6,8 @@ namespace Treblle\Clients;
 
 use Illuminate\Http\Client\PendingRequest;
 use Treblle\Clients\Resources\AuthResource;
-use Treblle\Clients\Resources\ProjectResource;
 use Treblle\Contracts\TreblleClientContract;
+use Treblle\Clients\Resources\ProjectResource;
 
 final class TreblleClient implements TreblleClientContract
 {

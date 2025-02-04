@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Treblle\Clients\Resources;
 
 use Exception;
+use Treblle\DataObjects\Project;
 use Illuminate\Http\Client\RequestException;
 use Treblle\Contracts\TreblleClientContract;
-use Treblle\DataObjects\Project;
 
 final class ProjectResource
 {
     public function __construct(
         private TreblleClientContract $client,
     ) {
-        //
+
     }
 
     /**

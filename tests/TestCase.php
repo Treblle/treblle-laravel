@@ -4,23 +4,22 @@ declare(strict_types=1);
 
 namespace Treblle\Tests;
 
-use Illuminate\Foundation\Application;
-use Illuminate\Support\ServiceProvider;
-use InvalidArgumentException;
+use function time;
 use JsonException;
-use Orchestra\Testbench\TestCase as BaseTestCase;
+use InvalidArgumentException;
+use Treblle\Utils\Http\Method;
+use Treblle\Utils\DataObjects\OS;
 use Treblle\TreblleServiceProvider;
 use Treblle\Utils\DataObjects\Data;
-use Treblle\Utils\DataObjects\Error;
-use Treblle\Utils\DataObjects\Language;
-use Treblle\Utils\DataObjects\OS;
-use Treblle\Utils\DataObjects\Request;
-use Treblle\Utils\DataObjects\Response;
 use Treblle\Utils\DataObjects\Server;
-use Treblle\Utils\Http\Method;
-use function time;
+use Illuminate\Foundation\Application;
+use Treblle\Utils\DataObjects\Request;
+use Illuminate\Support\ServiceProvider;
+use Treblle\Utils\DataObjects\Language;
+use Treblle\Utils\DataObjects\Response;
+use Orchestra\Testbench\TestCase as BaseTestCase;
 
-class TestCase extends BaseTestCase
+final class TestCase extends BaseTestCase
 {
     protected function setUp(): void
     {
@@ -46,9 +45,9 @@ class TestCase extends BaseTestCase
      */
     protected function fixture(string $name): array
     {
-        if (! file_exists($path = __DIR__."/Fixtures/$name.json")) {
+        if (! file_exists($path = __DIR__ . "/Fixtures/{$name}.json")) {
             throw new InvalidArgumentException(
-                message: "Cannot find fixture at $path",
+                message: "Cannot find fixture at {$path}",
             );
         }
 
@@ -58,7 +57,7 @@ class TestCase extends BaseTestCase
 
         if (! $contents) {
             throw new InvalidArgumentException(
-                message: "Contents of $name cannot be fetched.",
+                message: "Contents of {$name} cannot be fetched.",
             );
         }
 
