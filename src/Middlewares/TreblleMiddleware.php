@@ -25,6 +25,12 @@ final class TreblleMiddleware
 
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
+        $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
+
+        if (in_array(app()->environment(), $ignoredEnvironments)) {
+            return;
+        }
+
         $maskedFields = (array)config('treblle.masked_fields');
         $fieldMasker = new FieldMasker($maskedFields);
         $errorProvider = new InMemoryErrorDataProvider();
