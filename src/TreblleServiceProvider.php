@@ -39,7 +39,7 @@ final class TreblleServiceProvider extends ServiceProvider
                 'URL' => config('treblle.url'),
                 'Project ID' => config('treblle.project_id'),
                 'API Key' => config('treblle.api_key'),
-                'Ignored Environments' => config('treblle.ignore_environments'),
+                'Ignored Environments' => config('treblle.ignored_environments'),
             ],
         );
     }
