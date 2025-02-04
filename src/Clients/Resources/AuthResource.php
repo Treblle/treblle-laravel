@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Clients\Resources;
+namespace Treblle\Laravel\Clients\Resources;
 
-use Treblle\DataObjects\User;
-use Treblle\DataObjects\Account;
+use Treblle\Laravel\DataObjects\User;
+use Treblle\Laravel\DataObjects\Account;
 use Illuminate\Http\Client\RequestException;
-use Treblle\Contracts\TreblleClientContract;
+use Treblle\Laravel\Contracts\TreblleClientContract;
 
 final class AuthResource
 {

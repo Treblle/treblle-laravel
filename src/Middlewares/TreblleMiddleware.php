@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Middlewares;
+namespace Treblle\Laravel\Middlewares;
 
 use Closure;
-use Treblle\FieldMasker;
 use Illuminate\Http\Request;
+use Treblle\Php\FieldMasker;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
-use Treblle\Factory\TreblleFactory;
-use Treblle\DataTransferObject\Error;
-use Treblle\InMemoryErrorDataProvider;
-use Treblle\DataProviders\LaravelRequestDataProvider;
-use Treblle\DataProviders\LaravelResponseDataProvider;
+use Treblle\Php\Factory\TreblleFactory;
+use Treblle\Php\DataTransferObject\Error;
+use Treblle\Php\InMemoryErrorDataProvider;
+use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
+use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class TreblleMiddleware

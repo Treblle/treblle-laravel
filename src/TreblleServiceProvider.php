@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Treblle;
+namespace Treblle\Laravel;
 
 use function config;
 use Illuminate\Routing\Router;
-use Treblle\Commands\SetupCommand;
 use Illuminate\Support\ServiceProvider;
-use Treblle\Middlewares\TreblleMiddleware;
+use Treblle\Laravel\Commands\SetupCommand;
 use Illuminate\Foundation\Console\AboutCommand;
+use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Contracts\Container\BindingResolutionException;
 

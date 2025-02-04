@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Clients;
+namespace Treblle\Laravel\Clients;
 
 use Illuminate\Http\Client\PendingRequest;
-use Treblle\Clients\Resources\AuthResource;
-use Treblle\Contracts\TreblleClientContract;
-use Treblle\Clients\Resources\ProjectResource;
+use Treblle\Laravel\Clients\Resources\AuthResource;
+use Treblle\Laravel\Contracts\TreblleClientContract;
+use Treblle\Laravel\Clients\Resources\ProjectResource;
 
 final class TreblleClient implements TreblleClientContract
 {

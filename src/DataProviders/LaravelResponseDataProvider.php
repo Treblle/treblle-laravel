@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Treblle\DataProviders;
+namespace Treblle\Laravel\DataProviders;
 
-use Treblle\FieldMasker;
+use Treblle\Laravel\FieldMasker;
 use Illuminate\Http\JsonResponse;
-use Treblle\DataTransferObject\Error;
-use Treblle\Contract\ErrorDataProvider;
-use Treblle\DataTransferObject\Response;
-use Treblle\Contract\ResponseDataProvider;
+use Treblle\Laravel\DataTransferObject\Error;
+use Treblle\Laravel\Contract\ErrorDataProvider;
+use Treblle\Laravel\DataTransferObject\Response;
+use Treblle\Laravel\Contract\ResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final readonly class LaravelResponseDataProvider implements ResponseDataProvider

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Clients\Resources;
+namespace Treblle\Laravel\Clients\Resources;
 
 use Exception;
-use Treblle\DataObjects\Project;
+use Treblle\Laravel\DataObjects\Project;
 use Illuminate\Http\Client\RequestException;
-use Treblle\Contracts\TreblleClientContract;
+use Treblle\Laravel\Contracts\TreblleClientContract;
 
 final class ProjectResource
 {

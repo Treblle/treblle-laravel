@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Commands;
+namespace Treblle\Laravel\Commands;
 
 use Throwable;
 use Illuminate\Console\Command;
-use Treblle\Contracts\TreblleClientContract;
+use Treblle\Laravel\Contracts\TreblleClientContract;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 final class SetupCommand extends Command

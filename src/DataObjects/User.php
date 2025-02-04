@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Treblle\DataObjects;
+namespace Treblle\Laravel\DataObjects;
 
 final class User
 {

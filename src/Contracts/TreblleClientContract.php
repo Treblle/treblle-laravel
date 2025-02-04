@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Contracts;
+namespace Treblle\Laravel\Contracts;
 
 use Closure;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\PendingRequest;
-use Treblle\Clients\Resources\AuthResource;
-use Treblle\Clients\Resources\ProjectResource;
+use Treblle\Laravel\Clients\Resources\AuthResource;
+use Treblle\Laravel\Clients\Resources\ProjectResource;
 
 interface TreblleClientContract
 {

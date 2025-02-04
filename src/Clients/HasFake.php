@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Clients;
+namespace Treblle\Laravel\Clients;
 
 use Closure;
 use Illuminate\Http\Client\Factory;
