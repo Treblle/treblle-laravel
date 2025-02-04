@@ -17,7 +17,7 @@ final readonly class LaravelResponseDataProvider implements ResponseDataProvider
     public function __construct(
         private FieldMasker     $fieldMasker,
         private JsonResponse|\Illuminate\Http\Response|SymfonyResponse $response,
-        private ErrorDataProvider                                      $errorDataProvider,
+        private ErrorDataProvider                                      &$errorDataProvider,
     ) {
     }
 
