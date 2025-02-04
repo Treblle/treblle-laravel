@@ -10,10 +10,9 @@ use Illuminate\Support\ServiceProvider;
 use Treblle\Laravel\Commands\SetupCommand;
 use Illuminate\Foundation\Console\AboutCommand;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
-use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Contracts\Container\BindingResolutionException;
 
-final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
+final class TreblleServiceProvider extends ServiceProvider
 {
     /**
      * @throws BindingResolutionException
