@@ -55,7 +55,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
 
     private function getLoadTimeInMilliseconds(): float
     {
-        $currentTime = microtime(true) * 1000;
+        $currentTimeInMilliseconds = microtime(true) * 1000;
         $requestTimeInMilliseconds = microtime(true) * 1000;
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
@@ -64,6 +64,6 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
             $requestTimeInMilliseconds = LARAVEL_START * 1000;
         }
 
-        return $currentTime - $requestTimeInMilliseconds;
+        return $currentTimeInMilliseconds - $requestTimeInMilliseconds;
     }
 }
