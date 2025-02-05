@@ -2,26 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Treblle;
+namespace Treblle\Laravel;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Contracts\Support\DeferrableProvider;
-use Illuminate\Events\Dispatcher;
-use Illuminate\Foundation\Console\AboutCommand;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
-use Laravel\Octane\Events\RequestReceived;
-use Treblle\Clients\TreblleClient;
-use Treblle\Commands\SetupCommand;
-use Treblle\Contracts\TreblleClientContract;
-use Treblle\Utils\Masking\FieldMasker;
 use function config;
-use function implode;
+use Illuminate\Routing\Router;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Foundation\Console\AboutCommand;
+use Treblle\Laravel\Middlewares\TreblleMiddleware;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
-final class TreblleServiceProvider extends ServiceProvider implements DeferrableProvider
+final class TreblleServiceProvider extends ServiceProvider
 {
+    public const SDK_NAME = 'laravel';
+    public const SDK_VERSION = 5.0;
+
     /**
      * @throws BindingResolutionException
      */
@@ -29,44 +23,25 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/treblle.php' => config_path('treblle.php'),
+                __DIR__ . '/../config/treblle.php' => config_path('treblle.php'),
             ], 'treblle-config');
-
-            $this->commands([
-                SetupCommand::class,
-            ]);
         }
 
-        if ($this->httpServerIsOctane()) {
-            /**
-             * @var Dispatcher $events
-             */
-            $events = $this->app->make(
-                abstract: Dispatcher::class,
-            );
+        /** @var Router $router */
+        $router = $this->app->make(Router::class);
 
-            $uuid = Str::uuid()->toString();
-            $this->app->bind('treblle-identifier', fn () => $uuid);
-
-            $events->listen(RequestReceived::class, function () use ($uuid) {
-                if (config('octane.server') === 'roadrunner') {
-                    Cache::put($uuid, microtime(true));
-
-                    return;
-                }
-
-                Cache::store('octane')->put($uuid, microtime(true));
-            });
+        if (! isset($router->getMiddleware()['treblle'])) {
+            $router->aliasMiddleware('treblle', TreblleMiddleware::class);
         }
 
         AboutCommand::add(
             section: 'Treblle',
             data: static fn (): array => [
-                'Version' => Treblle::VERSION,
+                'Version' => self::SDK_VERSION,
                 'URL' => config('treblle.url'),
                 'Project ID' => config('treblle.project_id'),
                 'API Key' => config('treblle.api_key'),
-                'Ignored Environments' => config('treblle.ignore_environments'),
+                'Ignored Environments' => config('treblle.ignored_environments'),
             ],
         );
     }
@@ -77,63 +52,8 @@ final class TreblleServiceProvider extends ServiceProvider implements Deferrable
     public function register(): void
     {
         $this->mergeConfigFrom(
-            path: __DIR__.'/../config/treblle.php',
+            path: __DIR__ . '/../config/treblle.php',
             key: 'treblle',
         );
-
-        $this->app->bind(
-            abstract: TreblleClientContract::class,
-            concrete: static function () {
-                $request = Http::baseUrl(
-                    url: 'https://app-api.treblle.com/v1/',
-                )->timeout(
-                    seconds: 15,
-                )->withHeaders([
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'User-Agent' => 'TreblleSetupCommand/0.1',
-                ]);
-
-                if (! empty(config('treblle.api_key'))) {
-                    $request->withHeaders(
-                        headers: [
-                            'x-api-key' => (string) config('treblle.api_key'),
-                        ]
-                    );
-                }
-
-                return new TreblleClient(
-                    request: $request,
-                );
-            },
-        );
-
-        $fields = config('treblle.masked_fields');
-
-        $this->app->singleton(
-            abstract: FieldMasker::class,
-            concrete: fn () => new FieldMasker(
-                fields: is_array($fields) ? $fields : [],
-            ),
-        );
-    }
-
-    /**
-     * Determine if server is running Octane
-     */
-    private function httpServerIsOctane(): bool
-    {
-        return isset($_ENV['OCTANE_DATABASE_SESSION_TTL']);
-    }
-
-    /**
-     * Get the services provided by the provider.
-     */
-    public function provides(): array
-    {
-        return [
-            FieldMasker::class,
-            TreblleClientContract::class,
-        ];
     }
 }

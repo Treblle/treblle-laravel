@@ -18,40 +18,32 @@
             "name": "Vedran Cindrić",
             "email": "vedran@treblle.com",
             "homepage": "https://treblle.com/"
-        },
-        {
-            "role": "Developer",
-            "name": "Steve McDougall",
-            "email": "juststevemcd@gmail.com",
-            "homepage": "https://treblle.com/"
         }
     ],
     "autoload": {
         "psr-4": {
-            "Treblle\\": "src/"
+            "Treblle\\Laravel\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Treblle\\Tests\\": "tests/"
+            "Treblle\\Laravel\\Tests\\": "tests/"
         }
     },
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "ext-json": "*",
-        "treblle/utils": "^0.4.0"
+        "ext-mbstring": "*",
+        "treblle/treblle-php": "^4.0.1"
     },
     "require-dev": {
-        "guzzlehttp/guzzle": "^7.7.0",
-        "laravel/octane": "^1.5.6",
-        "laravel/pint": "^1.10.3",
         "orchestra/testbench": "^7.0 || ^8.5.9",
-        "phpstan/phpstan": "^1.10.25"
+        "laravel/pint": "^1.15"
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Treblle\\TreblleServiceProvider"
+                "Treblle\\Laravel\\TreblleServiceProvider"
             ]
         }
     },

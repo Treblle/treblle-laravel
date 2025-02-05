@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     /*
      * An override while debugging.
@@ -36,4 +38,10 @@ return [
         'credit_score',
         'api_key',
     ],
+
+    /*
+     * Should be used in development mode only.
+     * Enable Debug mode, will throw errors on apis.
+     */
+    'debug' => env('TREBLLE_DEBUG_MODE', false),
 ];

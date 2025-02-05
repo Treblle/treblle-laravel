@@ -2,85 +2,85 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Middlewares;
+namespace Treblle\Laravel\Middlewares;
 
 use Closure;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Treblle\Php\FieldMasker;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
+use Treblle\Php\Factory\TreblleFactory;
+use Treblle\Php\DataTransferObject\Error;
+use Treblle\Php\InMemoryErrorDataProvider;
+use Treblle\Laravel\TreblleServiceProvider;
+use Treblle\Laravel\Exceptions\TreblleException;
+use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
+use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use Treblle\Exceptions\ConfigurationException;
-use Treblle\Factories\DataFactory;
-use Treblle\Http\Endpoint;
-use Treblle\Treblle;
 
-use function config;
-use function microtime;
-
-class TreblleMiddleware
+final class TreblleMiddleware
 {
-    public static float $start = 0.00;
-
-    public static ?string $project = null;
-
-    public function __construct(
-        protected readonly DataFactory $factory,
-    ) {
-    }
-
-    public function handle(Request $request, Closure $next, ?string $projectId = null): Response|JsonResponse|SymfonyResponse
+    /**
+     * @throws TreblleException
+     */
+    public function handle(Request $request, Closure $next)
     {
-        self::$project = $projectId;
+        $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
+
+        if (in_array(app()->environment(), $ignoredEnvironments)) {
+            return $next($request);
+        }
+
+        if (! (config('treblle.api_key'))) {
+            throw TreblleException::missingApiKey();
+        }
+
+        if (! (config('treblle.project_id'))) {
+            throw TreblleException::missingProjectId();
+        }
 
         return $next($request);
     }
 
-    /**
-     * @throws ConfigurationException
-     */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
-        if (! $request->headers->has('X-TREBLLE-TRACE-ID')) {
-            $request->headers->add([
-                'X-TREBLLE-TRACE-ID' => $id = Str::uuid(),
-            ]);
+        $maskedFields = (array)config('treblle.masked_fields');
+        $fieldMasker = new FieldMasker($maskedFields);
+        $errorProvider = new InMemoryErrorDataProvider();
+        $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
+        $responseProvider = new LaravelResponseDataProvider($fieldMasker, $response, $errorProvider);
+
+        if (! empty($response->exception)) {
+            $errorProvider->addError(new Error(
+                $response->exception->getMessage(),
+                $response->exception->getFile(),
+                $response->exception->getLine(),
+                'onException',
+                'UNHANDLED_EXCEPTION',
+            ));
         }
 
-        $response->headers->add([
-            'X-TREBLLE-TRACE-ID' => $request->headers->get('X-TREBLLE-TRACE-ID'),
-        ]);
-
-        if (strlen((string) $response->getContent()) > 2 * 1024 * 1024) {
-            if (! app()->environment('production')) {
-                Log::error(
-                    message: 'Cannot send response over 2MB to Treblle.',
-                    context: [
-                        'url' => $request->fullUrl(),
-                        'date' => now()->toDateTimeString(),
-                    ]
-                );
-            }
-
-            return;
-        }
-
-        Treblle::log(
-            endpoint: config('treblle.url', Endpoint::random()),
-            data: $this->factory->make(
-                request: $request,
-                response: $response,
-                loadTime: microtime(true) - $this->startTime(),
-            ),
-            projectId: self::$project ?? (string) config('treblle.project_id'),
+        $treblle = TreblleFactory::create(
+            apiKey: (string)config('treblle.api_key'),
+            projectId: (string)config('treblle.project_id'),
+            debug: (bool)config('treblle.debug'),
+            maskedFields: $maskedFields,
+            config: [
+                'url' => config('treblle.url'),
+                'register_handlers' => false,
+                'fork_process' => false,
+                'request_provider' => $requestProvider,
+                'response_provider' => $responseProvider,
+                'error_provider' => $errorProvider,
+            ]
         );
-    }
 
-    private function startTime(): float
-    {
-        return $_SERVER['REQUEST_TIME_FLOAT']
-            ?? (defined('LARAVEL_START') ? LARAVEL_START : null)
-            ?? microtime(true);
+        // Manually execute onShutdown because on octane server never shuts down
+        // so registered shutdown function never gets called
+        // hence we have disabled handlers using config register_handlers
+        $treblle
+            ->setName(TreblleServiceProvider::SDK_NAME)
+            ->setVersion(TreblleServiceProvider::SDK_VERSION)
+            ->onShutdown();
     }
 }
