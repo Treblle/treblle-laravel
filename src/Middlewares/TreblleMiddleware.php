@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\InMemoryErrorDataProvider;
+use Treblle\Laravel\TreblleServiceProvider;
 use Treblle\Laravel\Exceptions\TreblleException;
 use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
 use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
@@ -78,8 +79,8 @@ final class TreblleMiddleware
         // so registered shutdown function never gets called
         // hence we have disabled handlers using config register_handlers
         $treblle
-            ->setName('laravel')
-            ->setVersion(5.0)
+            ->setName(TreblleServiceProvider::SDK_NAME)
+            ->setVersion(TreblleServiceProvider::SDK_VERSION)
             ->onShutdown();
     }
 }

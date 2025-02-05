@@ -17,6 +17,9 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 
 final class TreblleServiceProvider extends ServiceProvider
 {
+    public const SDK_NAME = 'laravel';
+    public const SDK_VERSION = 5.0;
+
     /**
      * @throws BindingResolutionException
      */
@@ -42,7 +45,7 @@ final class TreblleServiceProvider extends ServiceProvider
         AboutCommand::add(
             section: 'Treblle',
             data: static fn (): array => [
-                'Version' => 5.0,
+                'Version' => self::SDK_VERSION,
                 'URL' => config('treblle.url'),
                 'Project ID' => config('treblle.project_id'),
                 'API Key' => config('treblle.api_key'),
