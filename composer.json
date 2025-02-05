@@ -34,7 +34,7 @@
         "php": "^8.2",
         "ext-json": "*",
         "ext-mbstring": "*",
-        "treblle/treblle-php": "^4.0.1"
+        "treblle/treblle-php": "^4.0.2"
     },
     "require-dev": {
         "orchestra/testbench": "^7.0 || ^8.5.9",
