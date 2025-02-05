@@ -12,25 +12,37 @@ use Illuminate\Http\JsonResponse;
 use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\InMemoryErrorDataProvider;
+use Treblle\Laravel\Exceptions\TreblleException;
 use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
 use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class TreblleMiddleware
 {
+    /**
+     * @throws TreblleException
+     */
     public function handle(Request $request, Closure $next)
     {
+        $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
+
+        if (in_array(app()->environment(), $ignoredEnvironments)) {
+            return $next($request);
+        }
+
+        if (! (config('treblle.api_key'))) {
+            throw TreblleException::missingApiKey();
+        }
+
+        if (! (config('treblle.project_id'))) {
+            throw TreblleException::missingProjectId();
+        }
+
         return $next($request);
     }
 
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
-        $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
-
-        if (in_array(app()->environment(), $ignoredEnvironments)) {
-            return;
-        }
-
         $maskedFields = (array)config('treblle.masked_fields');
         $fieldMasker = new FieldMasker($maskedFields);
         $errorProvider = new InMemoryErrorDataProvider();
