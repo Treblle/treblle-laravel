@@ -41,7 +41,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
         return new Response(
             code: $this->response->getStatusCode(),
             size: $size,
-            load_time: microtime(true) - $this->startTime(),
+            load_time: $this->getLoadTimeInMilliseconds(),
             body: $this->fieldMasker->mask(
                 json_decode($body, true) ?? []
             ),
@@ -53,10 +53,17 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
         );
     }
 
-    private function startTime(): float
+    private function getLoadTimeInMilliseconds(): float
     {
-        return $_SERVER['REQUEST_TIME_FLOAT']
-            ?? (defined('LARAVEL_START') ? LARAVEL_START : null)
-            ?? microtime(true);
+        $currentTimeInMilliseconds = microtime(true) * 1000;
+        $requestTimeInMilliseconds = microtime(true) * 1000;
+
+        if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
+            $requestTimeInMilliseconds = (float)$_SERVER['REQUEST_TIME_FLOAT'] * 1000;
+        } elseif (defined('LARAVEL_START')) {
+            $requestTimeInMilliseconds = LARAVEL_START * 1000;
+        }
+
+        return $currentTimeInMilliseconds - $requestTimeInMilliseconds;
     }
 }
