@@ -12,11 +12,11 @@ use Treblle\Php\DataTransferObject\Response;
 use Treblle\Php\Contract\ResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-final readonly class LaravelResponseDataProvider implements ResponseDataProvider
+final class LaravelResponseDataProvider implements ResponseDataProvider
 {
     public function __construct(
-        private FieldMasker     $fieldMasker,
-        private JsonResponse|\Illuminate\Http\Response|SymfonyResponse $response,
+        private readonly FieldMasker     $fieldMasker,
+        private readonly JsonResponse|\Illuminate\Http\Response|SymfonyResponse $response,
         private ErrorDataProvider                                      &$errorDataProvider,
     ) {
     }
