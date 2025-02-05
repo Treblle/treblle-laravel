@@ -29,8 +29,12 @@ final class TreblleServiceProvider extends ServiceProvider
             ]);
         }
 
+        /** @var Router $router */
         $router = $this->app->make(Router::class);
-        $router->aliasMiddleware('treblle', TreblleMiddleware::class);
+
+        if (! isset($router->getMiddleware()['treblle'])) {
+            $router->aliasMiddleware('treblle', TreblleMiddleware::class);
+        }
 
         AboutCommand::add(
             section: 'Treblle',
