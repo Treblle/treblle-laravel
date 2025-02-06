@@ -7,6 +7,7 @@ namespace Treblle\Laravel;
 use function config;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Console\AboutCommand;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -33,6 +34,13 @@ final class TreblleServiceProvider extends ServiceProvider
         if (! isset($router->getMiddleware()['treblle'])) {
             $router->aliasMiddleware('treblle', TreblleMiddleware::class);
         }
+
+        /** @var Dispatcher $events */
+        $events = $this->app->make(Dispatcher::class);
+
+        $events->listen('Laravel\Octane\Events\RequestReceived', function ($event): void {
+            $event->request->attributes->set('treblle_request_started_at', microtime(true));
+        });
 
         AboutCommand::add(
             section: 'Treblle',
