@@ -48,7 +48,7 @@ final class TreblleMiddleware
         $fieldMasker = new FieldMasker($maskedFields);
         $errorProvider = new InMemoryErrorDataProvider();
         $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
-        $responseProvider = new LaravelResponseDataProvider($fieldMasker, $response, $errorProvider);
+        $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
 
         if (! empty($response->exception)) {
             $errorProvider->addError(new Error(
