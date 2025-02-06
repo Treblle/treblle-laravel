@@ -10,12 +10,14 @@ use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\Contract\ErrorDataProvider;
 use Treblle\Php\DataTransferObject\Response;
 use Treblle\Php\Contract\ResponseDataProvider;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class LaravelResponseDataProvider implements ResponseDataProvider
 {
     public function __construct(
         private readonly FieldMasker     $fieldMasker,
+        private \Illuminate\Http\Request|SymfonyRequest $request,
         private readonly JsonResponse|\Illuminate\Http\Response|SymfonyResponse $response,
         private ErrorDataProvider                                      &$errorDataProvider,
     ) {
@@ -57,6 +59,12 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
     {
         $currentTimeInMilliseconds = microtime(true) * 1000;
         $requestTimeInMilliseconds = microtime(true) * 1000;
+
+        if ($this->request->attributes->has('treblle_request_started_at')) {
+            $requestTimeInMilliseconds = $this->request->attributes->get('treblle_request_started_at') * 1000;
+
+            return $currentTimeInMilliseconds - $requestTimeInMilliseconds;
+        }
 
         if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
             $requestTimeInMilliseconds = (float)$_SERVER['REQUEST_TIME_FLOAT'] * 1000;
