@@ -101,7 +101,7 @@ Your first step should be to register Treblle into your in your middleware alias
 ```php
 protected $middlewareAliases = [
   // the rest of your middleware aliases
-  'treblle' => \Treblle\Middlewares\TreblleMiddleware::class,
+  'treblle' => \Treblle\Laravel\Middlewares\TreblleMiddleware::class,
 ];
 ```
 
