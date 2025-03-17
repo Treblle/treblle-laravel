@@ -135,6 +135,8 @@ Route::group(function () {
 ```
 or if you have multiple projects within same workspace in same laravel project you can set project ids dynamically like so:
 
+NOTE: Dynamically set value will always take precedence over value set in .env
+
 ```php
 Route::middleware(['treblle:project-id-1'])->group(function () {
 
