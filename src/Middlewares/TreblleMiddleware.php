@@ -23,12 +23,16 @@ final class TreblleMiddleware
     /**
      * @throws TreblleException
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next, string|null $projectId = null)
     {
         $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
 
         if (in_array(app()->environment(), $ignoredEnvironments)) {
             return $next($request);
+        }
+
+        if (null !== $projectId) {
+            config(['treblle.project_id' => $projectId]);
         }
 
         if (! (config('treblle.api_key'))) {
