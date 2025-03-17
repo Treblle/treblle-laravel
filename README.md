@@ -133,6 +133,31 @@ Route::group(function () {
   });
 });
 ```
+or if you have multiple projects within same workspace in same laravel project you can set project ids dynamically like so:
+
+NOTE: Dynamically set value will always take precedence over value set in .env
+
+```php
+Route::middleware(['treblle:project-id-1'])->group(function () {
+
+  // YOUR API ROUTES GO HERE
+  Route::prefix('samples')->group(function () {
+    Route::get('{uuid}', [SampleController::class, 'view']);
+    Route::post('store', [SampleController::class, 'store']);
+  });
+
+});
+
+Route::middleware(['treblle:project-id-2'])->group(function () {
+
+  // YOUR API ROUTES GO HERE
+  Route::prefix('samples')->group(function () {
+    Route::get('{uuid}', [AnotherSampleController::class, 'view']);
+    Route::post('store', [AnotherSampleController::class, 'store']);
+  });
+
+});
+```
 
 You're all set. Next time someone makes a request to your API you will see it in real-time on your Treblle dashboard
 alongside other features like: auto-generated documentation, error tracking, analytics and API quality scoring.
