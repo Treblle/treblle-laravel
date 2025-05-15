@@ -77,15 +77,7 @@ Install Treblle for Laravel via Composer by running the following command in you
 composer require treblle/treblle-laravel
 ```
 
-You can get started with Treblle **directly from your Artisan console**. Just type in the following command in your
-terminal:
-
-```bash
-php artisan treblle:start
-```
-
-The command guides you through a process and allows you to create an account, login to your existing account, create a
-new project and get all the `.ENV` keys you need to start using Treblle.
+Create an account, login to your existing account, create a new project and get all the `.ENV` keys you need to start using Treblle.
 
 You can also visit our website [https://app.treblle.com](https://app.treblle.com) and create a FREE account to get your API key and Project ID. Once
 you have them, simply add them to your `.ENV` file:
@@ -95,69 +87,6 @@ TREBLLE_API_KEY=YOUR_API_KEY
 TREBLLE_PROJECT_ID=YOUR_PROJECT_ID
 ```
 ## Enabling Treblle on your API
-
-Your first step should be to register Treblle into your in your middleware aliases in `app/Http/Kernel.php`:
-
-```php
-protected $middlewareAliases = [
-  // the rest of your middleware aliases
-  'treblle' => \Treblle\Laravel\Middlewares\TreblleMiddleware::class,
-];
-```
-
-Open the **routes/api.php** and add the Treblle middleware to either a route group like so:
-
-```php
-Route::middleware(['treblle'])->group(function () {
-
-  // YOUR API ROUTES GO HERE
-  Route::prefix('samples')->group(function () {
-    Route::get('{uuid}', [SampleController::class, 'view']);
-    Route::post('store', [SampleController::class, 'store']);
-  });
-
-});
-```
-
-or to an individual route like so:
-
-```php
-Route::group(function () {
-  Route::prefix('users')->group(function () {
-
-    // IS LOGGED BY TREBLLE
-    Route::get('{uuid}', [UserController::class, 'view'])->middleware('treblle');
-
-    // IS NOT LOGGED BY TREBLLE
-    Route::post('{uuid}/update', [UserController::class, 'update']);
-  });
-});
-```
-or if you have multiple projects within same workspace in same laravel project you can set project ids dynamically like so:
-
-NOTE: Dynamically set value will always take precedence over value set in .env
-
-```php
-Route::middleware(['treblle:project-id-1'])->group(function () {
-
-  // YOUR API ROUTES GO HERE
-  Route::prefix('samples')->group(function () {
-    Route::get('{uuid}', [SampleController::class, 'view']);
-    Route::post('store', [SampleController::class, 'store']);
-  });
-
-});
-
-Route::middleware(['treblle:project-id-2'])->group(function () {
-
-  // YOUR API ROUTES GO HERE
-  Route::prefix('samples')->group(function () {
-    Route::get('{uuid}', [AnotherSampleController::class, 'view']);
-    Route::post('store', [AnotherSampleController::class, 'store']);
-  });
-
-});
-```
 
 NOTE: In case you want to temporarily disable observability, you can do so by setting env as `TREBLLE_ENABLE=false`
 
