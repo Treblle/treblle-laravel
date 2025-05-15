@@ -25,6 +25,10 @@ final class TreblleMiddleware
      */
     public function handle(Request $request, Closure $next, string|null $projectId = null)
     {
+        if (! config('treblle.enable')) {
+            return $next($request);
+        }
+
         $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
 
         if (in_array(app()->environment(), $ignoredEnvironments)) {
