@@ -159,7 +159,7 @@ Route::middleware(['treblle:project-id-2'])->group(function () {
 });
 ```
 
-NOTE: In case you want to temporarily disable observability, you can do so by setting `TREBLLE_ENABLE=false`
+NOTE: In case you want to temporarily disable observability, you can do so by setting env as `TREBLLE_ENABLE=false`
 
 You're all set. Next time someone makes a request to your API you will see it in real-time on your Treblle dashboard
 alongside other features like: auto-generated documentation, error tracking, analytics and API quality scoring.
