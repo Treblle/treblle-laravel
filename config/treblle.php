@@ -6,7 +6,7 @@ return [
     /*
      * A valid Treblle API key. You can get started for FREE by visiting https://treblle.com/
      */
-    'enabled' => env('TREBLLE_ENABLED', true),
+    'enable' => env('TREBLLE_ENABLE', true),
 
     /*
      * An override while debugging.

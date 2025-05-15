@@ -25,7 +25,7 @@ final class TreblleMiddleware
      */
     public function handle(Request $request, Closure $next, string|null $projectId = null)
     {
-        if (! config('treblle.enabled')) {
+        if (! config('treblle.enable')) {
             return $next($request);
         }
 
