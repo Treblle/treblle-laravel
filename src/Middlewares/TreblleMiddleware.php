@@ -13,25 +13,57 @@ use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\InMemoryErrorDataProvider;
 use Treblle\Laravel\TreblleServiceProvider;
+use Treblle\Laravel\Utils\OptimizedFieldMasker;
 use Treblle\Laravel\Exceptions\TreblleException;
 use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
 use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
+use Treblle\Laravel\DataProviders\OptimizedLaravelRequestDataProvider;
+use Treblle\Laravel\DataProviders\OptimizedLaravelResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class TreblleMiddleware
 {
+    private readonly bool $enabled;
+
+    private readonly array $ignoredEnvironments;
+
+    private readonly string $currentEnvironment;
+
+    private readonly ?string $apiKey;
+
+    private readonly ?string $projectId;
+
+    private readonly ?bool $debug;
+
+    private readonly ?string $url;
+
+    private readonly array $maskedFields;
+
+    public function __construct()
+    {
+        $this->enabled = (bool) config('treblle.enable');
+        $this->ignoredEnvironments = array_map(
+            'trim',
+            explode(',', config('treblle.ignored_environments', '') ?? '')
+        );
+        $this->currentEnvironment = app()->environment();
+        $this->apiKey = config('treblle.api_key');
+        $this->projectId = config('treblle.project_id');
+        $this->debug = config('treblle.debug');
+        $this->url = config('treblle.url');
+        $this->maskedFields = (array) config('treblle.masked_fields');
+    }
+
     /**
      * @throws TreblleException
      */
     public function handle(Request $request, Closure $next, string|null $projectId = null)
     {
-        if (! config('treblle.enable')) {
+        if (! $this->enabled) {
             return $next($request);
         }
 
-        $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
-
-        if (in_array(app()->environment(), $ignoredEnvironments)) {
+        if (in_array($this->currentEnvironment, $this->ignoredEnvironments)) {
             return $next($request);
         }
 
@@ -39,11 +71,14 @@ final class TreblleMiddleware
             config(['treblle.project_id' => $projectId]);
         }
 
-        if (! (config('treblle.api_key'))) {
+        $apiKey = null !== $projectId ? config('treblle.api_key') : $this->apiKey;
+        $currentProjectId = $projectId ?? $this->projectId;
+
+        if (! $apiKey) {
             throw TreblleException::missingApiKey();
         }
 
-        if (! (config('treblle.project_id'))) {
+        if (! $currentProjectId) {
             throw TreblleException::missingProjectId();
         }
 
@@ -52,17 +87,14 @@ final class TreblleMiddleware
 
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
-        $ignoredEnvironments = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
-
-        if (in_array(app()->environment(), $ignoredEnvironments)) {
+        if (in_array($this->currentEnvironment, $this->ignoredEnvironments)) {
             return;
         }
 
-        $maskedFields = (array)config('treblle.masked_fields');
-        $fieldMasker = new FieldMasker($maskedFields);
+        $optimizedFieldMasker = new OptimizedFieldMasker($this->maskedFields);
         $errorProvider = new InMemoryErrorDataProvider();
-        $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
-        $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
+        $requestProvider = new OptimizedLaravelRequestDataProvider($optimizedFieldMasker, $request);
+        $responseProvider = new OptimizedLaravelResponseDataProvider($optimizedFieldMasker, $request, $response, $errorProvider);
 
         if (! empty($response->exception)) {
             $errorProvider->addError(new Error(
@@ -74,13 +106,17 @@ final class TreblleMiddleware
             ));
         }
 
+        // Get current values (in case projectId was overridden in handle method)
+        $currentApiKey = config('treblle.api_key') ?? $this->apiKey;
+        $currentProjectId = config('treblle.project_id') ?? $this->projectId;
+
         $treblle = TreblleFactory::create(
-            apiKey: (string)config('treblle.api_key'),
-            projectId: (string)config('treblle.project_id'),
-            debug: (bool)config('treblle.debug'),
-            maskedFields: $maskedFields,
+            apiKey: (string) $currentApiKey,
+            projectId: (string) $currentProjectId,
+            debug: (bool) $this->debug,
+            maskedFields: $this->maskedFields,
             config: [
-                'url' => config('treblle.url'),
+                'url' => $this->url,
                 'register_handlers' => false,
                 'fork_process' => false,
                 'request_provider' => $requestProvider,
