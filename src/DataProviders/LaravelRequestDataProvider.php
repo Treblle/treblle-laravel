@@ -32,8 +32,22 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
                 )->toArray()
             ),
             query: $this->fieldMasker->mask($this->request->query->all()),
-            body: $this->fieldMasker->mask($this->request->toArray()),
+            body: $this->fieldMasker->mask($this->getRequestBody()),
             route_path: $this->request->route()?->toSymfonyRoute()->getPath(),
         );
+    }
+
+    /**
+     * Get the request body, prioritizing original payload if captured by TreblleEarlyMiddleware.
+     */
+    private function getRequestBody(): array
+    {
+        // Check if original payload was captured before any transformations
+        if ($this->request->attributes->has('treblle_original_payload')) {
+            return $this->request->attributes->get('treblle_original_payload');
+        }
+
+        // Fall back to the current (potentially transformed) request data
+        return $this->request->toArray();
     }
 }
