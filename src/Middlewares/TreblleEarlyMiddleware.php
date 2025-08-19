@@ -30,7 +30,7 @@ final class TreblleEarlyMiddleware
     {
         $contentType = $request->header('content-type', '');
 
-        return $request->isMethod(['POST', 'PUT', 'PATCH', 'DELETE']) && (
+        return in_array($request->getMethod(), ['POST', 'PUT', 'PATCH', 'DELETE']) && (
             str_contains($contentType, 'application/json') ||
             str_contains($contentType, 'application/x-www-form-urlencoded') ||
             str_contains($contentType, 'multipart/form-data')
