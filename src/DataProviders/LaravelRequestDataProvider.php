@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Treblle\Laravel\DataProviders;
 
 use Carbon\Carbon;
-use Treblle\Php\FieldMasker;
-use Treblle\Php\DataTransferObject\Request;
-use Treblle\Php\Contract\RequestDataProvider;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use Treblle\Php\Contract\RequestDataProvider;
+use Treblle\Php\DataTransferObject\Request;
+use Treblle\Php\FieldMasker;
 
 final readonly class LaravelRequestDataProvider implements RequestDataProvider
 {
@@ -37,17 +37,13 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
         );
     }
 
-    /**
-     * Get the request body, prioritizing original payload if captured by TreblleEarlyMiddleware.
-     */
     private function getRequestBody(): array
     {
-        // Check if original payload was captured before any transformations
+        // Prioritizing original payload if captured by TreblleEarlyMiddleware.
         if ($this->request->attributes->has('treblle_original_payload')) {
             return $this->request->attributes->get('treblle_original_payload');
         }
 
-        // Fall back to the current (potentially transformed) request data
         return $this->request->toArray();
     }
 }
