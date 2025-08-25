@@ -38,9 +38,6 @@ final class TreblleServiceProvider extends ServiceProvider
 
         if (! isset($router->getMiddleware()['treblle.early'])) {
             $router->aliasMiddleware('treblle.early', TreblleEarlyMiddleware::class);
-            foreach ($router->getMiddlewareGroups() as $group => $middlewares) {
-                $router->prependMiddlewareToGroup($group, TreblleEarlyMiddleware::class);
-            }
         }
 
         /** @var Dispatcher $events */
