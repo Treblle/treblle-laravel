@@ -6,6 +6,7 @@ namespace Treblle\Laravel;
 
 use function config;
 use Illuminate\Routing\Router;
+use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Console\AboutCommand;
@@ -38,6 +39,10 @@ final class TreblleServiceProvider extends ServiceProvider
 
         if (! isset($router->getMiddleware()['treblle.early'])) {
             $router->aliasMiddleware('treblle.early', TreblleEarlyMiddleware::class);
+
+            /** @var Kernel $kernel */
+            $kernel = $this->app->make(Kernel::class);
+            $kernel->prependToMiddlewarePriority(TreblleEarlyMiddleware::class);
         }
 
         /** @var Dispatcher $events */
