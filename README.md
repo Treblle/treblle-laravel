@@ -202,8 +202,6 @@ Route::post('/api/legacy-endpoint', [LegacyController::class, 'handle'])
 
 ### Important notes
 
-- The `treblle.early` middleware only captures JSON and form data payloads
-- It only activates for POST, PUT, PATCH, and DELETE requests
 - If you don't use `treblle.early`, everything works exactly as before
 - This feature is completely optional and backward compatible
 
