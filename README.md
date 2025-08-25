@@ -166,6 +166,45 @@ alongside other features like: auto-generated documentation, error tracking, ana
 
 > See the [docs](https://docs.treblle.com/en/integrations/laravel) for this SDK to learn more.
 
+## Capturing Original Request Payloads
+
+Some applications use middleware to transform incoming request data before processing (e.g., converting legacy API formats to current formats). By default, Treblle captures the request data after all middleware has processed it, which means you'll see the transformed data rather than what the client originally sent.
+
+If you need to capture the **original request payload** before any transformations, you can use the `treblle.early` middleware alongside your regular `treblle` middleware.
+
+### When to use this feature
+
+- Your API has middleware that modifies incoming request data
+- You want to see what clients actually sent vs. what your application processed
+- You need to debug issues related to request transformations
+- You want complete visibility into your API's request lifecycle
+
+### How to use it
+
+Add the `treblle.early` middleware **before** any middleware that transforms request data, but keep your regular `treblle` middleware in its usual position:
+
+```php
+Route::middleware(['treblle.early', 'your-transformation-middleware', 'treblle'])->group(function () {
+  // YOUR API ROUTES GO HERE
+  Route::prefix('api')->group(function () {
+    Route::post('users', [UserController::class, 'store']);
+    Route::put('users/{id}', [UserController::class, 'update']);
+  });
+});
+```
+
+Or for individual routes:
+
+```php
+Route::post('/api/legacy-endpoint', [LegacyController::class, 'handle'])
+    ->middleware(['treblle.early', 'legacy-transformer', 'treblle']);
+```
+
+### Important notes
+
+- If you don't use `treblle.early`, everything works exactly as before
+- This feature is completely optional and backward compatible
+
 ## Available SDKs
 
 Treblle provides [open-source SDKs](https://docs.treblle.com/en/integrations) that let you seamlessly integrate Treblle with your REST-based APIs.
