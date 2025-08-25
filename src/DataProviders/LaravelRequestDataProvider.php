@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Treblle\Laravel\DataProviders;
 
 use Carbon\Carbon;
-use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
-use Treblle\Php\Contract\RequestDataProvider;
-use Treblle\Php\DataTransferObject\Request;
 use Treblle\Php\FieldMasker;
+use Treblle\Php\DataTransferObject\Request;
+use Treblle\Php\Contract\RequestDataProvider;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final readonly class LaravelRequestDataProvider implements RequestDataProvider
 {
