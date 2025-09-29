@@ -27,11 +27,7 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
             user_agent: $this->request->userAgent() ?? '',
             method: $this->request->method(),
             headers: $this->fieldMasker->mask(
-                $this->filterHeaders(
-                    collect($this->request->headers->all())->transform(
-                        fn ($item) => collect($item)->first(),
-                    )->toArray()
-                )
+                $this->processHeaders($this->request->headers->all())
             ),
             query: $this->fieldMasker->mask($this->request->query->all()),
             body: $this->fieldMasker->mask($this->getRequestBody()),
@@ -49,22 +45,21 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
         return $this->request->toArray();
     }
 
-    private function filterHeaders(array $headers): array
+    private function processHeaders(array $headers): array
     {
         $excludedHeaders = config('treblle.excluded_headers', []);
 
-        if (empty($excludedHeaders)) {
-            return $headers;
-        }
-
-        return collect($headers)->reject(function ($value, $key) use ($excludedHeaders) {
-            foreach ($excludedHeaders as $pattern) {
-                if (fnmatch($pattern, $key)) {
-                    return true;
+        return collect($headers)
+            ->transform(fn ($item) => collect($item)->first())
+            ->reject(function ($value, $key) use ($excludedHeaders) {
+                foreach ($excludedHeaders as $pattern) {
+                    if (fnmatch($pattern, $key)) {
+                        return true;
+                    }
                 }
-            }
 
-            return false;
-        })->toArray();
+                return false;
+            })
+            ->toArray();
     }
 }
