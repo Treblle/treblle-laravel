@@ -91,6 +91,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
                     return true;
                 }
             }
+
             return false;
         })->toArray();
     }

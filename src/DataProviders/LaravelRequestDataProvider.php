@@ -63,6 +63,7 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
                     return true;
                 }
             }
+
             return false;
         })->toArray();
     }
