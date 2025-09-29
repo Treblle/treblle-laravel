@@ -8,6 +8,7 @@ use Treblle\Php\FieldMasker;
 use Illuminate\Http\JsonResponse;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\Contract\ErrorDataProvider;
+use Treblle\Laravel\Helpers\HeaderProcessor;
 use Treblle\Php\DataTransferObject\Response;
 use Treblle\Php\Contract\ResponseDataProvider;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
@@ -48,7 +49,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
                 json_decode($body, true) ?? []
             ),
             headers: $this->fieldMasker->mask(
-                $this->processHeaders($this->response->headers->all())
+                HeaderProcessor::process($this->response->headers->all())
             ),
         );
     }
@@ -71,23 +72,5 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
         }
 
         return $currentTimeInMilliseconds - $requestTimeInMilliseconds;
-    }
-
-    private function processHeaders(array $headers): array
-    {
-        $excludedHeaders = config('treblle.excluded_headers', []);
-
-        return collect($headers)
-            ->transform(fn ($item) => collect($item)->first())
-            ->reject(function ($value, $key) use ($excludedHeaders) {
-                foreach ($excludedHeaders as $pattern) {
-                    if (fnmatch($pattern, $key)) {
-                        return true;
-                    }
-                }
-
-                return false;
-            })
-            ->toArray();
     }
 }
