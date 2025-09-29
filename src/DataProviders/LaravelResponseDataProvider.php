@@ -48,9 +48,11 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
                 json_decode($body, true) ?? []
             ),
             headers: $this->fieldMasker->mask(
-                collect($this->response->headers->all())->transform(
-                    fn ($item) => collect($item)->first(),
-                )->toArray()
+                $this->filterHeaders(
+                    collect($this->response->headers->all())->transform(
+                        fn ($item) => collect($item)->first(),
+                    )->toArray()
+                )
             ),
         );
     }
@@ -73,5 +75,23 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
         }
 
         return $currentTimeInMilliseconds - $requestTimeInMilliseconds;
+    }
+
+    private function filterHeaders(array $headers): array
+    {
+        $excludedHeaders = config('treblle.excluded_headers', []);
+
+        if (empty($excludedHeaders)) {
+            return $headers;
+        }
+
+        return collect($headers)->reject(function ($value, $key) use ($excludedHeaders) {
+            foreach ($excludedHeaders as $pattern) {
+                if (fnmatch($pattern, $key)) {
+                    return true;
+                }
+            }
+            return false;
+        })->toArray();
     }
 }
