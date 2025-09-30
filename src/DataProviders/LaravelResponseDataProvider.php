@@ -8,6 +8,7 @@ use Treblle\Php\FieldMasker;
 use Illuminate\Http\JsonResponse;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\Contract\ErrorDataProvider;
+use Treblle\Laravel\Helpers\HeaderProcessor;
 use Treblle\Php\DataTransferObject\Response;
 use Treblle\Php\Contract\ResponseDataProvider;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
@@ -48,9 +49,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
                 json_decode($body, true) ?? []
             ),
             headers: $this->fieldMasker->mask(
-                collect($this->response->headers->all())->transform(
-                    fn ($item) => collect($item)->first(),
-                )->toArray()
+                HeaderProcessor::process($this->response->headers->all())
             ),
         );
     }

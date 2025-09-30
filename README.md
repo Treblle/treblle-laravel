@@ -94,6 +94,95 @@ you have them, simply add them to your `.ENV` file:
 TREBLLE_API_KEY=YOUR_API_KEY
 TREBLLE_PROJECT_ID=YOUR_PROJECT_ID
 ```
+
+## Configuration
+
+Treblle Laravel SDK provides several configuration options that can be customized in your `config/treblle.php` file. If the config file doesn't exist, you can publish it using:
+
+```bash
+php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider"
+```
+
+### Available Configuration Options
+
+#### API Settings
+```php
+// Enable/disable Treblle monitoring
+'enable' => env('TREBLLE_ENABLE', true),
+
+// Treblle API credentials
+'api_key' => env('TREBLLE_API_KEY'),
+'project_id' => env('TREBLLE_PROJECT_ID'),
+
+// Override API URL (for debugging/testing)
+'url' => null,
+```
+
+#### Environment Control
+```php
+// Environments where Treblle should be disabled
+'ignored_environments' => env('TREBLLE_IGNORED_ENV', 'dev,test,testing'),
+```
+
+#### Data Masking
+```php
+// Fields that will be masked in request/response bodies
+'masked_fields' => [
+    'password',
+    'pwd',
+    'secret',
+    'password_confirmation',
+    'cc',
+    'card_number',
+    'ccv',
+    'ssn',
+    'credit_score',
+    'api_key',
+],
+```
+
+#### Header Exclusion
+```php
+// Headers that will be excluded from logging
+'excluded_headers' => [
+    'authorization',           // Exact match (case-insensitive)
+    'x-api-key',              // Exact match (case-insensitive)
+    'cookie',                 // Exact match (case-insensitive)
+    'x-*',                    // Wildcard: all headers starting with 'x-'
+    '*-token',                // Wildcard: all headers ending with '-token'
+    '/^x-(api|auth)-/i',      // Regex: headers starting with 'x-api-' or 'x-auth-'
+],
+```
+
+**Pattern Support for Header Exclusion:**
+
+- **Exact match**: `'authorization'` matches exactly "authorization" (case-insensitive)
+- **Wildcards**: `'x-*'` matches any header starting with "x-", `'*-token'` matches headers ending with "-token"
+- **Regex patterns**: Full regex patterns like `'/^x-(api|auth)-/i'` for advanced matching
+
+#### Debug Mode
+```php
+// Enable debug mode (development only)
+'debug' => env('TREBLLE_DEBUG_MODE', false),
+```
+
+### Environment Variables
+
+All configuration options can be controlled via environment variables:
+
+```shell
+# Core settings
+TREBLLE_ENABLE=true
+TREBLLE_API_KEY=your_api_key
+TREBLLE_PROJECT_ID=your_project_id
+
+# Environment control
+TREBLLE_IGNORED_ENV=dev,test,testing
+
+# Debug mode (development only)
+TREBLLE_DEBUG_MODE=false
+```
+
 ## Enabling Treblle on your API
 
 Your first step should be to register Treblle into your in your middleware aliases in `app/Http/Kernel.php`:

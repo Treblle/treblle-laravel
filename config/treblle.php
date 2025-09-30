@@ -45,6 +45,11 @@ return [
     ],
 
     /*
+     * Define which headers should be excluded from logging
+     */
+    'excluded_headers' => [],
+
+    /*
      * Should be used in development mode only.
      * Enable Debug mode, will throw errors on apis.
      */
