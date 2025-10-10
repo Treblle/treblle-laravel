@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     /*
-     * A valid Treblle API key. You can get started for FREE by visiting https://treblle.com/
+     * Enable or disable Treblle monitoring
      */
     'enable' => env('TREBLLE_ENABLE', true),
 
@@ -14,14 +14,16 @@ return [
     'url' => null,
 
     /*
-     * A valid Treblle API key. You can get started for FREE by visiting https://treblle.com/
+     * Your Treblle SDK Token. You can get started for FREE by visiting https://treblle.com/
+     * In v5: Previously called 'api_key'
      */
-    'api_key' => env('TREBLLE_API_KEY'),
+    'sdk_token' => env('TREBLLE_SDK_TOKEN'),
 
     /*
-     * A valid Treblle project ID. Create your first project on https://treblle.com/
+     * Your Treblle API Key. Create your first project on https://treblle.com/
+     * In v5: Previously called 'project_id'
      */
-    'project_id' => env('TREBLLE_PROJECT_ID'),
+    'api_key' => env('TREBLLE_API_KEY'),
 
     /*
      * Define which environments should Treblle ignore and not monitor

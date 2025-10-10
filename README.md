@@ -77,56 +77,88 @@ Install Treblle for Laravel via Composer by running the following command in you
 composer require treblle/treblle-laravel
 ```
 
-You can get started with Treblle **directly from your Artisan console**. Just type in the following command in your
-terminal:
-
-```bash
-php artisan treblle:start
-```
-
-The command guides you through a process and allows you to create an account, login to your existing account, create a
-new project and get all the `.ENV` keys you need to start using Treblle.
-
-You can also visit our website [https://app.treblle.com](https://app.treblle.com) and create a FREE account to get your API key and Project ID. Once
+You can visit our website [https://app.treblle.com](https://app.treblle.com) and create a FREE account to get your API key and SDK Token. Once
 you have them, simply add them to your `.ENV` file:
 
 ```shell
 TREBLLE_API_KEY=YOUR_API_KEY
-TREBLLE_PROJECT_ID=YOUR_PROJECT_ID
+TREBLLE_SDK_TOKEN=YOUR_SDK_TOKEN
 ```
 
-## Configuration
+## Features & Configuration
 
-Treblle Laravel SDK provides several configuration options that can be customized in your `config/treblle.php` file. If the config file doesn't exist, you can publish it using:
+Treblle Laravel SDK provides powerful features with flexible configuration options.
+
+### Quick Configuration
+
+Publish the configuration file:
 
 ```bash
 php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider"
 ```
 
-### Available Configuration Options
+This creates a `config/treblle.php` file where you can customize all settings.
 
-#### API Settings
-```php
-// Enable/disable Treblle monitoring
-'enable' => env('TREBLLE_ENABLE', true),
+### Core Settings
 
-// Treblle API credentials
-'api_key' => env('TREBLLE_API_KEY'),
-'project_id' => env('TREBLLE_PROJECT_ID'),
+#### 1. API Credentials
 
-// Override API URL (for debugging/testing)
-'url' => null,
+Configure your Treblle credentials in `.env`:
+
+```shell
+TREBLLE_API_KEY=your_api_key
+TREBLLE_SDK_TOKEN=your_sdk_token
 ```
 
-#### Environment Control
+Or in `config/treblle.php`:
+
 ```php
-// Environments where Treblle should be disabled
+return [
+    'api_key' => env('TREBLLE_API_KEY'),
+    'sdk_token' => env('TREBLLE_SDK_TOKEN'),
+];
+```
+
+#### 2. Enable/Disable Monitoring
+
+Easily toggle Treblle monitoring:
+
+```shell
+# .env
+TREBLLE_ENABLE=true  # or false to disable
+```
+
+```php
+// config/treblle.php
+'enable' => env('TREBLLE_ENABLE', true),
+```
+
+**Example use case:** Disable during maintenance or testing.
+
+#### 3. Environment Control
+
+Automatically disable Treblle in specific environments:
+
+```shell
+# .env - Comma-separated list
+TREBLLE_IGNORED_ENV=local,testing,development
+```
+
+```php
+// config/treblle.php
 'ignored_environments' => env('TREBLLE_IGNORED_ENV', 'dev,test,testing'),
 ```
 
-#### Data Masking
+**Example:** Treblle will automatically skip monitoring in your local development environment.
+
+### Security Features
+
+#### 4. Sensitive Data Masking
+
+Protect sensitive information before it leaves your server:
+
 ```php
-// Fields that will be masked in request/response bodies
+// config/treblle.php
 'masked_fields' => [
     'password',
     'pwd',
@@ -138,161 +170,637 @@ php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider"
     'ssn',
     'credit_score',
     'api_key',
+    'authorization',
+    'token',
+    // Add your custom sensitive fields
+    'custom_secret_field',
 ],
 ```
 
-#### Header Exclusion
+**Example request:**
+```json
+{
+  "email": "user@example.com",
+  "password": "secret123",
+  "cc": "4111111111111111"
+}
+```
+
+**What Treblle receives:**
+```json
+{
+  "email": "user@example.com",
+  "password": "*********",
+  "cc": "*********"
+}
+```
+
+#### 5. Header Exclusion
+
+Exclude specific headers from logging with powerful pattern matching:
+
 ```php
-// Headers that will be excluded from logging
+// config/treblle.php
 'excluded_headers' => [
-    'authorization',           // Exact match (case-insensitive)
-    'x-api-key',              // Exact match (case-insensitive)
-    'cookie',                 // Exact match (case-insensitive)
-    'x-*',                    // Wildcard: all headers starting with 'x-'
-    '*-token',                // Wildcard: all headers ending with '-token'
-    '/^x-(api|auth)-/i',      // Regex: headers starting with 'x-api-' or 'x-auth-'
+    // Exact match (case-insensitive)
+    'authorization',
+    'x-api-key',
+    'cookie',
+
+    // Wildcard patterns
+    'x-*',              // All headers starting with 'x-'
+    '*-token',          // All headers ending with '-token'
+    '*-secret-*',       // All headers containing '-secret-'
+
+    // Regex patterns for advanced matching
+    '/^x-(api|auth)-/i',  // Headers starting with 'x-api-' or 'x-auth-'
 ],
 ```
 
-**Pattern Support for Header Exclusion:**
+**Pattern Support:**
+- **Exact match**: `'authorization'` → matches "Authorization", "AUTHORIZATION", etc.
+- **Prefix wildcard**: `'x-*'` → matches "X-Custom", "X-API-Key", etc.
+- **Suffix wildcard**: `'*-token'` → matches "Auth-Token", "API-Token", etc.
+- **Contains wildcard**: `'*-secret-*'` → matches "X-Secret-Key", "My-Secret-Token", etc.
+- **Regex pattern**: `'/^x-(api|auth)-/i'` → matches "X-API-Key", "X-Auth-Token", etc.
 
-- **Exact match**: `'authorization'` matches exactly "authorization" (case-insensitive)
-- **Wildcards**: `'x-*'` matches any header starting with "x-", `'*-token'` matches headers ending with "-token"
-- **Regex patterns**: Full regex patterns like `'/^x-(api|auth)-/i'` for advanced matching
-
-#### Debug Mode
+**Example:**
 ```php
-// Enable debug mode (development only)
+// Request headers
+[
+    'X-API-Key' => 'secret123',
+    'Authorization' => 'Bearer token',
+    'Content-Type' => 'application/json',
+    'Custom-Secret-Key' => 'mysecret',
+]
+
+// With excluded_headers: ['authorization', 'x-*', '*-secret-*']
+// Treblle receives only:
+[
+    'Content-Type' => 'application/json',
+]
+```
+
+### Advanced Features
+
+#### 6. Debug Mode
+
+Enable detailed error reporting during development:
+
+```shell
+# .env
+TREBLLE_DEBUG_MODE=true
+```
+
+```php
+// config/treblle.php
 'debug' => env('TREBLLE_DEBUG_MODE', false),
 ```
 
-### Environment Variables
+**Warning:** Only enable in development. Never use in production.
 
-All configuration options can be controlled via environment variables:
+#### 7. Custom API URL (Testing/Development)
 
-```shell
-# Core settings
-TREBLLE_ENABLE=true
-TREBLLE_API_KEY=your_api_key
-TREBLLE_PROJECT_ID=your_project_id
-
-# Environment control
-TREBLLE_IGNORED_ENV=dev,test,testing
-
-# Debug mode (development only)
-TREBLLE_DEBUG_MODE=false
-```
-
-## Enabling Treblle on your API
-
-Your first step should be to register Treblle into your in your middleware aliases in `app/Http/Kernel.php`:
+Override the Treblle API endpoint for testing:
 
 ```php
-protected $middlewareAliases = [
-  // the rest of your middleware aliases
-  'treblle' => \Treblle\Laravel\Middlewares\TreblleMiddleware::class,
+// config/treblle.php
+'url' => 'https://your-test-endpoint.com',
+```
+
+### Complete Configuration Example
+
+Here's a complete `config/treblle.php` file with all options:
+
+```php
+<?php
+
+return [
+    // Enable/disable monitoring
+    'enable' => env('TREBLLE_ENABLE', true),
+
+    // API credentials
+    'api_key' => env('TREBLLE_API_KEY'),
+    'sdk_token' => env('TREBLLE_SDK_TOKEN'),
+
+    // Custom API URL (optional, for testing)
+    'url' => env('TREBLLE_URL', null),
+
+    // Skip monitoring in these environments
+    'ignored_environments' => env('TREBLLE_IGNORED_ENV', 'local,testing'),
+
+    // Sensitive fields to mask
+    'masked_fields' => [
+        'password',
+        'pwd',
+        'secret',
+        'password_confirmation',
+        'cc',
+        'card_number',
+        'ccv',
+        'ssn',
+        'credit_score',
+        'api_key',
+        'access_token',
+        'refresh_token',
+    ],
+
+    // Headers to exclude from logging
+    'excluded_headers' => [
+        'authorization',
+        'cookie',
+        'x-*',
+        '*-token',
+        '*-secret-*',
+    ],
+
+    // Debug mode (development only)
+    'debug' => env('TREBBLE_DEBUG_MODE', false),
 ];
 ```
 
-Open the **routes/api.php** and add the Treblle middleware to either a route group like so:
+### Environment Variables Reference
+
+```shell
+# Required
+TREBLLE_API_KEY=your_api_key_here
+TREBLLE_SDK_TOKEN=your_sdk_token_here
+
+# Optional
+TREBLLE_ENABLE=true
+TREBLLE_IGNORED_ENV=local,testing,development
+TREBLLE_DEBUG_MODE=false
+TREBLLE_URL=null
+```
+
+## Usage
+
+### Basic Setup
+
+#### Step 1: Register Middleware
+
+Add Treblle to your middleware aliases in `app/Http/Kernel.php`:
+
+```php
+protected $middlewareAliases = [
+    // ... other middleware
+    'treblle' => \Treblle\Laravel\Middlewares\TreblleMiddleware::class,
+];
+```
+
+#### Step 2: Apply to Routes
+
+**Option A: Monitor All API Routes**
+
+Add the middleware to a route group in `routes/api.php`:
 
 ```php
 Route::middleware(['treblle'])->group(function () {
-
-  // YOUR API ROUTES GO HERE
-  Route::prefix('samples')->group(function () {
-    Route::get('{uuid}', [SampleController::class, 'view']);
-    Route::post('store', [SampleController::class, 'store']);
-  });
-
+    // All routes in this group will be monitored
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
 });
 ```
 
-or to an individual route like so:
+**Option B: Monitor Specific Routes**
+
+Apply middleware to individual routes:
 
 ```php
-Route::group(function () {
-  Route::prefix('users')->group(function () {
+// This route is monitored by Treblle
+Route::get('/users/{id}', [UserController::class, 'show'])
+    ->middleware('treblle');
 
-    // IS LOGGED BY TREBLLE
-    Route::get('{uuid}', [UserController::class, 'view'])->middleware('treblle');
+// This route is NOT monitored
+Route::post('/internal/sync', [InternalController::class, 'sync']);
+```
 
-    // IS NOT LOGGED BY TREBLLE
-    Route::post('{uuid}/update', [UserController::class, 'update']);
-  });
+**Option C: Mixed Approach**
+
+```php
+Route::prefix('api/v1')->group(function () {
+    // Public API - monitored
+    Route::middleware(['treblle'])->group(function () {
+        Route::get('/products', [ProductController::class, 'index']);
+        Route::get('/products/{id}', [ProductController::class, 'show']);
+    });
+
+    // Internal API - not monitored
+    Route::prefix('internal')->group(function () {
+        Route::post('/cache/clear', [CacheController::class, 'clear']);
+        Route::post('/queue/retry', [QueueController::class, 'retry']);
+    });
 });
 ```
-or if you have multiple projects within same workspace in same laravel project you can set project ids dynamically like so:
 
-NOTE: Dynamically set value will always take precedence over value set in .env
+### Advanced Usage
+
+#### Multi-Project Setup
+
+If you have multiple Treblle projects in the same Laravel application, you can set different API keys per route group:
 
 ```php
+// Project 1: Public API
+Route::middleware(['treblle:proj_abc123'])->prefix('api/public')->group(function () {
+    Route::get('/products', [PublicProductController::class, 'index']);
+    Route::get('/categories', [PublicCategoryController::class, 'index']);
+});
+
+// Project 2: Partner API
+Route::middleware(['treblle:proj_xyz789'])->prefix('api/partner')->group(function () {
+    Route::get('/orders', [PartnerOrderController::class, 'index']);
+    Route::post('/webhooks', [PartnerWebhookController::class, 'handle']);
+});
+
+// Project 3: Admin API
+Route::middleware(['treblle:proj_def456'])->prefix('api/admin')->group(function () {
+    Route::get('/analytics', [AdminAnalyticsController::class, 'index']);
+    Route::post('/settings', [AdminSettingsController::class, 'update']);
+});
+```
+
+**Note:** The dynamic API key parameter takes precedence over the `.env` configuration.
+
+#### Temporarily Disable Monitoring
+
+Disable Treblle monitoring without removing the middleware:
+
+```shell
+# .env
+TREBLLE_ENABLE=false
+```
+
+This is useful for:
+- Maintenance windows
+- Load testing
+- Debugging
+- Temporary troubleshooting
+
+#### Laravel 11+ Bootstrap Setup
+
+For Laravel 11+, register middleware in `bootstrap/app.php`:
+
+```php
+<?php
+
+use Illuminate\Foundation\Application;
+use Treblle\Laravel\Middlewares\TreblleMiddleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function ($middleware) {
+        $middleware->alias([
+            'treblle' => TreblleMiddleware::class,
+        ]);
+    })
+    ->create();
+```
+
+### Verification
+
+After setup, verify Treblle is working:
+
+1. **Check configuration:**
+   ```bash
+   php artisan about
+   ```
+   Look for the "Treblle" section in the output.
+
+2. **Make a test request:**
+   ```bash
+   curl http://your-app.test/api/users
+   ```
+
+3. **View in Dashboard:**
+   Visit your [Treblle Dashboard](https://platform.treblle.com) to see the request in real-time.
+
+> See the [official documentation](https://docs.treblle.com/en/integrations/laravel) for more details.
+
+## Special Features
+
+### Capturing Original Request Payloads
+
+**Problem:** Some applications use middleware to transform incoming request data before processing. By default, Treblle captures the request data *after* all middleware has processed it.
+
+**Solution:** Use the `treblle.early` middleware to capture the original payload before transformations.
+
+#### When to Use This
+
+- ✅ Your API has middleware that modifies incoming request data
+- ✅ You want to see what clients actually sent vs. what your application processed
+- ✅ You're debugging issues related to request transformations
+- ✅ You need complete visibility into your API's request lifecycle
+
+#### How It Works
+
+The `treblle.early` middleware captures the raw request payload at the beginning of the middleware chain, while the regular `treblle` middleware still runs at the end to capture the final response.
+
+#### Usage Example
+
+**Scenario:** Legacy API v1 to v2 transformation
+
+```php
+// You have a middleware that transforms old API format to new format
+class TransformLegacyRequestMiddleware
+{
+    public function handle($request, $next)
+    {
+        // Transform old format to new format
+        $transformed = [
+            'email' => $request->input('user_email'),
+            'name' => $request->input('full_name'),
+            'phone' => $request->input('phone_number'),
+        ];
+
+        $request->merge($transformed);
+        return $next($request);
+    }
+}
+```
+
+**Without `treblle.early`:**
+```php
+Route::middleware(['transform-legacy', 'treblle'])->group(function () {
+    Route::post('/api/users', [UserController::class, 'store']);
+});
+
+// Treblle only sees the transformed data:
+// { "email": "...", "name": "...", "phone": "..." }
+// You don't see what the client actually sent!
+```
+
+**With `treblle.early`:**
+```php
+Route::middleware(['treblle.early', 'transform-legacy', 'treblle'])->group(function () {
+    Route::post('/api/users', [UserController::class, 'store']);
+});
+
+// Treblle captures BOTH:
+// 1. Original: { "user_email": "...", "full_name": "...", "phone_number": "..." }
+// 2. Transformed: { "email": "...", "name": "...", "phone": "..." }
+```
+
+#### Real-World Examples
+
+**Example 1: API Versioning**
+
+```php
+// Support both v1 and v2 formats
+Route::prefix('api/v1')->middleware(['treblle.early', 'transform-v1-to-v2', 'treblle'])->group(function () {
+    Route::post('/orders', [OrderController::class, 'create']);
+});
+```
+
+**Example 2: Multi-Format Support**
+
+```php
+// Accept JSON, XML, and Form Data
+Route::middleware(['treblle.early', 'normalize-request-format', 'treblle'])->group(function () {
+    Route::post('/webhooks/{provider}', [WebhookController::class, 'handle']);
+});
+```
+
+**Example 3: Legacy System Integration**
+
+```php
+// Transform SOAP-like payloads to REST
+Route::post('/api/legacy/soap', [LegacyController::class, 'handle'])
+    ->middleware(['treblle.early', 'soap-to-rest-transformer', 'treblle']);
+```
+
+#### Middleware Order Matters
+
+**Correct Order:**
+```php
+// ✅ GOOD - Captures original before transformation
+['treblle.early', 'transform', 'auth', 'treblle']
+```
+
+**Incorrect Order:**
+```php
+// ❌ BAD - treblle.early after transformation defeats the purpose
+['transform', 'treblle.early', 'auth', 'treblle']
+```
+
+#### Tips
+
+- The `treblle.early` middleware is lightweight and has minimal performance impact
+- You can use it on all routes or just specific ones that need it
+- It's completely optional - if you don't need it, just use the regular `treblle` middleware
+- The feature is backward compatible - existing setups work without changes
+
+## Upgrading from v5.x to v6.0
+
+Version 6.0 brings compatibility with treblle-php v5 and includes breaking changes to configuration keys.
+
+### What Changed?
+
+The configuration keys have been renamed to align with treblle-php v5:
+
+| Old Key (v5.x) | New Key (v6.0) | Description |
+|----------------|----------------|-------------|
+| `TREBLLE_API_KEY` | `TREBLLE_SDK_TOKEN` | Your SDK authentication token |
+| `TREBLLE_PROJECT_ID` | `TREBLLE_API_KEY` | Your project/API identifier |
+
+### Step-by-Step Migration
+
+#### 1. Update Composer Dependencies
+
+```bash
+composer require treblle/treblle-laravel:^6.0
+```
+
+Or update your `composer.json`:
+
+```json
+{
+    "require": {
+        "treblle/treblle-laravel": "^6.0"
+    }
+}
+```
+
+Then run:
+
+```bash
+composer update treblle/treblle-laravel
+```
+
+#### 2. Update Environment Variables
+
+Update your `.env` file by swapping the values:
+
+```shell
+# Before (v5.x)
+TREBLLE_API_KEY=abc123xyz
+TREBLLE_PROJECT_ID=proj_456def
+
+# After (v6.0)
+TREBLLE_SDK_TOKEN=abc123xyz
+TREBLLE_API_KEY=proj_456def
+```
+
+**Important**: The *values* are swapped - what was your API key is now your SDK token, and what was your project ID is now your API key.
+
+#### 3. Update Dynamic Middleware Parameters (If Applicable)
+
+If you're using dynamic project/API key parameters in your routes:
+
+```php
+// Before (v5.x)
 Route::middleware(['treblle:project-id-1'])->group(function () {
-
-  // YOUR API ROUTES GO HERE
-  Route::prefix('samples')->group(function () {
-    Route::get('{uuid}', [SampleController::class, 'view']);
-    Route::post('store', [SampleController::class, 'store']);
-  });
-
+    // routes
 });
 
-Route::middleware(['treblle:project-id-2'])->group(function () {
-
-  // YOUR API ROUTES GO HERE
-  Route::prefix('samples')->group(function () {
-    Route::get('{uuid}', [AnotherSampleController::class, 'view']);
-    Route::post('store', [AnotherSampleController::class, 'store']);
-  });
-
+// After (v6.0)
+Route::middleware(['treblle:api-key-1'])->group(function () {
+    // routes
 });
 ```
 
-NOTE: In case you want to temporarily disable observability, you can do so by setting env as `TREBLLE_ENABLE=false`
+#### 4. Republish Configuration (Optional but Recommended)
 
-You're all set. Next time someone makes a request to your API you will see it in real-time on your Treblle dashboard
-alongside other features like: auto-generated documentation, error tracking, analytics and API quality scoring.
+To get the latest config file with updated comments:
 
-> See the [docs](https://docs.treblle.com/en/integrations/laravel) for this SDK to learn more.
+```bash
+php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider" --force
+```
 
-## Capturing Original Request Payloads
+Then re-apply any custom configurations you had.
 
-Some applications use middleware to transform incoming request data before processing (e.g., converting legacy API formats to current formats). By default, Treblle captures the request data after all middleware has processed it, which means you'll see the transformed data rather than what the client originally sent.
+#### 5. Clear Caches
 
-If you need to capture the **original request payload** before any transformations, you can use the `treblle.early` middleware alongside your regular `treblle` middleware.
+```bash
+php artisan config:clear
+php artisan cache:clear
+```
 
-### When to use this feature
+#### 6. Verify Everything is Working
 
-- Your API has middleware that modifies incoming request data
-- You want to see what clients actually sent vs. what your application processed
-- You need to debug issues related to request transformations
-- You want complete visibility into your API's request lifecycle
+Check your configuration:
+```bash
+php artisan about
+```
 
-### How to use it
+Look for the Treblle section to confirm your keys are loaded correctly.
 
-Add the `treblle.early` middleware **before** any middleware that transforms request data, but keep your regular `treblle` middleware in its usual position:
+Make a test API request and verify it appears in your Treblle dashboard.
+
+### Code Changes (If You Extended the SDK)
+
+If you've extended or customized the Treblle SDK in your application:
+
+#### Exception Handling
+
+- **Removed**: `TreblleException::missingProjectId()`
+- **Changed**: `TreblleException::missingApiKey()` (now validates API key instead of project ID)
+- **Added**: `TreblleException::missingSdkToken()` for SDK token validation
+
+#### Config Access
+
+Update any code that reads configuration:
 
 ```php
-Route::middleware(['treblle.early', 'your-transformation-middleware', 'treblle'])->group(function () {
-  // YOUR API ROUTES GO HERE
-  Route::prefix('api')->group(function () {
-    Route::post('users', [UserController::class, 'store']);
-    Route::put('users/{id}', [UserController::class, 'update']);
-  });
+// Old (v5.x)
+$projectId = config('treblle.project_id');
+$apiKey = config('treblle.api_key');
+
+// New (v6.0)
+$apiKey = config('treblle.api_key');
+$sdkToken = config('treblle.sdk_token');
+```
+
+#### Helper Classes
+
+If you were importing helper classes:
+
+```php
+// Old (v5.x)
+use Treblle\Laravel\Helpers\HeaderProcessor;
+
+// New (v6.0)
+use Treblle\Php\Helpers\HeaderFilter;
+use Treblle\Php\Helpers\SensitiveDataMasker;
+```
+
+The Laravel SDK no longer has custom helper classes - it uses the core SDK helpers directly.
+
+### Laravel Compatibility
+
+Version 6.0 adds support for Laravel 11 and 12 while maintaining backward compatibility:
+
+| Laravel Version | Status |
+|-----------------|--------|
+| Laravel 10.x | ✅ Supported |
+| Laravel 11.x | ✅ Supported |
+| Laravel 12.x | ✅ Supported |
+| PHP 8.2+ | ✅ Required |
+
+### Troubleshooting
+
+#### Issue: Missing configuration keys
+
+**Error**: `TreblleException: No SDK Token configured for Treblle`
+
+**Solution**: Ensure you've updated your `.env` file with the new key names:
+```shell
+TREBLLE_SDK_TOKEN=your_token
+TREBLLE_API_KEY=your_key
+```
+
+#### Issue: Old middleware parameters not working
+
+**Error**: Routes with dynamic project IDs not being monitored
+
+**Solution**: Update middleware parameters from `project-id` to `api-key`:
+```php
+Route::middleware(['treblle:your-api-key'])->group(function () {
+    // routes
 });
 ```
 
-Or for individual routes:
+#### Issue: Config cached with old values
 
-```php
-Route::post('/api/legacy-endpoint', [LegacyController::class, 'handle'])
-    ->middleware(['treblle.early', 'legacy-transformer', 'treblle']);
+**Error**: Still seeing old configuration after update
+
+**Solution**: Clear all caches:
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
 ```
 
-### Important notes
+### Rollback (If Needed)
 
-- If you don't use `treblle.early`, everything works exactly as before
-- This feature is completely optional and backward compatible
+If you need to rollback to v5.x:
+
+```bash
+composer require treblle/treblle-laravel:^5.0
+```
+
+Then restore your original `.env` configuration:
+
+```shell
+TREBLLE_API_KEY=your_original_api_key
+TREBLLE_PROJECT_ID=your_original_project_id
+```
+
+### Need Help?
+
+If you encounter any issues during the upgrade:
+
+1. Check the [documentation](https://docs.treblle.com/en/integrations/laravel)
+2. Review the [CHANGELOG.md](CHANGELOG.md) for all changes
+3. Open an issue on [GitHub](https://github.com/Treblle/treblle-laravel/issues)
+4. Join our [Discord community](https://treblle.com/chat)
 
 ## Available SDKs
 
@@ -314,18 +822,7 @@ Treblle provides [open-source SDKs](https://docs.treblle.com/en/integrations) th
 - [`treblle-python`](https://github.com/Treblle/treblle-python): SDK for Python/Django
 
 > See the [docs](https://docs.treblle.com/en/integrations) for more on SDKs and Integrations.
-
-## Other Packages
-
-Besides the SDKs, we also provide helpers and configuration used for SDK
-development. If you're thinking about contributing to or creating a SDK, have a look at the resources
-below:
-
-- [`treblle-utils`](https://github.com/Treblle/treblle-utils):  A set of helpers and
-  utility functions useful for the JavaScript SDKs.
-- [`php-utils`](https://github.com/Treblle/php-utils):   A set of helpers and
-  utility functions useful for the PHP SDKs.
-
+ 
 ## Community 💙
 
 First and foremost: **Star and watch this repository** to stay up-to-date.
