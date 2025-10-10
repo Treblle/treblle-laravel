@@ -14,8 +14,6 @@
 <a href="https://blog.treblle.com" target="_blank">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://twitter.com/treblleapi" target="_blank">Twitter</a>
-<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://treblle.com/chat" target="_blank">Discord</a>
 <br />
 
   <hr />
@@ -35,7 +33,7 @@ Treblle is a lightweight SDK that helps Engineering and Product teams build, shi
 </div>
 
 - [API Monitoring & Observability](https://www.treblle.com/features/api-monitoring-observability)
-- [Auto-generated API Docs](https://www.treblle.com/features/auto-generated-api-docs)
+- [Auto-generated API Docs](https://treblle.com/product/api-documentation)
 - [API analytics](https://www.treblle.com/features/api-analytics)
 - [Treblle API Score](https://www.treblle.com/features/api-quality-score)
 - [API Lifecycle Collaboration](https://www.treblle.com/features/api-lifecycle)
@@ -43,31 +41,27 @@ Treblle is a lightweight SDK that helps Engineering and Product teams build, shi
 
 
 ## How Treblle Works
-Once you’ve integrated a Treblle SDK in your codebase, this SDK will send requests and response data to your Treblle Dashboard.
+Once you’ve integrated the Treblle SDK in your codebase, this SDK will send requests and response data to your Treblle Dashboard.
 
-In your Treblle Dashboard you get to see real-time requests to your API, auto-generated API docs, API analytics like how fast the response was for an endpoint, the load size of the response, etc.
+In your Treblle Dashboard, you get to see real-time requests to your API, auto-generated API docs, API analytics like how fast the response was for an endpoint, the load size of the response, etc.
 
-Treblle also uses the requests sent to your Dashboard to calculate your API score which is a quality score that’s calculated based on the performance, quality, and security best practices for your API.
+Treblle also uses the requests sent to your Dashboard to calculate your API score, which is a quality score that’s calculated based on the performance, quality, and security best practices for your API.
 
 > Visit [https://docs.treblle.com](http://docs.treblle.com) for the complete documentation.
 
 ## Security
 
 ### Masking fields
-Masking fields ensure certain sensitive data are removed before being sent to Treblle.
+Masking fields ensures certain sensitive data is removed before being sent to Treblle.
 
-To make sure masking is done before any data leaves your server [we built it into all our SDKs](https://docs.treblle.com/en/security/masked-fields#fields-masked-by-default).
+To make sure masking is done before any data leaves your server [we built it into all our SDKs](https://docs.treblle.com/treblle/data-masking/).
 
-This means data masking is super fast and happens on a programming level before the API request is sent to Treblle. You can [customize](https://docs.treblle.com/en/security/masked-fields#custom-masked-fields) exactly which fields are masked when you’re integrating the SDK.
-
-> Visit the [Masked fields](https://docs.treblle.com/en/security/masked-fields) section of the [docs](https://docs.sailscasts.com) for the complete documentation.
+This means data masking is super fast and happens on a programming level before the API request is sent to Treblle. You can customize exactly which fields are masked when you’re integrating the SDK.
 
 
 ## Get Started
 
-1. Sign in to [Treblle](https://platform.treblle.com).
-2. [Create a Treblle project](https://docs.treblle.com/en/dashboard/projects#creating-a-project).
-3. [Setup the SDK](#install-the-SDK) for your platform.
+Sign in to [Treblle](https://platform.treblle.com) and create a new workspace
 
 ### Install the SDK
 
@@ -811,12 +805,10 @@ Treblle provides [open-source SDKs](https://docs.treblle.com/en/integrations) th
 - [`treblle-symfony`](https://github.com/Treblle/treblle-symfony): SDK for Symfony
 - [`treblle-lumen`](https://github.com/Treblle/treblle-lumen): SDK for Lumen
 - [`treblle-sails`](https://github.com/Treblle/treblle-sails): SDK for Sails
-- [`treblle-adonisjs`](https://github.com/Treblle/treblle-adonisjs): SDK for AdonisJS
+- [`treblle-node`](https://github.com/Treblle/treblle-node): SDK for Express, NestJS, Koa, Hono, Cloudflare Workers and Strapi
+- [`treblle-nextjs`](https://github.com/Treblle/treblle-nextjs): SDK for Next.js
 - [`treblle-fastify`](https://github.com/Treblle/treblle-fastify): SDK for Fastify
 - [`treblle-directus`](https://github.com/Treblle/treblle-directus): SDK for Directus
-- [`treblle-strapi`](https://github.com/Treblle/treblle-strapi): SDK for Strapi
-- [`treblle-express`](https://github.com/Treblle/treblle-express): SDK for Express
-- [`treblle-koa`](https://github.com/Treblle/treblle-koa): SDK for Koa
 - [`treblle-go`](https://github.com/Treblle/treblle-go): SDK for Go
 - [`treblle-ruby`](https://github.com/Treblle/treblle-ruby): SDK for Ruby on Rails
 - [`treblle-python`](https://github.com/Treblle/treblle-python): SDK for Python/Django
@@ -829,9 +821,7 @@ First and foremost: **Star and watch this repository** to stay up-to-date.
 
 Also, follow our [Blog](https://blog.treblle.com), and on [Twitter](https://twitter.com/treblleapi).
 
-You can chat with the team and other members on [Discord](https://treblle.com/chat) and follow our tutorials and other video material at [YouTube](https://youtube.com/@treblle).
-
-[![Treblle Discord](https://img.shields.io/badge/Treblle%20Discord-Join%20our%20Discord-F3F5FC?labelColor=7289DA&style=for-the-badge&logo=discord&logoColor=F3F5FC&link=https://treblle.com/chat)](https://treblle.com/chat)
+Check out our tutorials and other video material at [YouTube](https://youtube.com/@treblle).
 
 [![Treblle YouTube](https://img.shields.io/badge/Treblle%20YouTube-Subscribe%20on%20YouTube-F3F5FC?labelColor=c4302b&style=for-the-badge&logo=YouTube&logoColor=F3F5FC&link=https://youtube.com/@treblle)](https://youtube.com/@treblle)
 
@@ -841,8 +831,7 @@ You can chat with the team and other members on [Discord](https://treblle.com/ch
 
 Here are some ways of contributing to making Treblle better:
 
-- **[Try out Treblle](https://docs.treblle.com/en/introduction#getting-started)**, and let us know ways to make Treblle better for you. Let us know here on [Discord](https://treblle.com/chat).
-- Join our [Discord](https://treblle.com/chat) and connect with other members to share and learn from.
+- **[Try out Treblle](https://docs.treblle.com/en/introduction#getting-started)**, and let us know ways to make Treblle better for you. 
 - Send a pull request to any of our [open source repositories](https://github.com/Treblle) on Github. Check the contribution guide on the repo you want to contribute to for more details about how to contribute. We're looking forward to your contribution!
 
 ### Contributors
