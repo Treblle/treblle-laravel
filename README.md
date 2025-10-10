@@ -687,18 +687,7 @@ Treblle provides [open-source SDKs](https://docs.treblle.com/en/integrations) th
 - [`treblle-python`](https://github.com/Treblle/treblle-python): SDK for Python/Django
 
 > See the [docs](https://docs.treblle.com/en/integrations) for more on SDKs and Integrations.
-
-## Other Packages
-
-Besides the SDKs, we also provide helpers and configuration used for SDK
-development. If you're thinking about contributing to or creating a SDK, have a look at the resources
-below:
-
-- [`treblle-utils`](https://github.com/Treblle/treblle-utils):  A set of helpers and
-  utility functions useful for the JavaScript SDKs.
-- [`php-utils`](https://github.com/Treblle/php-utils):   A set of helpers and
-  utility functions useful for the PHP SDKs.
-
+ 
 ## Community 💙
 
 First and foremost: **Star and watch this repository** to stay up-to-date.
