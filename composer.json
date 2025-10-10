@@ -34,10 +34,10 @@
         "php": "^8.2",
         "ext-json": "*",
         "ext-mbstring": "*",
-        "treblle/treblle-php": "^4.0.2"
+        "treblle/treblle-php": "^5.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^7.0 || ^8.5.9",
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
         "laravel/pint": "^1.15"
     },
     "extra": {

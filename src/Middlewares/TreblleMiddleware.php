@@ -23,7 +23,7 @@ final class TreblleMiddleware
     /**
      * @throws TreblleException
      */
-    public function handle(Request $request, Closure $next, string|null $projectId = null)
+    public function handle(Request $request, Closure $next, string|null $apiKey = null)
     {
         if (! config('treblle.enable')) {
             return $next($request);
@@ -35,16 +35,16 @@ final class TreblleMiddleware
             return $next($request);
         }
 
-        if (null !== $projectId) {
-            config(['treblle.project_id' => $projectId]);
+        if (null !== $apiKey) {
+            config(['treblle.api_key' => $apiKey]);
+        }
+
+        if (! (config('treblle.sdk_token'))) {
+            throw TreblleException::missingSdkToken();
         }
 
         if (! (config('treblle.api_key'))) {
             throw TreblleException::missingApiKey();
-        }
-
-        if (! (config('treblle.project_id'))) {
-            throw TreblleException::missingProjectId();
         }
 
         return $next($request);
@@ -76,7 +76,7 @@ final class TreblleMiddleware
 
         $treblle = TreblleFactory::create(
             apiKey: (string)config('treblle.api_key'),
-            projectId: (string)config('treblle.project_id'),
+            sdkToken: (string)config('treblle.sdk_token'),
             debug: (bool)config('treblle.debug'),
             maskedFields: $maskedFields,
             config: [

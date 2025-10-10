@@ -87,12 +87,12 @@ php artisan treblle:start
 The command guides you through a process and allows you to create an account, login to your existing account, create a
 new project and get all the `.ENV` keys you need to start using Treblle.
 
-You can also visit our website [https://app.treblle.com](https://app.treblle.com) and create a FREE account to get your API key and Project ID. Once
+You can also visit our website [https://app.treblle.com](https://app.treblle.com) and create a FREE account to get your API key and SDK Token. Once
 you have them, simply add them to your `.ENV` file:
 
 ```shell
 TREBLLE_API_KEY=YOUR_API_KEY
-TREBLLE_PROJECT_ID=YOUR_PROJECT_ID
+TREBLLE_SDK_TOKEN=YOUR_SDK_TOKEN
 ```
 
 ## Configuration
@@ -112,7 +112,7 @@ php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider"
 
 // Treblle API credentials
 'api_key' => env('TREBLLE_API_KEY'),
-'project_id' => env('TREBLLE_PROJECT_ID'),
+'sdk_token' => env('TREBLLE_SDK_TOKEN'),
 
 // Override API URL (for debugging/testing)
 'url' => null,
@@ -174,7 +174,7 @@ All configuration options can be controlled via environment variables:
 # Core settings
 TREBLLE_ENABLE=true
 TREBLLE_API_KEY=your_api_key
-TREBLLE_PROJECT_ID=your_project_id
+TREBLLE_SDK_TOKEN=your_sdk_token
 
 # Environment control
 TREBLLE_IGNORED_ENV=dev,test,testing
@@ -222,12 +222,12 @@ Route::group(function () {
   });
 });
 ```
-or if you have multiple projects within same workspace in same laravel project you can set project ids dynamically like so:
+or if you have multiple projects within same workspace in same laravel project you can set API keys dynamically like so:
 
 NOTE: Dynamically set value will always take precedence over value set in .env
 
 ```php
-Route::middleware(['treblle:project-id-1'])->group(function () {
+Route::middleware(['treblle:api-key-1'])->group(function () {
 
   // YOUR API ROUTES GO HERE
   Route::prefix('samples')->group(function () {
@@ -237,7 +237,7 @@ Route::middleware(['treblle:project-id-1'])->group(function () {
 
 });
 
-Route::middleware(['treblle:project-id-2'])->group(function () {
+Route::middleware(['treblle:api-key-2'])->group(function () {
 
   // YOUR API ROUTES GO HERE
   Route::prefix('samples')->group(function () {

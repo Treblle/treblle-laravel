@@ -8,17 +8,17 @@ use Exception;
 
 final class TreblleException extends Exception
 {
-    public static function missingApiKey(): self
+    public static function missingSdkToken(): self
     {
         return new TreblleException(
-            message: 'No Api Key configured for Treblle. Ensure this is set in your .env before trying again.',
+            message: 'No SDK Token configured for Treblle. Ensure TREBLLE_SDK_TOKEN is set in your .env before trying again.',
         );
     }
 
-    public static function missingProjectId(): self
+    public static function missingApiKey(): self
     {
         return new TreblleException(
-            message: 'No Project Id configured for Treblle. Ensure this is set in your .env before trying again.',
+            message: 'No API Key configured for Treblle. Ensure TREBLLE_API_KEY is set in your .env before trying again.',
         );
     }
 }
