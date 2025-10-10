@@ -15,6 +15,12 @@
     "authors": [
         {
             "role": "Developer",
+            "name": "Bhushan Gaikwad",
+            "email": "bhushan@treblle.com",
+            "homepage": "https://treblle.com/"
+        },
+        {
+            "role": "Developer",
             "name": "Vedran Cindrić",
             "email": "vedran@treblle.com",
             "homepage": "https://treblle.com/"

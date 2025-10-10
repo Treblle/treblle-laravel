@@ -294,6 +294,66 @@ Route::post('/api/legacy-endpoint', [LegacyController::class, 'handle'])
 - If you don't use `treblle.early`, everything works exactly as before
 - This feature is completely optional and backward compatible
 
+## Upgrading from v5.x to v6.0
+
+Version 6.0 brings compatibility with treblle-php v5 and includes breaking changes to configuration keys.
+
+### What Changed?
+
+The configuration keys have been renamed to align with treblle-php v5:
+
+| Old Key (v5.x) | New Key (v6.0) | Description |
+|----------------|----------------|-------------|
+| `TREBLLE_API_KEY` | `TREBLLE_SDK_TOKEN` | Your SDK authentication token |
+| `TREBLLE_PROJECT_ID` | `TREBLLE_API_KEY` | Your project/API identifier |
+
+### Migration Steps
+
+**1. Update your `.env` file:**
+
+```shell
+# Before (v5.x)
+TREBLLE_API_KEY=abc123xyz
+TREBLLE_PROJECT_ID=proj_456def
+
+# After (v6.0)
+TREBLLE_SDK_TOKEN=abc123xyz
+TREBLLE_API_KEY=proj_456def
+```
+
+**Important**: The *values* are swapped - what was your API key is now your SDK token, and what was your project ID is now your API key.
+
+**2. Update dynamic middleware parameters (if applicable):**
+
+```php
+// Before (v5.x)
+Route::middleware(['treblle:project-id-1'])->group(function () { ... });
+
+// After (v6.0)
+Route::middleware(['treblle:api-key-1'])->group(function () { ... });
+```
+
+**3. Republish config file (optional but recommended):**
+
+```bash
+php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider" --force
+```
+
+**4. Clear caches:**
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+```
+
+**5. Verify everything is working:**
+
+```bash
+php artisan about
+```
+
+> For a complete upgrade guide, see [UPGRADE.md](UPGRADE.md)
+
 ## Available SDKs
 
 Treblle provides [open-source SDKs](https://docs.treblle.com/en/integrations) that let you seamlessly integrate Treblle with your REST-based APIs.
