@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel\DataProviders;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Treblle\Php\Helpers\HeaderFilter;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\Contract\ErrorDataProvider;
@@ -50,7 +50,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
                 json_decode($body, true) ?? []
             ),
             headers: $this->fieldMasker->mask(
-                HeaderFilter::filter($this->response->headers->all())
+                HeaderFilter::filter($this->response->headers->all(), config('treblle.excluded_headers', []))
             ),
         );
     }

@@ -28,7 +28,7 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
             user_agent: $this->request->userAgent() ?? '',
             method: $this->request->method(),
             headers: $this->fieldMasker->mask(
-                HeaderFilter::filter($this->request->headers->all())
+                HeaderFilter::filter($this->request->headers->all(), config('treblle.excluded_headers', []))
             ),
             query: $this->fieldMasker->mask($this->request->query->all()),
             body: $this->fieldMasker->mask($this->getRequestBody()),
