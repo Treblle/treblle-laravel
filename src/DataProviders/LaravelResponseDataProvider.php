@@ -15,8 +15,26 @@ use Treblle\Php\Contract\ResponseDataProvider;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
+/**
+ * Laravel-specific Response Data Provider for Treblle.
+ *
+ * Implements the ResponseDataProvider contract from treblle-php to extract
+ * and format response data from Laravel/Symfony response objects. Handles
+ * sensitive data masking, header filtering, response size validation, and
+ * accurate load time calculation.
+ *
+ * @package Treblle\Laravel\DataProviders
+ */
 final class LaravelResponseDataProvider implements ResponseDataProvider
 {
+    /**
+     * Create a new Laravel response data provider instance.
+     *
+     * @param SensitiveDataMasker $fieldMasker Masker for sensitive data fields
+     * @param Request|SymfonyRequest $request The Laravel/Symfony request object
+     * @param JsonResponse|\Illuminate\Http\Response|SymfonyResponse $response The Laravel/Symfony response object
+     * @param ErrorDataProvider $errorDataProvider Reference to error data provider for logging issues
+     */
     public function __construct(
         private readonly SensitiveDataMasker     $fieldMasker,
         private Request|SymfonyRequest $request,
@@ -25,6 +43,15 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
     ) {
     }
 
+    /**
+     * Extract and format response data for Treblle.
+     *
+     * Builds a Response DTO containing all relevant response information including
+     * status code, body size, load time, headers (filtered and masked), and response
+     * body (masked). Validates response size and logs an error if it exceeds 2MB.
+     *
+     * @return Response The formatted response data transfer object
+     */
     public function getResponse(): Response
     {
         $body = $this->response->getContent();
@@ -55,6 +82,17 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
         );
     }
 
+    /**
+     * Calculate the request load time in milliseconds.
+     *
+     * Determines the total time taken to process the request by checking multiple
+     * sources in order of accuracy:
+     * 1. Custom timestamp set by Laravel Octane event listener (most accurate for Octane)
+     * 2. PHP's REQUEST_TIME_FLOAT server variable
+     * 3. Laravel's LARAVEL_START constant
+     *
+     * @return float The load time in milliseconds
+     */
     private function getLoadTimeInMilliseconds(): float
     {
         $currentTimeInMilliseconds = microtime(true) * 1000;

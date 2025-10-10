@@ -14,12 +14,34 @@ use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Treblle\Laravel\Middlewares\TreblleEarlyMiddleware;
 use Illuminate\Contracts\Container\BindingResolutionException;
 
+/**
+ * Treblle Service Provider for Laravel.
+ *
+ * This service provider registers Treblle middleware, publishes configuration,
+ * integrates with Laravel Octane for accurate request timing, and provides
+ * integration with the Laravel `about` command.
+ *
+ * @package Treblle\Laravel
+ */
 final class TreblleServiceProvider extends ServiceProvider
 {
+    /**
+     * The name of the SDK for identification in Treblle platform.
+     */
     public const SDK_NAME = 'laravel';
+
+    /**
+     * The current version of the Treblle Laravel SDK.
+     */
     public const SDK_VERSION = 6.0;
 
     /**
+     * Bootstrap any application services.
+     *
+     * Registers middleware aliases, publishes configuration, sets up Laravel Octane
+     * integration for request timing, and adds Treblle information to the `about` command.
+     *
+     * @return void
      * @throws BindingResolutionException
      */
     public function boot(): void
@@ -65,7 +87,11 @@ final class TreblleServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the service provider.
+     * Register any application services.
+     *
+     * Merges the package configuration with the application's published configuration.
+     *
+     * @return void
      */
     public function register(): void
     {
