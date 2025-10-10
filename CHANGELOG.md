@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    php artisan cache:clear
    ```
 
-> For a complete upgrade guide, see [UPGRADE.md](UPGRADE.md)
+> For a complete upgrade guide with troubleshooting tips, see the "Upgrading from v5.x to v6.0" section in [README.md](README.md#upgrading-from-v5x-to-v60)
 
 ## [5.0.0] - Previous Release
 
