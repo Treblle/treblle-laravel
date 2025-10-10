@@ -6,14 +6,14 @@ namespace Treblle\Laravel\Middlewares;
 
 use Closure;
 use Illuminate\Http\Request;
-use Treblle\Php\FieldMasker;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Error;
-use Treblle\Php\InMemoryErrorDataProvider;
 use Treblle\Laravel\TreblleServiceProvider;
+use Treblle\Php\Helpers\SensitiveDataMasker;
 use Treblle\Laravel\Exceptions\TreblleException;
+use Treblle\Php\DataProviders\InMemoryErrorDataProvider;
 use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
 use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -59,7 +59,7 @@ final class TreblleMiddleware
         }
 
         $maskedFields = (array)config('treblle.masked_fields');
-        $fieldMasker = new FieldMasker($maskedFields);
+        $fieldMasker = new SensitiveDataMasker($maskedFields);
         $errorProvider = new InMemoryErrorDataProvider();
         $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
         $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);

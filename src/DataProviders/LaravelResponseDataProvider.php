@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel\DataProviders;
 
-use Treblle\Php\FieldMasker;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Treblle\Php\Helpers\HeaderFilter;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Php\Contract\ErrorDataProvider;
-use Treblle\Laravel\Helpers\HeaderProcessor;
 use Treblle\Php\DataTransferObject\Response;
+use Treblle\Php\Helpers\SensitiveDataMasker;
 use Treblle\Php\Contract\ResponseDataProvider;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -17,8 +18,8 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 final class LaravelResponseDataProvider implements ResponseDataProvider
 {
     public function __construct(
-        private readonly FieldMasker     $fieldMasker,
-        private \Illuminate\Http\Request|SymfonyRequest $request,
+        private readonly SensitiveDataMasker     $fieldMasker,
+        private Request|SymfonyRequest $request,
         private readonly JsonResponse|\Illuminate\Http\Response|SymfonyResponse $response,
         private ErrorDataProvider                                      &$errorDataProvider,
     ) {
@@ -49,7 +50,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
                 json_decode($body, true) ?? []
             ),
             headers: $this->fieldMasker->mask(
-                HeaderProcessor::process($this->response->headers->all())
+                HeaderFilter::filter($this->response->headers->all())
             ),
         );
     }
