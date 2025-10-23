@@ -49,7 +49,7 @@ final class TreblleServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../config/treblle.php' => config_path('treblle.php'),
-            ], 'treblle-config');
+            ], ['config', 'treblle-config']);
         }
 
         /** @var Router $router */

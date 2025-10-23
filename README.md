@@ -253,7 +253,38 @@ TREBLLE_DEBUG_MODE=true
 
 **Warning:** Only enable in development. Never use in production.
 
-#### 7. Custom API URL (Testing/Development)
+#### 7. Queue-Based Data Transmission
+
+For optimal performance, enable asynchronous data transmission using Laravel queues. This completely removes any blocking network requests from your application's request/response cycle.
+
+
+**Configuration:**
+
+```shell
+# .env
+TREBLLE_QUEUE_ENABLED=true
+TREBLLE_QUEUE_CONNECTION=redis  # Use your queue connection (redis, sqs, beanstalkd)
+TREBLLE_QUEUE_NAME=default      # Queue name (optional)
+```
+
+```php
+// config/treblle.php
+'queue' => [
+    'enabled' => env('TREBLLE_QUEUE_ENABLED', false),
+    'connection' => env('TREBLLE_QUEUE_CONNECTION', null), // null = default connection
+    'queue' => env('TREBLLE_QUEUE_NAME', 'default'),
+],
+```
+
+**Supported Queue Connections:**
+- ✅ **redis** - Recommended for most applications
+- ✅ **sqs** - AWS SQS for cloud deployments
+- ✅ **beanstalkd** - Fast work queue
+- ✅ **database** - When properly indexed
+- ❌ **sync** - Not recommended (defeats the purpose)
+- ❌ **file** - Not recommended (slow and unreliable)
+
+#### 8. Custom API URL (Testing/Development)
 
 Override the Treblle API endpoint for testing:
 
@@ -308,6 +339,13 @@ return [
         '*-secret-*',
     ],
 
+    // Queue configuration (recommended for production)
+    'queue' => [
+        'enabled' => env('TREBLLE_QUEUE_ENABLED', false),
+        'connection' => env('TREBLLE_QUEUE_CONNECTION', null),
+        'queue' => env('TREBLLE_QUEUE_NAME', 'default'),
+    ],
+
     // Debug mode (development only)
     'debug' => env('TREBBLE_DEBUG_MODE', false),
 ];
@@ -320,11 +358,16 @@ return [
 TREBLLE_API_KEY=your_api_key_here
 TREBLLE_SDK_TOKEN=your_sdk_token_here
 
-# Optional
+# Optional - Core Settings
 TREBLLE_ENABLE=true
 TREBLLE_IGNORED_ENV=local,testing,development
 TREBLLE_DEBUG_MODE=false
 TREBLLE_URL=null
+
+# Optional - Queue Configuration (Recommended for Production)
+TREBLLE_QUEUE_ENABLED=false
+TREBLLE_QUEUE_CONNECTION=redis
+TREBLLE_QUEUE_NAME=default
 ```
 
 ## Usage
