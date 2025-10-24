@@ -77,7 +77,7 @@ return [
          * If null, uses the default queue connection
          * Recommended: redis, sqs, beanstalkd
          */
-        'connection' => env('TREBLLE_QUEUE_CONNECTION', null),
+        'connection' => env('TREBLLE_QUEUE_CONNECTION', 'redis'),
 
         /*
          * Queue name to dispatch jobs to

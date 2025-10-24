@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Treblle\Laravel\Middlewares;
 
 use Closure;
+use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
@@ -14,7 +15,6 @@ use Treblle\Laravel\Jobs\SendTreblleData;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Laravel\TreblleServiceProvider;
 use Treblle\Php\Helpers\SensitiveDataMasker;
-use Treblle\Laravel\Exceptions\TreblleException;
 use Treblle\Php\DataProviders\PhpLanguageDataProvider;
 use Treblle\Php\DataProviders\InMemoryErrorDataProvider;
 use Treblle\Laravel\DataTransferObject\TrebllePayloadData;
@@ -85,12 +85,18 @@ final class TreblleMiddleware
      * `enable` flag and `ignored_environments` configuration to determine
      * whether monitoring should be active.
      *
+     * Uses Laravel's terminable middleware pattern - actual data transmission
+     * happens in terminate() after the response has been sent to the client.
+     *
+     * IMPORTANT: This middleware NEVER throws exceptions. Missing configuration
+     * results in silent failure (with debug logging) to ensure Treblle never
+     * breaks your API.
+     *
      * @param Request $request The incoming HTTP request
      * @param Closure $next The next middleware in the pipeline
      * @param string|null $apiKey Optional API key override for this specific route
      *
      * @return mixed The response from the next middleware
-     * @throws TreblleException If SDK token or API key is not configured
      */
     public function handle(Request $request, Closure $next, string|null $apiKey = null)
     {
@@ -107,41 +113,25 @@ final class TreblleMiddleware
             config(['treblle.api_key' => $apiKey]);
         }
 
-        if (! (config('treblle.sdk_token'))) {
-            throw TreblleException::missingSdkToken();
+        // Validate configuration - fail silently if missing to never break the API
+        if (! config('treblle.sdk_token')) {
+            $this->logConfigError('TREBLLE_SDK_TOKEN is not configured. Treblle monitoring disabled.');
+
+            return $next($request);
         }
 
-        if (! (config('treblle.api_key'))) {
-            throw TreblleException::missingApiKey();
+        if (! config('treblle.api_key')) {
+            $this->logConfigError('TREBLLE_API_KEY is not configured. Treblle monitoring disabled.');
+
+            return $next($request);
         }
 
-        // Get the response from the next middleware
-        $response = $next($request);
-
-        // IMPORTANT: When queue mode is enabled, dispatch IMMEDIATELY in handle()
-        // instead of waiting for terminate(). This is critical for PHP-FPM compatibility
-        // because terminate() is not guaranteed to run in PHP-FPM environments.
-        //
-        // PHP-FPM can close the worker before terminate() executes, especially when
-        // using FastCGI. By dispatching in handle() (after $next but before returning),
-        // we ensure the job reaches the queue in ALL production environments.
-        if ($this->queueEnabled) {
-            $this->dispatchToQueue($request, $response);
-        }
-
-        return $response;
+        // Pass request through immediately - data transmission happens in terminate()
+        return $next($request);
     }
 
     /**
      * Perform any final actions for the request lifecycle.
-     *
-     * This method is called after the response has been sent to the client,
-     * implementing Laravel's terminable middleware pattern. It is ONLY used
-     * for synchronous transmission mode (when queues are disabled).
-     *
-     * IMPORTANT: This method is NOT used for queue mode because terminate()
-     * is unreliable in PHP-FPM environments. Queue dispatching happens in
-     * handle() instead to ensure reliability across all production setups.
      *
      * @param Request $request The HTTP request that was processed
      * @param JsonResponse|Response|SymfonyResponse $response The response that was sent
@@ -155,17 +145,27 @@ final class TreblleMiddleware
             return;
         }
 
-        // Skip if queue mode is enabled (already dispatched in handle())
-        if ($this->queueEnabled) {
+        // Re-validate configuration (in case it was changed after handle())
+        if (! config('treblle.sdk_token') || ! config('treblle.api_key')) {
             return;
         }
 
-        // Synchronous transmission (fallback mode)
+        // Queue mode: dispatch to background job for async processing
+        if ($this->queueEnabled) {
+            $this->dispatchToQueue($request, $response);
+
+            return;
+        }
+
+        // Synchronous mode: send directly to Treblle
         $this->sendSynchronously($request, $response);
     }
 
     /**
      * Dispatch Treblle data to queue for background processing.
+     *
+     * Wrapped in try-catch to ensure Treblle never breaks the application.
+     *
      * @param Request $request The HTTP request
      * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
      *
@@ -173,58 +173,65 @@ final class TreblleMiddleware
      */
     private function dispatchToQueue(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
-        // Extract data from Request/Response BEFORE queuing to avoid serialization issues
-        $fieldMasker = new SensitiveDataMasker($this->maskedFields);
-        $errorProvider = new InMemoryErrorDataProvider();
-        $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
-        $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
+        try {
+            // Extract data from Request/Response BEFORE queuing to avoid serialization issues
+            $fieldMasker = new SensitiveDataMasker($this->maskedFields);
+            $errorProvider = new InMemoryErrorDataProvider();
+            $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
+            $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
 
-        // Use core SDK providers for Server and Language data
-        $serverProvider = new SuperGlobalsServerDataProvider();
-        $languageProvider = new PhpLanguageDataProvider();
+            // Use core SDK providers for Server and Language data
+            $serverProvider = new SuperGlobalsServerDataProvider();
+            $languageProvider = new PhpLanguageDataProvider();
 
-        // Capture exception data if present
-        if (! empty($response->exception)) {
-            $errorProvider->addError(new Error(
-                $response->exception->getMessage(),
-                $response->exception->getFile(),
-                $response->exception->getLine(),
-                'onException',
-                'UNHANDLED_EXCEPTION',
-            ));
+            // Capture exception data if present
+            if (! empty($response->exception)) {
+                $errorProvider->addError(new Error(
+                    $response->exception->getMessage(),
+                    $response->exception->getFile(),
+                    $response->exception->getLine(),
+                    'onException',
+                    'UNHANDLED_EXCEPTION',
+                ));
+            }
+
+            // Build serializable DTO with extracted data
+            $payloadData = new TrebllePayloadData(
+                apiKey: (string) config('treblle.api_key'),
+                sdkToken: (string) config('treblle.sdk_token'),
+                sdkName: TreblleServiceProvider::SDK_NAME,
+                sdkVersion: TreblleServiceProvider::SDK_VERSION,
+                data: new Data(
+                    $serverProvider->getServer(),
+                    $languageProvider->getLanguage(),
+                    $requestProvider->getRequest(),
+                    $responseProvider->getResponse(),
+                    $errorProvider->getErrors()
+                ),
+                url: config('treblle.url'),
+                debug: $this->debug
+            );
+
+            // Create and dispatch job with serializable data
+            $job = new SendTreblleData($payloadData);
+
+            if ($this->queueConnection) {
+                $job->onConnection($this->queueConnection);
+            }
+
+            $job->onQueue($this->queueName);
+
+            dispatch($job);
+        } catch (Throwable $e) {
+            $this->logError('Treblle queue dispatch failed', $e);
         }
-
-        // Build serializable DTO with extracted data
-        $payloadData = new TrebllePayloadData(
-            apiKey: (string) config('treblle.api_key'),
-            sdkToken: (string) config('treblle.sdk_token'),
-            sdkName: TreblleServiceProvider::SDK_NAME,
-            sdkVersion: TreblleServiceProvider::SDK_VERSION,
-            data: new Data(
-                $serverProvider->getServer(),
-                $languageProvider->getLanguage(),
-                $requestProvider->getRequest(),
-                $responseProvider->getResponse(),
-                $errorProvider->getErrors()
-            ),
-            url: config('treblle.url'),
-            debug: $this->debug
-        );
-
-        // Create and dispatch job with serializable data
-        $job = new SendTreblleData($payloadData);
-
-        if ($this->queueConnection) {
-            $job->onConnection($this->queueConnection);
-        }
-
-        $job->onQueue($this->queueName);
-
-        dispatch($job);
     }
 
     /**
      * Send Treblle data synchronously using the core SDK.
+     *
+     * Wrapped in try-catch to ensure Treblle never breaks the application.
+     *
      * @param Request $request The HTTP request
      * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
      *
@@ -232,43 +239,81 @@ final class TreblleMiddleware
      */
     private function sendSynchronously(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
-        // Use cached config values
-        $fieldMasker = new SensitiveDataMasker($this->maskedFields);
-        $errorProvider = new InMemoryErrorDataProvider();
-        $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
-        $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
+        try {
+            // Use cached config values
+            $fieldMasker = new SensitiveDataMasker($this->maskedFields);
+            $errorProvider = new InMemoryErrorDataProvider();
+            $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
+            $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
 
-        if (! empty($response->exception)) {
-            $errorProvider->addError(new Error(
-                $response->exception->getMessage(),
-                $response->exception->getFile(),
-                $response->exception->getLine(),
-                'onException',
-                'UNHANDLED_EXCEPTION',
-            ));
+            if (! empty($response->exception)) {
+                $errorProvider->addError(new Error(
+                    $response->exception->getMessage(),
+                    $response->exception->getFile(),
+                    $response->exception->getLine(),
+                    'onException',
+                    'UNHANDLED_EXCEPTION',
+                ));
+            }
+
+            $treblle = TreblleFactory::create(
+                apiKey: (string) config('treblle.api_key'),
+                sdkToken: (string) config('treblle.sdk_token'),
+                debug: $this->debug,
+                maskedFields: $this->maskedFields,
+                config: [
+                    'url' => config('treblle.url'),
+                    'register_handlers' => false,
+                    'fork_process' => false,
+                    'request_provider' => $requestProvider,
+                    'response_provider' => $responseProvider,
+                    'error_provider' => $errorProvider,
+                ]
+            );
+
+            // Manually execute onShutdown because on octane server never shuts down
+            // so registered shutdown function never gets called
+            // hence we have disabled handlers using config register_handlers
+            $treblle
+                ->setName(TreblleServiceProvider::SDK_NAME)
+                ->setVersion(TreblleServiceProvider::SDK_VERSION)
+                ->onShutdown();
+        } catch (Throwable $e) {
+            $this->logError('Treblle synchronous transmission failed', $e);
         }
+    }
 
-        $treblle = TreblleFactory::create(
-            apiKey: (string) config('treblle.api_key'),
-            sdkToken: (string) config('treblle.sdk_token'),
-            debug: $this->debug,
-            maskedFields: $this->maskedFields,
-            config: [
-                'url' => config('treblle.url'),
-                'register_handlers' => false,
-                'fork_process' => false,
-                'request_provider' => $requestProvider,
-                'response_provider' => $responseProvider,
-                'error_provider' => $errorProvider,
-            ]
-        );
+    /**
+     * Log configuration errors when debug mode is enabled.
+     *
+     * @param string $message The error message
+     *
+     * @return void
+     */
+    private function logConfigError(string $message): void
+    {
+        if ($this->debug) {
+            logger()->warning('[Treblle] ' . $message);
+        }
+    }
 
-        // Manually execute onShutdown because on octane server never shuts down
-        // so registered shutdown function never gets called
-        // hence we have disabled handlers using config register_handlers
-        $treblle
-            ->setName(TreblleServiceProvider::SDK_NAME)
-            ->setVersion(TreblleServiceProvider::SDK_VERSION)
-            ->onShutdown();
+    /**
+     * Log runtime errors when debug mode is enabled.
+     *
+     * @param string $message The error message
+     * @param Throwable $exception The exception that was thrown
+     *
+     * @return void
+     */
+    private function logError(string $message, Throwable $exception): void
+    {
+        if ($this->debug) {
+            logger()->error('[Treblle] ' . $message, [
+                'exception' => get_class($exception),
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+            ]);
+        }
     }
 }

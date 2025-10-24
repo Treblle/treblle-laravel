@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Treblle\Laravel\Jobs;
 
 use Throwable;
-use GuzzleHttp\Client;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -48,14 +48,6 @@ final class SendTreblleData implements ShouldQueue
     public int $timeout = 10;
 
     /**
-     * Shared Guzzle client instance for connection pooling.
-     * Reused across multiple job executions in the same worker process.
-     *
-     * @var Client|null
-     */
-    private static ?Client $client = null;
-
-    /**
      * Create a new job instance.
      *
      * @param TrebllePayloadData $payloadData The pre-extracted Treblle payload data
@@ -72,16 +64,6 @@ final class SendTreblleData implements ShouldQueue
     public function handle(): void
     {
         try {
-            // Reuse client instance for connection pooling (HTTP/2 + keep-alive)
-            // Client is shared across all job executions in the same worker process
-            if (null === self::$client) {
-                self::$client = new Client([
-                    'http_errors' => false,
-                    'verify' => false,
-                    'version' => 2.0, // Prefer HTTP/2, auto-fallback to HTTP/1.1
-                ]);
-            }
-
             // JSON encode and compress in one pass for better memory efficiency
             $jsonPayload = json_encode($this->payloadData->toArray());
             $compressedPayload = gzencode($jsonPayload, 6);
@@ -100,28 +82,25 @@ final class SendTreblleData implements ShouldQueue
                 ]);
             }
 
-            $response = self::$client->request(
-                'POST',
-                $url,
-                [
-                    'connect_timeout' => 3,
-                    'timeout' => 3,
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                        'Content-Encoding' => 'gzip',
-                        'x-api-key' => $this->payloadData->sdkToken,
-                        'Accept-Encoding' => 'gzip',
-                    ],
-                    'body' => $compressedPayload,
-                ]
-            );
+            // Use Laravel's HTTP client for better integration and testing
+            $response = Http::timeout(3)
+                ->connectTimeout(3)
+                ->withoutVerifying()
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Content-Encoding' => 'gzip',
+                    'x-api-key' => $this->payloadData->sdkToken,
+                    'Accept-Encoding' => 'gzip',
+                ])
+                ->withBody($compressedPayload, 'application/json')
+                ->post($url);
 
             // Log the response (only in debug mode)
             if ($this->payloadData->debug) {
                 Log::info('Treblle: Response received', [
-                    'status_code' => $response->getStatusCode(),
-                    'headers' => $response->getHeaders(),
-                    'body' => $response->getBody()->getContents(),
+                    'status_code' => $response->status(),
+                    'headers' => $response->headers(),
+                    'body' => $response->body(),
                 ]);
             }
         } catch (Throwable $throwable) {

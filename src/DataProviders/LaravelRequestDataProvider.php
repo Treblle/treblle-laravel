@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel\DataProviders;
 
+use Throwable;
 use Carbon\Carbon;
 use Treblle\Php\Helpers\HeaderFilter;
 use Treblle\Php\DataTransferObject\Request;
@@ -77,6 +78,13 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
             return $this->request->attributes->get('treblle_original_payload');
         }
 
-        return $this->request->toArray();
+        // Try toArray() first (supports JSON requests), fallback to all() for GET/multipart
+        try {
+            return $this->request->toArray();
+        } catch (Throwable $e) {
+            // toArray() throws BadMethodCallException for GET requests and ValidationException
+            // for malformed JSON. Fall back to all() which safely returns all input.
+            return $this->request->all();
+        }
     }
 }
