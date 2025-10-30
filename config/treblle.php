@@ -56,4 +56,33 @@ return [
      * Enable Debug mode, will throw errors on apis.
      */
     'debug' => env('TREBLLE_DEBUG_MODE', false),
+
+    /*
+     * Queue Configuration
+     *
+     * Enable asynchronous data transmission using Laravel queues.
+     * When enabled, Treblle data will be sent via jobs instead of synchronously.
+     *
+     * Supported connections: redis, sqs, beanstalkd, database (with proper indexes)
+     * Not recommended: sync, file (slow and unreliable)
+     */
+    'queue' => [
+        /*
+         * Enable queue-based data transmission
+         */
+        'enabled' => env('TREBLLE_QUEUE_ENABLED', false),
+
+        /*
+         * Queue connection to use (must be configured in config/queue.php)
+         * If null, uses the default queue connection
+         * Recommended: redis, sqs, beanstalkd
+         */
+        'connection' => env('TREBLLE_QUEUE_CONNECTION', 'redis'),
+
+        /*
+         * Queue name to dispatch jobs to
+         * If null, uses the default queue for the connection
+         */
+        'queue' => env('TREBLLE_QUEUE_NAME', 'default'),
+    ],
 ];
