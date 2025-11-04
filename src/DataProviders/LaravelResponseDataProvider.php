@@ -77,7 +77,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
                 json_decode($body, true) ?? []
             ),
             headers: $this->fieldMasker->mask(
-                HeaderFilter::filter($this->response->headers->all(), config('treblle.excluded_headers', []))
+                HeaderFilter::filter($this->sanitizeHeaders($this->response->headers->all()), config('treblle.excluded_headers', []))
             ),
         );
     }
