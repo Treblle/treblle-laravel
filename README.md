@@ -296,7 +296,7 @@ component.
 # .env
 TREBLLE_SCHEDULE_ENABLED=true
 TREBLLE_SCHEDULE_BATCH_SIZE=100  # Chunk to be loaded, Eloquent's chunkById id used
-TREBLLE_SCHEDULE_FREQUENCY=10      # How often scheduler will rin, in minutes
+TREBLLE_SCHEDULE_FREQUENCY=10      # How often scheduler will run, in minutes
 ```
 
 ```php
