@@ -100,6 +100,6 @@ return [
         /*
          * Defines how often scheduler should run
          */
-        'frequency' => (string) env('TREBLLE_SCHEDULE_FREQUENCY', 60*10),
+        'frequency' => (string) env('TREBLLE_SCHEDULE_FREQUENCY', 10),
     ],
 ];

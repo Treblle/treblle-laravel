@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Laravel\Schedule;
+namespace Treblle\Laravel\Schedule\Repositories;
 
 use Illuminate\Database\Eloquent\Builder;
 use Treblle\Laravel\Exceptions\TreblleException;
+use Treblle\Laravel\Schedule\Models\TreblleSchedule;
 
 /**
  * Repository for interacting with treblle_schedules table
  *
- * @package Treblle\Laravel\Schedule
+ * @package Treblle\Laravel\Schedule\Repositories
  */
 final class TreblleScheduleRepository
 {
@@ -41,7 +42,7 @@ final class TreblleScheduleRepository
     {
         $builder = $this->getBuilder();
 
-        $builder->where('sent', false)->chunkById($chunkSize, $callback);
+        $builder->chunkById($chunkSize, $callback);
     }
 
     /**

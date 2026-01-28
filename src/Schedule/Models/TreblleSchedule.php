@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Treblle\Laravel\Schedule;
+namespace Treblle\Laravel\Schedule\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Model for storing Treblle schedules
@@ -14,12 +13,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string $payload
  * @property bool $sent
  *
- * @package Treblle\Laravel\Schedule
+ * @package Treblle\Laravel\Schedule\Models
  */
 final class TreblleSchedule extends Model
 {
-    use HasFactory;
-
     public $timestamps = false;
 
     protected $fillable = [

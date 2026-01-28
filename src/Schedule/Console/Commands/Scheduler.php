@@ -9,10 +9,11 @@ use Illuminate\Console\Command;
 use Treblle\Laravel\Log\Logger;
 use Treblle\Laravel\Client\Client;
 use Illuminate\Database\Eloquent\Collection;
-use Treblle\Laravel\Schedule\TreblleSchedule;
 use Treblle\Laravel\Exceptions\TreblleException;
+use Treblle\Laravel\Schedule\Models\TreblleSchedule;
 use Treblle\Laravel\Schedule\Helpers\TimeoutCalculator;
-use Treblle\Laravel\Schedule\TreblleScheduleRepository;
+use Symfony\Component\Console\Command\Command as CommandAlias;
+use Treblle\Laravel\Schedule\Repositories\TreblleScheduleRepository;
 
 /**
  * Command for transmitting scheduled payloads to Treblle api's.
@@ -72,7 +73,7 @@ final class Scheduler extends Command
             $this->repository->processForTransmission($this->batch_size, [$this, 'transmit']);
         }
 
-        return Command::SUCCESS;
+        return CommandAlias::SUCCESS;
     }
 
     /**

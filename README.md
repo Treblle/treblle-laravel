@@ -284,7 +284,34 @@ TREBLLE_QUEUE_NAME=default      # Queue name (optional)
 - ❌ **sync** - Not recommended (defeats the purpose)
 - ❌ **file** - Not recommended (slow and unreliable)
 
-#### 8. Custom API URL (Testing/Development)
+
+#### 8. Scheduler-Based Data Transmission
+
+Alternative for queue based transmissions. Data transmission will be scheduled and then data sent using Laravel's Task Scheduler
+component.
+
+**Configuration:**
+
+```shell
+# .env
+TREBLLE_SCHEDULE_ENABLED=true
+TREBLLE_SCHEDULE_BATCH_SIZE=100  # Chunk to be loaded, Eloquent's chunkById id used
+TREBLLE_SCHEDULE_FREQUENCY=10      # How often scheduler will rin, in minutes
+```
+
+```php
+// config/treblle.php
+'schedule' => [
+    'enabled' => env('TREBLLE_SCHEDULE_ENABLED', false),
+    'batch_size' => env('TREBLLE_SCHEDULE_BATCH_SIZE', 100),
+    'frequency' => env('TREBLLE_SCHEDULE_FREQUENCY', 10),
+],
+```
+Run migrations to create treblle_schedules table
+
+NOTE: If both queue and schedule are enabled, queue will take priority
+
+#### 9. Custom API URL (Testing/Development)
 
 Override the Treblle API endpoint for testing:
 
@@ -344,6 +371,13 @@ return [
         'enabled' => env('TREBLLE_QUEUE_ENABLED', false),
         'connection' => env('TREBLLE_QUEUE_CONNECTION', null),
         'queue' => env('TREBLLE_QUEUE_NAME', 'default'),
+    ],
+    
+    // Task Scheduler configuration, alternative for queue's
+    'schedule' => [
+        'enabled' => (bool) env('TREBLLE_SCHEDULE_ENABLED', false),
+        'batch_size' => (int) env('TREBLLE_SCHEDULE_BATCH_SIZE', 100),
+        'frequency' => (string) env('TREBLLE_SCHEDULE_FREQUENCY', 10),
     ],
 
     // Debug mode (development only)

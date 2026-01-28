@@ -16,7 +16,6 @@ return new class() extends Migration
         Schema::create('treblle_schedules', function (Blueprint $table): void {
             $table->id();
             $table->json('payload');
-            $table->boolean('sent')->default(false);
         });
     }
 

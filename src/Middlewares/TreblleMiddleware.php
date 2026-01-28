@@ -8,9 +8,8 @@ use Closure;
 use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use Treblle\Laravel\Log\Logger;
-use Treblle\Laravel\Schedule\TreblleScheduleRepository;
+use Illuminate\Http\JsonResponse;
 use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Data;
 use Treblle\Laravel\Jobs\SendTreblleData;
@@ -24,6 +23,7 @@ use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
 use Treblle\Php\DataProviders\SuperGlobalsServerDataProvider;
 use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Treblle\Laravel\Schedule\Repositories\TreblleScheduleRepository;
 
 /**
  * Treblle Monitoring Middleware for Laravel Applications.
@@ -39,8 +39,6 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * - Sensitive data masking
  * - Exception tracking
  * - Non-blocking data transmission
- *
- * @package Treblle\Laravel\Middlewares
  */
 final class TreblleMiddleware
 {
@@ -67,9 +65,9 @@ final class TreblleMiddleware
      * Initialize middleware with cached configuration.
      */
     public function __construct(
-        private TreblleScheduleRepository $treblleScheduleRepository,
-        private Logger $logger,
-    ){
+        private readonly TreblleScheduleRepository $treblleScheduleRepository,
+        private readonly Logger $logger,
+    ) {
         $this->enabled = (bool) config('treblle.enable', true);
 
         // Parse ignored environments once and create hash map for O(1) lookups
@@ -99,13 +97,12 @@ final class TreblleMiddleware
      * results in silent failure (with debug logging) to ensure Treblle never
      * breaks your API.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
-     * @param string|null $apiKey Optional API key override for this specific route
-     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
+     * @param  string|null  $apiKey  Optional API key override for this specific route
      * @return mixed The response from the next middleware
      */
-    public function handle(Request $request, Closure $next, string|null $apiKey = null)
+    public function handle(Request $request, Closure $next, ?string $apiKey = null)
     {
         if (! $this->enabled) {
             return $next($request);
@@ -140,10 +137,8 @@ final class TreblleMiddleware
     /**
      * Perform any final actions for the request lifecycle.
      *
-     * @param Request $request The HTTP request that was processed
-     * @param JsonResponse|Response|SymfonyResponse $response The response that was sent
-     *
-     * @return void
+     * @param  Request  $request  The HTTP request that was processed
+     * @param  JsonResponse|Response|SymfonyResponse  $response  The response that was sent
      */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
@@ -166,7 +161,7 @@ final class TreblleMiddleware
         }
 
         // Schedule mode: Register payload to be sent by Task scheduler
-        if($this->scheduleEnabled) {
+        if ($this->scheduleEnabled) {
             $this->schedule($request, $response);
 
             return;
@@ -181,10 +176,8 @@ final class TreblleMiddleware
      *
      * Wrapped in try-catch to ensure Treblle never breaks the application.
      *
-     * @param Request $request The HTTP request
-     * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
-     *
-     * @return void
+     * @param  Request  $request  The HTTP request
+     * @param  JsonResponse|Response|SymfonyResponse  $response  The HTTP response
      */
     private function dispatchToQueue(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
@@ -211,10 +204,8 @@ final class TreblleMiddleware
      *
      * Wrapped in try-catch to ensure Treblle never breaks the application.
      *
-     * @param Request $request The HTTP request
-     * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
-     *
-     * @return void
+     * @param  Request  $request  The HTTP request
+     * @param  JsonResponse|Response|SymfonyResponse  $response  The HTTP response
      */
     private function schedule(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
@@ -274,10 +265,8 @@ final class TreblleMiddleware
      *
      * Wrapped in try-catch to ensure Treblle never breaks the application.
      *
-     * @param Request $request The HTTP request
-     * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
-     *
-     * @return void
+     * @param  Request  $request  The HTTP request
+     * @param  JsonResponse|Response|SymfonyResponse  $response  The HTTP response
      */
     private function sendSynchronously(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
