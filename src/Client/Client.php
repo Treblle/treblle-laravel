@@ -80,7 +80,7 @@ final class Client
             // Always log errors (important for troubleshooting)
             Log::error('Treblle: Failed to send data', [
                 'error' => $e->getMessage(),
-                'trace' => $decodedPayload['debug'] ? $e->getTraceAsString() : null,
+                'trace' => $this->debugEnabled ? $e->getTraceAsString() : null,
             ]);
 
             throw $e;
