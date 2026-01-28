@@ -24,56 +24,60 @@ use Treblle\Laravel\Log\Logger;
 final class TimeoutCalculator
 {
     /**
+     * If calculated timeout is greater than this value, max timeout will be used
+     *
      * @var int
-     *          If calculated timeout is greater than this value, max timeout will be used
      */
     private const MAX_TIMEOUT = 5000000; // microseconds
 
     /**
+     * If calculated timeout is less than this value, min timeout will be used
+     *
      * @var int
-     *          If calculated timeout is less than this value, min timeout will be used
      */
     private const MIN_TIMEOUT = 200000;
 
     /**
+     * Can be used to tweak timeout. Lower scaler means timeout increase
+     *
      * @var int
-     *          Can be used to tweak timeout. Lower scaler means timeout increase
      */
     private const SCALER = 7;
 
     /**
+     * In seconds
+     * Time need for Treblle api's to process single request
+     * Current value is provisional
+     *
      * @var float
-     *            In seconds
-     *            Time need for Treblle api's to process single request
-     *            Current value is provisional
      */
     private const TREBLLE_API_PROCESSING_TIME = 0.2;
 
     /**
+     * In seconds
+     * Time need for single scheduled record to be deleted.
+     * Current value is provisional
+     *
      * @var float
-     *            In seconds
-     *            Time need for single scheduled record to be deleted.
-     *            Current value is provisional
      */
     private const SINGLE_RECORD_DELETION_TIME = 0.09;
 
     /**
+     * Correction to compensate for possible delay etc.
+     * Increases total processing time, which results in reduced timeout
+     * Current value is provisional
+     *
      * @var float
-     *            Correction to compensate for possible delay etc.
-     *            Increases total processing time, which results in reduced timeout
-     *            Current value is provisional
      */
     private const TOTAL_PROCESSING_TIME_DELTA = 0.5;
 
     /**
-     * @var int
-     *          Scheduler will run every $frequency minutes
+     * Scheduler will run every $frequency minutes
      */
     private int $frequency;
 
     /**
-     * @var int
-     *          Size to be processes in single chunk
+     * Size to be processes in single chunk
      */
     private int $batchSize;
 

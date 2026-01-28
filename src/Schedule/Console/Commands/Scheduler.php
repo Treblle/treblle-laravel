@@ -37,14 +37,16 @@ final class Scheduler extends Command
     protected $description = 'Transmits scheduled payloads';
 
     /**
+     * Size to be processes in single chunk
+     *
      * @var int
-     *          Size to be processes in single chunk
      */
     private int $batch_size;
 
     /**
+     * Timeout between two consecutive transmissions
+     *
      * @var int
-     *          Timeout between two consecutive transmissions
      */
     private int $timeout;
 
