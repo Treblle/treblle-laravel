@@ -403,7 +403,7 @@ TREBLLE_QUEUE_ENABLED=false
 TREBLLE_QUEUE_CONNECTION=redis
 TREBLLE_QUEUE_NAME=default
 
-# Optional - Schedule Configuration (Alternative to Queue's)
+# Optional - Scheduler Configuration (Alternative to Queue's)
 TREBLLE_SCHEDULE_ENABLED=0
 TREBLLE_SCHEDULE_BATCH_SIZE=10
 TREBLLE_SCHEDULE_FREQUENCY=10
