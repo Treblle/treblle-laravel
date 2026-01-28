@@ -55,7 +55,7 @@ return [
      * Should be used in development mode only.
      * Enable Debug mode, will throw errors on apis.
      */
-    'debug' => env('TREBLLE_DEBUG_MODE', false),
+    'debug' => (bool) env('TREBLLE_DEBUG_MODE', false),
 
     /*
      * Queue Configuration
@@ -84,5 +84,22 @@ return [
          * If null, uses the default queue for the connection
          */
         'queue' => env('TREBLLE_QUEUE_NAME', 'default'),
+    ],
+
+    'schedule' => [
+        /*
+         * Enable task scheduler based data transmission
+         */
+        'enabled' => (bool) env('TREBLLE_SCHEDULE_ENABLED', false),
+
+        /*
+         * Defines number of data rows to be processed at time. This will utilize eloquent's chunked data loading
+         */
+        'batch_size' => (int) env('TREBLLE_SCHEDULE_BATCH_SIZE', 100),
+
+        /*
+         * Defines how often scheduler should run
+         */
+        'frequency' => (string) env('TREBLLE_SCHEDULE_FREQUENCY', 60*10),
     ],
 ];

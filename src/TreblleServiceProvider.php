@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel;
 
-use function config;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Application;
+use Treblle\Laravel\Schedule\Console\Commands\Scheduler;
 use Illuminate\Routing\Router;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
@@ -72,6 +74,25 @@ final class TreblleServiceProvider extends ServiceProvider
 
         $events->listen('Laravel\Octane\Events\RequestReceived', function ($event): void {
             $event->request->attributes->set('treblle_request_started_at', microtime(true));
+        });
+
+        $this->publishesMigrations([
+            __DIR__ . '/Schedule/database/migrations' => database_path('migrations'),
+        ]);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Scheduler::class,
+            ]);
+        }
+
+        $this->app->booted(function (Application $app) {
+            $frequency = config('treblle.schedule.frequency');
+
+            $schedule = $app->get(Schedule::class);
+            $schedule->command('treblle:scheduler:run')
+                ->cron(sprintf('*/%s * * * *', $frequency))
+                ->withoutOverlapping();
         });
 
         AboutCommand::add(

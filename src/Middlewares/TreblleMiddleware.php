@@ -9,6 +9,8 @@ use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
+use Treblle\Laravel\Log\Logger;
+use Treblle\Laravel\Schedule\TreblleScheduleRepository;
 use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Data;
 use Treblle\Laravel\Jobs\SendTreblleData;
@@ -55,6 +57,8 @@ final class TreblleMiddleware
 
     private string $queueName;
 
+    private $scheduleEnabled;
+
     private array $maskedFields;
 
     private bool $debug;
@@ -62,8 +66,10 @@ final class TreblleMiddleware
     /**
      * Initialize middleware with cached configuration.
      */
-    public function __construct()
-    {
+    public function __construct(
+        private TreblleScheduleRepository $treblleScheduleRepository,
+        private Logger $logger,
+    ){
         $this->enabled = (bool) config('treblle.enable', true);
 
         // Parse ignored environments once and create hash map for O(1) lookups
@@ -73,6 +79,7 @@ final class TreblleMiddleware
         $this->queueEnabled = (bool) config('treblle.queue.enabled', false);
         $this->queueConnection = config('treblle.queue.connection');
         $this->queueName = config('treblle.queue.queue', 'default');
+        $this->scheduleEnabled = config('treblle.schedule.enabled');
         $this->maskedFields = (array) config('treblle.masked_fields', []);
         $this->debug = (bool) config('treblle.debug', false);
     }
@@ -115,13 +122,13 @@ final class TreblleMiddleware
 
         // Validate configuration - fail silently if missing to never break the API
         if (! config('treblle.sdk_token')) {
-            $this->logConfigError('TREBLLE_SDK_TOKEN is not configured. Treblle monitoring disabled.');
+            $this->logger->logWarning('TREBLLE_SDK_TOKEN is not configured. Treblle monitoring disabled.');
 
             return $next($request);
         }
 
         if (! config('treblle.api_key')) {
-            $this->logConfigError('TREBLLE_API_KEY is not configured. Treblle monitoring disabled.');
+            $this->logger->logWarning('TREBLLE_API_KEY is not configured. Treblle monitoring disabled.');
 
             return $next($request);
         }
@@ -140,6 +147,7 @@ final class TreblleMiddleware
      */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
+
         // O(1) hash lookup for ignored environments
         if (isset($this->ignoredEnvironments[app()->environment()])) {
             return;
@@ -153,6 +161,13 @@ final class TreblleMiddleware
         // Queue mode: dispatch to background job for async processing
         if ($this->queueEnabled) {
             $this->dispatchToQueue($request, $response);
+
+            return;
+        }
+
+        // Schedule mode: Register payload to be sent by Task scheduler
+        if($this->scheduleEnabled) {
+            $this->schedule($request, $response);
 
             return;
         }
@@ -174,43 +189,7 @@ final class TreblleMiddleware
     private function dispatchToQueue(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
         try {
-            // Extract data from Request/Response BEFORE queuing to avoid serialization issues
-            $fieldMasker = new SensitiveDataMasker($this->maskedFields);
-            $errorProvider = new InMemoryErrorDataProvider();
-            $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
-            $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
-
-            // Use core SDK providers for Server and Language data
-            $serverProvider = new SuperGlobalsServerDataProvider();
-            $languageProvider = new PhpLanguageDataProvider();
-
-            // Capture exception data if present
-            if (! empty($response->exception)) {
-                $errorProvider->addError(new Error(
-                    $response->exception->getMessage(),
-                    $response->exception->getFile(),
-                    $response->exception->getLine(),
-                    'onException',
-                    'UNHANDLED_EXCEPTION',
-                ));
-            }
-
-            // Build serializable DTO with extracted data
-            $payloadData = new TrebllePayloadData(
-                apiKey: (string) config('treblle.api_key'),
-                sdkToken: (string) config('treblle.sdk_token'),
-                sdkName: TreblleServiceProvider::SDK_NAME,
-                sdkVersion: TreblleServiceProvider::SDK_VERSION,
-                data: new Data(
-                    $serverProvider->getServer(),
-                    $languageProvider->getLanguage(),
-                    $requestProvider->getRequest(),
-                    $responseProvider->getResponse(),
-                    $errorProvider->getErrors()
-                ),
-                url: config('treblle.url'),
-                debug: $this->debug
-            );
+            $payloadData = $this->generatePayloadData($request, $response);
 
             // Create and dispatch job with serializable data
             $job = new SendTreblleData($payloadData);
@@ -223,8 +202,71 @@ final class TreblleMiddleware
 
             dispatch($job);
         } catch (Throwable $e) {
-            $this->logError('Treblle queue dispatch failed', $e);
+            $this->logger->logException('Treblle queue dispatch failed', $e);
         }
+    }
+
+    /**
+     * Register payload for scheduled data transmission.
+     *
+     * Wrapped in try-catch to ensure Treblle never breaks the application.
+     *
+     * @param Request $request The HTTP request
+     * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
+     *
+     * @return void
+     */
+    private function schedule(Request $request, JsonResponse|Response|SymfonyResponse $response): void
+    {
+        try {
+            $payloadData = $this->generatePayloadData($request, $response);
+            $jsonPayload = json_encode($payloadData->toArray(), JSON_THROW_ON_ERROR);
+
+            $this->treblleScheduleRepository->create($jsonPayload);
+        } catch (Throwable $e) {
+            $this->logger->logException('Treblle queue schedule registration failed', $e);
+        }
+    }
+
+    private function generatePayloadData(Request $request, JsonResponse|Response|SymfonyResponse $response): TrebllePayloadData
+    {
+        // Extract data from Request/Response BEFORE queuing to avoid serialization issues
+        $fieldMasker = new SensitiveDataMasker($this->maskedFields);
+        $errorProvider = new InMemoryErrorDataProvider();
+        $requestProvider = new LaravelRequestDataProvider($fieldMasker, $request);
+        $responseProvider = new LaravelResponseDataProvider($fieldMasker, $request, $response, $errorProvider);
+
+        // Use core SDK providers for Server and Language data
+        $serverProvider = new SuperGlobalsServerDataProvider();
+        $languageProvider = new PhpLanguageDataProvider();
+
+        // Capture exception data if present
+        if (! empty($response->exception)) {
+            $errorProvider->addError(new Error(
+                $response->exception->getMessage(),
+                $response->exception->getFile(),
+                $response->exception->getLine(),
+                'onException',
+                'UNHANDLED_EXCEPTION',
+            ));
+        }
+
+        // Build serializable DTO with extracted data
+        return new TrebllePayloadData(
+            apiKey: (string) config('treblle.api_key'),
+            sdkToken: (string) config('treblle.sdk_token'),
+            sdkName: TreblleServiceProvider::SDK_NAME,
+            sdkVersion: TreblleServiceProvider::SDK_VERSION,
+            data: new Data(
+                $serverProvider->getServer(),
+                $languageProvider->getLanguage(),
+                $requestProvider->getRequest(),
+                $responseProvider->getResponse(),
+                $errorProvider->getErrors()
+            ),
+            url: config('treblle.url'),
+            debug: $this->debug
+        );
     }
 
     /**
@@ -279,41 +321,7 @@ final class TreblleMiddleware
                 ->setVersion(TreblleServiceProvider::SDK_VERSION)
                 ->onShutdown();
         } catch (Throwable $e) {
-            $this->logError('Treblle synchronous transmission failed', $e);
-        }
-    }
-
-    /**
-     * Log configuration errors when debug mode is enabled.
-     *
-     * @param string $message The error message
-     *
-     * @return void
-     */
-    private function logConfigError(string $message): void
-    {
-        if ($this->debug) {
-            logger()->warning('[Treblle] ' . $message);
-        }
-    }
-
-    /**
-     * Log runtime errors when debug mode is enabled.
-     *
-     * @param string $message The error message
-     * @param Throwable $exception The exception that was thrown
-     *
-     * @return void
-     */
-    private function logError(string $message, Throwable $exception): void
-    {
-        if ($this->debug) {
-            logger()->error('[Treblle] ' . $message, [
-                'exception' => get_class($exception),
-                'message' => $exception->getMessage(),
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-            ]);
+            $this->logger->logException('Treblle synchronous transmission failed', $e);
         }
     }
 }
