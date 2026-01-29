@@ -139,7 +139,7 @@ final class TreblleMonitoring
     }
 
     /**
-     * Transmits theirs party aPI's monitoring data synchronously
+     * Transmits third party API's monitoring data synchronously
      *
      * NOTE: Not implemented at this time. It requires modification of treblle-php sdk
      */
