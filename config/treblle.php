@@ -85,4 +85,25 @@ return [
          */
         'queue' => env('TREBLLE_QUEUE_NAME', 'default'),
     ],
+
+    /** MONITORING  */
+    'monitoring' => [
+        'api1234' => [
+            'host' => 'https://example.com',
+            'endpoints' => [
+                'endpoint123' => [
+                    'path' => '/news',
+                    'method' => 'POST',
+                ],
+                'endpoint321' => [
+                    'path' => '/news',
+                    'method' => 'GET',
+                ],
+                'endpoint213' => [
+                    'path' => '/news/{id}/articles',
+                    'method' => 'GET',
+                ],
+            ],
+        ],
+    ],
 ];

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel\Jobs;
 
-use Throwable;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+use Treblle\Laravel\DataTransferObject\BasePayloadData;
 use Treblle\Laravel\DataTransferObject\TrebllePayloadData;
+use Treblle\Laravel\Monitor\Enums\PayloadDataType;
 
 /**
  * Queue job for sending Treblle monitoring data asynchronously.
- *
- * @package Treblle\Laravel\Jobs
  */
 final class SendTreblleData implements ShouldQueue
 {
@@ -28,38 +28,30 @@ final class SendTreblleData implements ShouldQueue
 
     /**
      * The number of times the job may be attempted.
-     *
-     * @var int
      */
     public int $tries = 3;
 
     /**
      * The number of seconds to wait before retrying the job.
-     *
-     * @var int
      */
     public int $backoff = 5;
 
     /**
      * The number of seconds the job can run before timing out.
-     *
-     * @var int
      */
     public int $timeout = 10;
 
     /**
      * Create a new job instance.
      *
-     * @param TrebllePayloadData $payloadData The pre-extracted Treblle payload data
+     * @param  TrebllePayloadData  $payloadData  The pre-extracted Treblle payload data
      */
     public function __construct(
-        private readonly TrebllePayloadData $payloadData
-    ) {
-    }
+        private readonly BasePayloadData $payloadData
+    ) {}
 
     /**
      * Execute the job.
-     * @return void
      */
     public function handle(): void
     {
@@ -71,11 +63,11 @@ final class SendTreblleData implements ShouldQueue
             $url = $this->getBaseUrl();
 
             // Log the payload being sent (only in debug mode)
-            if ($this->payloadData->debug) {
+            if ($this->payloadData->isDebug()) {
                 Log::info('Treblle: Sending payload', [
                     'url' => $url,
-                    'api_key' => $this->payloadData->apiKey,
-                    'sdk_token' => mb_substr($this->payloadData->sdkToken, 0, 10) . '...',
+                    'api_key' => $this->payloadData->getApiKey(),
+                    'sdk_token' => mb_substr($this->payloadData->getSdkToken(), 0, 10) . '...',
                     'payload_size' => mb_strlen($jsonPayload),
                     'compressed_size' => mb_strlen($compressedPayload),
                     'payload' => json_decode($jsonPayload, true), // Log as array for better readability
@@ -89,14 +81,14 @@ final class SendTreblleData implements ShouldQueue
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Content-Encoding' => 'gzip',
-                    'x-api-key' => $this->payloadData->sdkToken,
+                    'x-api-key' => $this->payloadData->getSdkToken(),
                     'Accept-Encoding' => 'gzip',
                 ])
                 ->withBody($compressedPayload, 'application/json')
                 ->post($url);
 
             // Log the response (only in debug mode)
-            if ($this->payloadData->debug) {
+            if ($this->payloadData->isDebug()) {
                 Log::info('Treblle: Response received', [
                     'status_code' => $response->status(),
                     'headers' => $response->headers(),
@@ -107,10 +99,10 @@ final class SendTreblleData implements ShouldQueue
             // Always log errors (important for troubleshooting)
             Log::error('Treblle: Failed to send data', [
                 'error' => $throwable->getMessage(),
-                'trace' => $this->payloadData->debug ? $throwable->getTraceAsString() : null,
+                'trace' => $this->payloadData->isDebug() ? $throwable->getTraceAsString() : null,
             ]);
 
-            if ($this->payloadData->debug) {
+            if ($this->payloadData->isDebug()) {
                 throw $throwable;
             }
 
@@ -121,6 +113,7 @@ final class SendTreblleData implements ShouldQueue
 
     /**
      * Get the base URL for Treblle API.
+     * Based on payload data type, it will fetch url for original or monitoring API
      *
      * If a custom URL is provided, it will be used. Otherwise, a random
      * endpoint from the available Treblle servers is selected for load
@@ -136,6 +129,12 @@ final class SendTreblleData implements ShouldQueue
             'https://sicario.treblle.com',
         ];
 
-        return $this->payloadData->url ?? $urls[array_rand($urls)];
+        if ($this->payloadData->getType() === PayloadDataType::THIRD_PARTY->value) {
+            $urls = [
+                'https://example.com',
+            ];
+        }
+
+        return $this->payloadData->getUrl() ?? $urls[array_rand($urls)];
     }
 }
