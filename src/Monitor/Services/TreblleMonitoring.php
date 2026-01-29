@@ -23,8 +23,6 @@ use Treblle\Laravel\Monitor\DataTransferObjects\MonitoringData;
  *  - Response status codes
  *  - Total execution time of the request
  *  - Activity of third party api's
- *
- * @package Treblle\Laravel\Monitor\Services
  */
 final class TreblleMonitoring
 {
@@ -34,12 +32,42 @@ final class TreblleMonitoring
 
     private string $queueName;
 
+    private ?int $monitoringStartTime = null;
+
+    private ?int $monitoringTotalTime = null;
+
     public function __construct(
         private readonly Validator $configValidator
     ) {
         $this->queueEnabled = (bool) config('treblle.queue.enabled', false);
         $this->queueConnection = config('treblle.queue.connection');
         $this->queueName = config('treblle.queue.queue', 'default');
+    }
+
+    /**
+     * Can be used before third party API call to monitor execution time
+     */
+    public function stopWatchStart(): void
+    {
+        $this->monitoringStartTime = Carbon::now()->timestamp;
+    }
+
+    /**
+     * If stopWatchStart was used, it will calculate total execution time, else 0 is returned
+     */
+    public function stopWatchEnd(): self
+    {
+        if (null === $this->monitoringStartTime) {
+            $this->monitoringTotalTime = 0;
+
+            return $this;
+        }
+
+        $this->monitoringTotalTime = Carbon::now()->timestamp - $this->monitoringStartTime;
+
+        $this->monitoringStartTime = null;
+
+        return $this;
     }
 
     /**
@@ -83,7 +111,7 @@ final class TreblleMonitoring
         $monitoringPayloadData->setData(new MonitoringData(
             statusCode: is_int($statusCode) ? $statusCode : (int) $statusCode,
             time: Carbon::now()->timestamp,
-            duration: 0,
+            duration: $this->getMonitoringTotalTime(),
             apiId: is_string($apiId) ? $apiId : (string) $apiId,
             endpointId: is_string($endpointId) ? $endpointId : (string) $endpointId,
             config: config('treblle.monitoring') ?? [],
@@ -99,6 +127,15 @@ final class TreblleMonitoring
         $job->onQueue($this->queueName);
 
         dispatch($job);
+    }
+
+    private function getMonitoringTotalTime(): int
+    {
+        $totalTime = $this->monitoringTotalTime;
+
+        $this->monitoringTotalTime = null;
+
+        return $totalTime;
     }
 
     /**
