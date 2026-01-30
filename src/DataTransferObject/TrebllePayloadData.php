@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel\DataTransferObject;
 
-use Treblle\Php\DataTransferObject\Data;
+use JsonSerializable;
+use Treblle\Laravel\Monitor\Enums\PayloadDataType;
 
 /**
  * Data Transfer Object for Treblle payload.
@@ -13,31 +14,24 @@ use Treblle\Php\DataTransferObject\Data;
  * serialized and passed to queue jobs. By extracting data from Request/Response
  * objects before queuing, we avoid serialization issues with Closures and
  * other non-serializable properties.
- *
- * @package Treblle\Laravel\DataTransferObject
  */
-final readonly class TrebllePayloadData
+final class TrebllePayloadData extends BasePayloadData
 {
     /**
-     * Create a new TrebllePayloadData instance.
-     *
-     * @param string $apiKey The Treblle API key
-     * @param string $sdkToken The Treblle SDK token
-     * @param string $sdkName The SDK name
-     * @param float $sdkVersion The SDK version
-     * @param Data $data The core Treblle data object containing request/response/errors
-     * @param string|null $url Optional custom Treblle endpoint URL
-     * @param bool $debug Whether debug mode is enabled
+     * Indicates that this is original api
      */
-    public function __construct(
-        public string $apiKey,
-        public string $sdkToken,
-        public string $sdkName,
-        public float $sdkVersion,
-        public Data $data,
-        public string|null $url = null,
-        public bool $debug = false
-    ) {
+    protected string $type = PayloadDataType::ORIGIN->value;
+
+    /**
+     * The core Treblle data object containing request/response/errors
+     */
+    private JsonSerializable $data;
+
+    public function setData(JsonSerializable $data): self
+    {
+        $this->data = $data;
+
+        return $this;
     }
 
     /**
@@ -48,11 +42,8 @@ final readonly class TrebllePayloadData
     public function toArray(): array
     {
         return [
-            'api_key' => $this->apiKey,
-            'sdk_token' => $this->sdkToken,
-            'sdk' => $this->sdkName,
-            'version' => $this->sdkVersion,
-            'data' => $this->data,
+            ...parent::toArray(),
+            ...get_object_vars($this),
         ];
     }
 }

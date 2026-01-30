@@ -9,15 +9,18 @@ use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
+use Treblle\Laravel\Config\Validator;
+use Treblle\Laravel\DataTransferObject\Data\TreblleDataAdapter;
 use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Data;
 use Treblle\Laravel\Jobs\SendTreblleData;
 use Treblle\Php\DataTransferObject\Error;
 use Treblle\Laravel\TreblleServiceProvider;
 use Treblle\Php\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Exceptions\TreblleException;
+use Treblle\Laravel\Factories\PayloadDataFactory;
 use Treblle\Php\DataProviders\PhpLanguageDataProvider;
 use Treblle\Php\DataProviders\InMemoryErrorDataProvider;
-use Treblle\Laravel\DataTransferObject\TrebllePayloadData;
 use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
 use Treblle\Php\DataProviders\SuperGlobalsServerDataProvider;
 use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
@@ -37,8 +40,6 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * - Sensitive data masking
  * - Exception tracking
  * - Non-blocking data transmission
- *
- * @package Treblle\Laravel\Middlewares
  */
 final class TreblleMiddleware
 {
@@ -46,8 +47,6 @@ final class TreblleMiddleware
      * Cached configuration values for performance optimization.
      */
     private bool $enabled;
-
-    private array $ignoredEnvironments;
 
     private bool $queueEnabled;
 
@@ -62,14 +61,10 @@ final class TreblleMiddleware
     /**
      * Initialize middleware with cached configuration.
      */
-    public function __construct()
-    {
+    public function __construct(
+        private Validator $configValidator,
+    ) {
         $this->enabled = (bool) config('treblle.enable', true);
-
-        // Parse ignored environments once and create hash map for O(1) lookups
-        $ignoredEnvs = array_map('trim', explode(',', config('treblle.ignored_environments', '') ?? ''));
-        $this->ignoredEnvironments = array_flip($ignoredEnvs);
-
         $this->queueEnabled = (bool) config('treblle.queue.enabled', false);
         $this->queueConnection = config('treblle.queue.connection');
         $this->queueName = config('treblle.queue.queue', 'default');
@@ -92,20 +87,21 @@ final class TreblleMiddleware
      * results in silent failure (with debug logging) to ensure Treblle never
      * breaks your API.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
-     * @param string|null $apiKey Optional API key override for this specific route
-     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
+     * @param  string|null  $apiKey  Optional API key override for this specific route
      * @return mixed The response from the next middleware
      */
-    public function handle(Request $request, Closure $next, string|null $apiKey = null)
+    public function handle(Request $request, Closure $next, ?string $apiKey = null)
     {
         if (! $this->enabled) {
             return $next($request);
         }
 
         // O(1) hash lookup instead of O(n) in_array
-        if (isset($this->ignoredEnvironments[app()->environment()])) {
+        try {
+            $this->configValidator->validateEnvironment();
+        } catch (TreblleException) {
             return $next($request);
         }
 
@@ -114,15 +110,9 @@ final class TreblleMiddleware
         }
 
         // Validate configuration - fail silently if missing to never break the API
-        if (! config('treblle.sdk_token')) {
-            $this->logConfigError('TREBLLE_SDK_TOKEN is not configured. Treblle monitoring disabled.');
-
-            return $next($request);
-        }
-
-        if (! config('treblle.api_key')) {
-            $this->logConfigError('TREBLLE_API_KEY is not configured. Treblle monitoring disabled.');
-
+        try {
+            $this->configValidator->validateKeys();
+        } catch (TreblleException) {
             return $next($request);
         }
 
@@ -133,20 +123,22 @@ final class TreblleMiddleware
     /**
      * Perform any final actions for the request lifecycle.
      *
-     * @param Request $request The HTTP request that was processed
-     * @param JsonResponse|Response|SymfonyResponse $response The response that was sent
-     *
-     * @return void
+     * @param  Request  $request  The HTTP request that was processed
+     * @param  JsonResponse|Response|SymfonyResponse  $response  The response that was sent
      */
     public function terminate(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
         // O(1) hash lookup for ignored environments
-        if (isset($this->ignoredEnvironments[app()->environment()])) {
+        try {
+            $this->configValidator->validateEnvironment();
+        } catch (TreblleException) {
             return;
         }
 
         // Re-validate configuration (in case it was changed after handle())
-        if (! config('treblle.sdk_token') || ! config('treblle.api_key')) {
+        try {
+            $this->configValidator->validateKeys();
+        } catch (TreblleException) {
             return;
         }
 
@@ -166,10 +158,8 @@ final class TreblleMiddleware
      *
      * Wrapped in try-catch to ensure Treblle never breaks the application.
      *
-     * @param Request $request The HTTP request
-     * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
-     *
-     * @return void
+     * @param  Request  $request  The HTTP request
+     * @param  JsonResponse|Response|SymfonyResponse  $response  The HTTP response
      */
     private function dispatchToQueue(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
@@ -196,21 +186,22 @@ final class TreblleMiddleware
             }
 
             // Build serializable DTO with extracted data
-            $payloadData = new TrebllePayloadData(
-                apiKey: (string) config('treblle.api_key'),
-                sdkToken: (string) config('treblle.sdk_token'),
-                sdkName: TreblleServiceProvider::SDK_NAME,
-                sdkVersion: TreblleServiceProvider::SDK_VERSION,
-                data: new Data(
-                    $serverProvider->getServer(),
-                    $languageProvider->getLanguage(),
-                    $requestProvider->getRequest(),
-                    $responseProvider->getResponse(),
-                    $errorProvider->getErrors()
-                ),
-                url: config('treblle.url'),
-                debug: $this->debug
-            );
+            try {
+                $payloadData = PayloadDataFactory::create(PayloadDataFactory::TREBLLE);
+            } catch (TreblleException $e) {
+                if ($this->debug) {
+                    logger()->error('[Treblle] ' . $e->getMessage());
+                }
+                return;
+            }
+
+            $payloadData->setData(new Data(
+                $serverProvider->getServer(),
+                $languageProvider->getLanguage(),
+                $requestProvider->getRequest(),
+                $responseProvider->getResponse(),
+                $errorProvider->getErrors()
+            ));
 
             // Create and dispatch job with serializable data
             $job = new SendTreblleData($payloadData);
@@ -232,10 +223,8 @@ final class TreblleMiddleware
      *
      * Wrapped in try-catch to ensure Treblle never breaks the application.
      *
-     * @param Request $request The HTTP request
-     * @param JsonResponse|Response|SymfonyResponse $response The HTTP response
-     *
-     * @return void
+     * @param  Request  $request  The HTTP request
+     * @param  JsonResponse|Response|SymfonyResponse  $response  The HTTP response
      */
     private function sendSynchronously(Request $request, JsonResponse|Response|SymfonyResponse $response): void
     {
@@ -286,9 +275,7 @@ final class TreblleMiddleware
     /**
      * Log configuration errors when debug mode is enabled.
      *
-     * @param string $message The error message
-     *
-     * @return void
+     * @param  string  $message  The error message
      */
     private function logConfigError(string $message): void
     {
@@ -300,10 +287,8 @@ final class TreblleMiddleware
     /**
      * Log runtime errors when debug mode is enabled.
      *
-     * @param string $message The error message
-     * @param Throwable $exception The exception that was thrown
-     *
-     * @return void
+     * @param  string  $message  The error message
+     * @param  Throwable  $exception  The exception that was thrown
      */
     private function logError(string $message, Throwable $exception): void
     {
