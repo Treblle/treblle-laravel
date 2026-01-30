@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Treblle\Laravel\Config\Validator;
+use Treblle\Laravel\DataTransferObject\Data\TreblleDataAdapter;
 use Treblle\Php\Factory\TreblleFactory;
 use Treblle\Php\DataTransferObject\Data;
 use Treblle\Laravel\Jobs\SendTreblleData;

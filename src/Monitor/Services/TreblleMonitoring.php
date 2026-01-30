@@ -6,9 +6,9 @@ namespace Treblle\Laravel\Monitor\Services;
 
 use Carbon\Carbon;
 use Treblle\Laravel\Config\Validator;
-use Treblle\Laravel\Jobs\SendTreblleData;
 use Treblle\Laravel\Exceptions\TreblleException;
 use Treblle\Laravel\Factories\PayloadDataFactory;
+use Treblle\Laravel\Jobs\SendTreblleData;
 use Treblle\Laravel\Monitor\DataTransferObjects\MonitoringData;
 
 /**
@@ -34,7 +34,7 @@ final class TreblleMonitoring
 
     private ?int $monitoringStartTime = null;
 
-    private ?int $monitoringTotalTime = null;
+    private ?int $monitoringTotalTime = 0;
 
     public function __construct(
         private readonly Validator $configValidator
@@ -58,8 +58,6 @@ final class TreblleMonitoring
     public function stopWatchEnd(): self
     {
         if (null === $this->monitoringStartTime) {
-            $this->monitoringTotalTime = 0;
-
             return $this;
         }
 
@@ -133,7 +131,7 @@ final class TreblleMonitoring
     {
         $totalTime = $this->monitoringTotalTime;
 
-        $this->monitoringTotalTime = null;
+        $this->monitoringTotalTime = 0;
 
         return $totalTime;
     }

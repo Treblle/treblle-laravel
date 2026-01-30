@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * Facade for Trebble third party aPI's monitoring
  *
- * @method static stopWatchStat()
+ * @method static stopWatchStart()
  * @method static stopWatchEnd()
  * @method static monitor(string|int $statusCode, string|int $apiId, string|int $endpointId)
  *

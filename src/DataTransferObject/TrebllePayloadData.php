@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel\DataTransferObject;
 
-use Treblle\Laravel\Monitor\DataTransferObjects\MonitoringData;
+use JsonSerializable;
 use Treblle\Laravel\Monitor\Enums\PayloadDataType;
-use Treblle\Php\DataTransferObject\Data;
 
 /**
  * Data Transfer Object for Treblle payload.
@@ -26,9 +25,9 @@ final class TrebllePayloadData extends BasePayloadData
     /**
      * The core Treblle data object containing request/response/errors
      */
-    private Data $data;
+    private JsonSerializable $data;
 
-    public function setData(Data|MonitoringData $data): self
+    public function setData(JsonSerializable $data): self
     {
         $this->data = $data;
 

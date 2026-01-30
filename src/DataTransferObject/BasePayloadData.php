@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel\DataTransferObject;
 
-use Treblle\Php\DataTransferObject\Data;
-use Treblle\Laravel\Monitor\DataTransferObjects\MonitoringData;
+use JsonSerializable;
 
 /**
  * Base parameters required for any PayloadData DataTransferObject.
@@ -51,7 +50,7 @@ abstract class BasePayloadData
      */
     protected string $type = '';
 
-    abstract public function setData(Data|MonitoringData $data);
+    abstract public function setData(JsonSerializable $data);
 
     public function setApiKey(string $apiKey): self
     {
