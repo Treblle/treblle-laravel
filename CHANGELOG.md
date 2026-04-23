@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`Treblle` facade** — attach per-request metadata from anywhere without injecting the `Request` object (`Treblle::meta('key', 'value')` or `Treblle::meta([...])`)
+- **`php artisan treblle:test`** — verifies credentials, environment, and connectivity by sending a real synthetic payload to the ingress endpoint; returns a non-zero exit code on failure for CI/CD use
+- **Custom metadata support** — `metadata` field on every payload; set statically via `config('treblle.metadata')` or at runtime via the facade; per-request values merge over static config values
+- **`ignored_methods` config option** — HTTP methods to skip entirely (default: `HEAD`, `OPTIONS`); prevents high-volume noise from polluting the dashboard
+- **Laravel 13 support** — added Orchestra Testbench `^12.0` to dev dependencies
+- **CI/CD workflows** — GitHub Actions for tests (PHP 8.2–8.4 × Laravel 10–13 matrix) and lint (Laravel Pint)
+- **`CONTRIBUTING.md`**, **`SECURITY.md`**, **`LICENSE`** — standard open source project files
+- **GitHub PR template** — `.github/PULL_REQUEST_TEMPLATE.md`
+
+### Changed
+
+- **Persistent HTTP client** — replaced per-request `Http::` facade calls with a singleton `GuzzleHttp\Client`; reuses TCP connections and TLS sessions to the ingress endpoint across requests
+- **Singleton `SensitiveDataMasker`** — registered once per process instead of rebuilding the lowercase field hash map on every request
+- **Cached OS data** — `ServerDataProvider` caches the `Os` DTO statically; eliminates three `php_uname()` syscalls per request (material under Octane)
+- **`buildBody` fix** — masking now happens before the size check so the 2 MB limit is evaluated against the data that will actually be sent
+- **Byte-correct size checks** — replaced `mb_strlen` with `strlen` in response/request size enforcement; HTTP sizes are bytes, not characters
+- **Explicit `guzzlehttp/guzzle` dependency** — added `^7.4` to `require` in `composer.json`
+- **`.editorconfig` fix** — corrected broken glob pattern `{*.(yml, json)}` → `{*.yml,*.yaml,*.json}`
+- **`.gitignore` improvements** — added `.pint.cache`, `.phpunit.cache/`, `coverage/`, `build/`, `Thumbs.db`
+
 ## [6.0.0] - 2025-10-10
 
 ### Breaking Changes
@@ -29,7 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Laravel 12 compatibility
 - Updated SDK version to 6.0
 - Comprehensive README with detailed examples
-- Complete `claude.md` documentation for contributors
 
 ### Changed
 

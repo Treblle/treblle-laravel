@@ -5,49 +5,34 @@ declare(strict_types=1);
 namespace Treblle\Laravel\DataProviders;
 
 use Throwable;
-use Carbon\Carbon;
-use Treblle\Php\Helpers\HeaderFilter;
-use Treblle\Php\DataTransferObject\Request;
-use Treblle\Php\Helpers\SensitiveDataMasker;
-use Treblle\Php\Contract\RequestDataProvider;
+use Illuminate\Http\UploadedFile;
+use Treblle\Laravel\Helpers\HeaderFilter;
+use Treblle\Laravel\DataTransferObject\Request;
+use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Contracts\RequestDataProvider;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 /**
  * Laravel-specific Request Data Provider for Treblle.
  *
- * Implements the RequestDataProvider contract from treblle-php to extract
- * and format request data from Laravel/Symfony request objects. Handles
- * sensitive data masking, header filtering, and original payload capture.
+ * Extracts and formats request data from Laravel/Symfony request objects.
+ * Handles sensitive data masking, header filtering, file upload normalization,
+ * original payload capture, and 2MB payload size enforcement.
  *
  * @package Treblle\Laravel\DataProviders
  */
 final readonly class LaravelRequestDataProvider implements RequestDataProvider
 {
-    /**
-     * Create a new Laravel request data provider instance.
-     *
-     * @param SensitiveDataMasker $fieldMasker Masker for sensitive data fields
-     * @param \Illuminate\Http\Request|SymfonyRequest $request The Laravel/Symfony request object
-     */
     public function __construct(
-        private SensitiveDataMasker    $fieldMasker,
+        private SensitiveDataMasker $fieldMasker,
         private \Illuminate\Http\Request|SymfonyRequest $request,
     ) {
     }
 
-    /**
-     * Extract and format request data for Treblle.
-     *
-     * Builds a Request DTO containing all relevant request information including
-     * headers (filtered and masked), query parameters (masked), request body
-     * (masked), URL, IP address, user agent, HTTP method, and route path.
-     *
-     * @return Request The formatted request data transfer object
-     */
     public function getRequest(): Request
     {
         return new Request(
-            timestamp: Carbon::now('UTC')->format('Y-m-d H:i:s'),
+            timestamp: gmdate('Y-m-d H:i:s'),
             url: $this->request->fullUrl(),
             ip: $this->request->ip() ?? 'bogon',
             user_agent: $this->request->userAgent() ?? '',
@@ -56,35 +41,75 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
                 HeaderFilter::filter($this->request->headers->all(), config('treblle.excluded_headers', []))
             ),
             query: $this->fieldMasker->mask($this->request->query->all()),
-            body: $this->fieldMasker->mask($this->getRequestBody()),
-            route_path: $this->request->route()?->toSymfonyRoute()->getPath(),
+            body: $this->buildBody(),
+            route_path: $this->request instanceof \Illuminate\Http\Request
+                ? $this->request->route()?->uri()
+                : null,
         );
     }
 
     /**
-     * Get the request body with priority for original payload.
+     * Builds the masked request body, enforcing the 2MB limit and normalizing file uploads.
      *
-     * Returns the original unmodified request payload if it was captured by
-     * TreblleEarlyMiddleware. Otherwise, returns the current request data.
-     * This ensures accurate logging even when middleware or form requests
-     * modify the payload.
-     *
-     * @return array The request body data
+     * @return array<int|string, mixed>
      */
-    private function getRequestBody(): array
+    private function buildBody(): array
     {
-        // Prioritizing original payload if captured by TreblleEarlyMiddleware.
-        if ($this->request->attributes->has('treblle_original_payload')) {
-            return $this->request->attributes->get('treblle_original_payload');
+        $masked = $this->fieldMasker->mask($this->getRawBody());
+        $encoded = json_encode($masked);
+
+        if (false !== $encoded && mb_strlen($encoded) > 2 * 1024 * 1024) {
+            return ['error' => 'Payload too large', 'size' => mb_strlen($encoded)];
         }
 
-        // Try toArray() first (supports JSON requests), fallback to all() for GET/multipart
-        try {
-            return $this->request->toArray();
-        } catch (Throwable $e) {
-            // toArray() throws BadMethodCallException for GET requests and ValidationException
-            // for malformed JSON. Fall back to all() which safely returns all input.
-            return $this->request->all();
+        return $masked;
+    }
+
+    /**
+     * Returns the raw (unmasked) request body with file uploads normalized to metadata.
+     *
+     * @return array<int|string, mixed>
+     */
+    private function getRawBody(): array
+    {
+        // Use original payload captured by TreblleEarlyMiddleware if available
+        if ($this->request->attributes->has('treblle_original_payload')) {
+            $payload = $this->request->attributes->get('treblle_original_payload');
+        } else {
+            try {
+                $payload = $this->request->input();
+            } catch (Throwable) {
+                $payload = [];
+            }
         }
+
+        // Merge in file metadata from the actual files bag
+        if ($this->request instanceof \Illuminate\Http\Request) {
+            foreach ($this->request->files->all() as $key => $file) {
+                $payload[$key] = $this->normalizeFile($file);
+            }
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Recursively normalizes UploadedFile instances to a metadata array.
+     *
+     * @param UploadedFile|array<mixed> $file
+     * @return array<string, mixed>
+     */
+    private function normalizeFile(UploadedFile|array $file): array
+    {
+        if (is_array($file)) {
+            return array_map([$this, 'normalizeFile'], $file);
+        }
+
+        return [
+            'name' => $file->getClientOriginalName(),
+            'size' => $file->getSize(),
+            'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+            'extension' => $file->getClientOriginalExtension(),
+        ];
     }
 }

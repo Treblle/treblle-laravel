@@ -1,18 +1,33 @@
-# exclude composer files
+# dependencies
 /vendor/
 
-# exclude IDE files
-.idea
-.vscode
+# composer lock (not committed for packages — consumers pin their own)
+composer.lock
 
-# exclude caches
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# caches
 .php-cs-fixer.cache
 .phpunit.result.cache
+.phpunit.cache/
+.pint.cache
 
-# locally override if needed
+# local overrides
 .php-cs-fixer.php
 .phpunit.xml
 
-# exclude because with package development it doesnt matter and reduces unnecessary merge conflicts
-composer.lock
+# test coverage output
+/coverage/
+/build/
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# OS
 .DS_Store
+Thumbs.db

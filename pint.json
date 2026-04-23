@@ -19,7 +19,7 @@
         "concat_space": {
             "spacing": "one"
         },
-        "final_class": true,
+        "final_class": false,
         "declare_parentheses": true,
         "declare_strict_types": true,
         "explicit_string_variable": true,

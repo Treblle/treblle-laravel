@@ -40,7 +40,7 @@ final class TreblleEarlyMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $request->attributes->set('treblle_original_payload', $request->all());
+        $request->attributes->set('treblle_original_payload', $request->input());
 
         return $next($request);
     }

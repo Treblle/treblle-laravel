@@ -1,0 +1,63 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }} — Laravel ${{ matrix.laravel }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            testbench: '^9.0'
+            laravel: '10.x'
+          - php: '8.2'
+            testbench: '^10.0'
+            laravel: '11.x'
+          - php: '8.2'
+            testbench: '^11.0'
+            laravel: '12.x'
+          - php: '8.2'
+            testbench: '^12.0'
+            laravel: '13.x'
+          - php: '8.3'
+            testbench: '^10.0'
+            laravel: '11.x'
+          - php: '8.3'
+            testbench: '^11.0'
+            laravel: '12.x'
+          - php: '8.3'
+            testbench: '^12.0'
+            laravel: '13.x'
+          - php: '8.4'
+            testbench: '^11.0'
+            laravel: '12.x'
+          - php: '8.4'
+            testbench: '^12.0'
+            laravel: '13.x'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, json, zlib
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests
+        run: ./vendor/bin/phpunit

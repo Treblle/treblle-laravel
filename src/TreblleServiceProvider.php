@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Treblle\Laravel;
 
 use function config;
+use GuzzleHttp\Client;
 use Illuminate\Routing\Router;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
+use Treblle\Laravel\Console\TestCommand;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Console\AboutCommand;
+use Treblle\Laravel\Helpers\SensitiveDataMasker;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Treblle\Laravel\Middlewares\TreblleEarlyMiddleware;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -50,6 +53,8 @@ final class TreblleServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../config/treblle.php' => config_path('treblle.php'),
             ], 'treblle-config');
+
+            $this->commands([TestCommand::class]);
         }
 
         /** @var Router $router */
@@ -79,8 +84,8 @@ final class TreblleServiceProvider extends ServiceProvider
             data: static fn (): array => [
                 'Version' => self::SDK_VERSION,
                 'URL' => config('treblle.url'),
-                'API Key' => config('treblle.api_key'),
-                'SDK Token' => config('treblle.sdk_token'),
+                'API Key' => config('treblle.api_key') ? '****' . mb_substr((string) config('treblle.api_key'), -4) : 'Not set',
+                'SDK Token' => config('treblle.sdk_token') ? '****' . mb_substr((string) config('treblle.sdk_token'), -4) : 'Not set',
                 'Ignored Environments' => config('treblle.ignored_environments'),
             ],
         );
@@ -99,5 +104,28 @@ final class TreblleServiceProvider extends ServiceProvider
             path: __DIR__ . '/../config/treblle.php',
             key: 'treblle',
         );
+
+        // Singleton masker: masked_fields never changes per-request, so we build
+        // the lowercase field hash map once per process instead of every request.
+        $this->app->singleton(SensitiveDataMasker::class, fn () => new SensitiveDataMasker(
+            (array) config('treblle.masked_fields', [])
+        ));
+
+        // Scoped binding: one Treblle instance per request, bound to the current
+        // Request object. Under Octane, scoped bindings are reset between requests.
+        $this->app->scoped(Treblle::class, fn ($app) => new Treblle(
+            $app->make(\Illuminate\Http\Request::class)
+        ));
+
+        // Persistent Guzzle client: reuses TCP connections and TLS sessions to
+        // Treblle's ingress endpoint across requests instead of opening a new
+        // connection every time.
+        $this->app->singleton('treblle.http_client', fn () => new Client([
+            'timeout'         => 3.0,
+            'connect_timeout' => 3.0,
+            'verify'          => false,
+            'http_errors'     => false,
+            'headers'         => ['Accept-Encoding' => 'gzip'],
+        ]));
     }
 }
