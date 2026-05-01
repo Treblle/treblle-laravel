@@ -56,7 +56,7 @@ final class TestCommand extends Command
             return self::FAILURE;
         }
 
-        $url = (string) config('treblle.url', 'https://ingress.treblle.com');
+        $url = config('treblle.url') ?: 'https://ingress.treblle.com';
 
         $this->line("  Sending test payload to <fg=cyan>{$url}</> ...");
         $this->newLine();

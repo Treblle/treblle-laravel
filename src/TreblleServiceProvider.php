@@ -100,10 +100,35 @@ final class TreblleServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(
-            path: __DIR__ . '/../config/treblle.php',
-            key: 'treblle',
-        );
+        // Deep-merge package defaults with any published user config.
+        // mergeConfigFrom() is shallow — if the user's config has a 'queue' key but
+        // is missing new sub-keys we added in a release, those sub-keys are dropped.
+        // We do a targeted deep-merge: associative sub-arrays (like queue.*) get
+        // recursive fill-in of missing keys, while indexed lists (like masked_fields)
+        // let the user's value win entirely — matching the expectation that publishing
+        // the config gives you full control over list-type settings.
+        $packageConfig = require __DIR__ . '/../config/treblle.php';
+        $userConfig    = $this->app->make('config')->get('treblle', []);
+
+        $merged = $packageConfig;
+        foreach ($userConfig as $key => $userValue) {
+            if (
+                is_array($userValue)
+                && isset($merged[$key])
+                && is_array($merged[$key])
+                && ! array_is_list($userValue)
+                && ! array_is_list($merged[$key])
+            ) {
+                // Both are associative: recursively fill in any missing sub-keys
+                // from the package default while keeping every value the user set.
+                $merged[$key] = array_replace_recursive($merged[$key], $userValue);
+            } else {
+                // Scalar, null, or indexed list: user value wins entirely.
+                $merged[$key] = $userValue;
+            }
+        }
+
+        $this->app->make('config')->set('treblle', $merged);
 
         // Singleton masker: masked_fields never changes per-request, so we build
         // the lowercase field hash map once per process instead of every request.

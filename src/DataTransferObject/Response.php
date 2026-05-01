@@ -19,6 +19,12 @@ final readonly class Response implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return get_object_vars($this);
+        return [
+            'code'      => $this->code,
+            'size'      => $this->size,
+            'load_time' => $this->load_time,
+            'body'      => $this->body,
+            'headers'   => $this->headers,
+        ];
     }
 }

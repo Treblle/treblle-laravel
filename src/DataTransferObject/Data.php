@@ -24,6 +24,13 @@ final readonly class Data implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return get_object_vars($this);
+        return [
+            'server'   => $this->server,
+            'language' => $this->language,
+            'request'  => $this->request,
+            'response' => $this->response,
+            'errors'   => $this->errors,
+            'metadata' => $this->metadata,
+        ];
     }
 }

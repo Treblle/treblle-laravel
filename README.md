@@ -34,9 +34,9 @@ Discover, Govern, and Secure APIs, Agents, and AI Across Any Cloud, Gateway or T
   - [Header Exclusion](#header-exclusion)
   - [Debug Mode](#debug-mode)
 - [Verifying Your Setup](#verifying-your-setup)
-- [Upgrading from v5.x](#upgrading-from-v5x-to-v60)
-- [Available SDKs](#available-sdks)
-- [Community](#community)
+- [Upgrading](#upgrading)
+  - [v6.0 → v6.1](#v60--v61)
+  - [v5.x → v6.0](#v5x--v60)
 
 ---
 
@@ -811,3 +811,101 @@ Log in to [platform.treblle.com](https://platform.treblle.com) and confirm the r
 | No requests in dashboard | Monitoring disabled | Check `TREBLLE_ENABLE=true` |
 | Config changes not applying | Config cache | Run `php artisan config:clear` |
 
+
+---
+
+## Upgrading
+
+### v6.0 → v6.1
+
+**New configuration keys** — if you have published `config/treblle.php`, two new keys are available. They are filled in automatically via deep-merge if missing, so no action is required, but you can add them explicitly for clarity:
+
+```php
+// config/treblle.php
+
+// Override the Treblle ingress endpoint (e.g. for custom deployments or local testing)
+'url' => env('TREBLLE_API_URL', 'https://ingress.treblle.com'),
+
+// HTTP methods Treblle will never monitor
+'ignored_methods' => ['HEAD', 'OPTIONS'],
+
+// Static metadata sent with every request (per-request metadata merges over this)
+'metadata' => [],
+```
+
+**If your published config has `'url' => null`** — update it to the line above. The old `null` default caused the ingress URL to resolve to an empty string, silently breaking data transmission. The new default reads from `TREBLLE_API_URL` and falls back to `https://ingress.treblle.com`.
+
+**`ignored_methods` behaviour** — HEAD and OPTIONS were already silently excluded before v6.1 via a hardcoded fallback. This release makes the list explicit and configurable. No behaviour change for existing users.
+
+**Queue sub-keys** — if you had a partial `queue` block in your published config (e.g. only `enabled`), the missing sub-keys (`connection`, `queue`) are now filled in from package defaults automatically. No action required.
+
+**Steps:**
+
+```bash
+# 1. Update the package
+composer update treblle/treblle-laravel
+
+# 2. Clear config cache
+php artisan config:clear
+
+# 3. (Optional) Republish config to get new keys with comments
+php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider" --force
+
+# 4. Verify everything is working
+php artisan treblle:test
+```
+
+---
+
+### v5.x → v6.0
+
+**Breaking: environment variable rename**
+
+| Old (v5.x) | New (v6.0) | Purpose |
+|---|---|---|
+| `TREBLLE_API_KEY` | `TREBLLE_SDK_TOKEN` | Your SDK authentication token |
+| `TREBLLE_PROJECT_ID` | `TREBLLE_API_KEY` | Your project identifier |
+
+The values are swapped — update your `.env`:
+
+```env
+# Old
+TREBLLE_API_KEY=sdk_token_value
+TREBLLE_PROJECT_ID=project_id_value
+
+# New
+TREBLLE_SDK_TOKEN=sdk_token_value
+TREBLLE_API_KEY=project_id_value
+```
+
+**Breaking: middleware parameter rename**
+
+```php
+// Old (v5.x)
+Route::middleware(['treblle:project-id-1'])
+
+// New (v6.0)
+Route::middleware(['treblle:api-key-1'])
+```
+
+**Steps:**
+
+```bash
+# 1. Update the package
+composer update treblle/treblle-laravel
+
+# 2. Swap the env values in .env
+# TREBLLE_SDK_TOKEN = old TREBLLE_API_KEY value
+# TREBLLE_API_KEY   = old TREBLLE_PROJECT_ID value
+
+# 3. Republish config (required — structure changed)
+php artisan vendor:publish --provider="Treblle\Laravel\TreblleServiceProvider" --force
+
+# 4. Clear all caches
+php artisan config:clear && php artisan cache:clear
+
+# 5. Update any route middleware parameters (treblle:old-project-id → treblle:new-api-key)
+
+# 6. Verify
+php artisan treblle:test
+```

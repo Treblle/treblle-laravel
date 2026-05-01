@@ -119,6 +119,6 @@ final class SendTreblleData implements ShouldQueue
      */
     private function getUrl(): string
     {
-        return (string) config('treblle.url', 'https://ingress.treblle.com');
+        return config('treblle.url') ?: 'https://ingress.treblle.com';
     }
 }

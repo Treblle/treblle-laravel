@@ -34,6 +34,12 @@ final readonly class Error implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return get_object_vars($this);
+        return [
+            'message' => $this->message,
+            'file'    => $this->file,
+            'line'    => $this->line,
+            'source'  => $this->source,
+            'type'    => $this->type,
+        ];
     }
 }

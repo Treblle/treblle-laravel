@@ -19,6 +19,12 @@ final readonly class Server implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return get_object_vars($this);
+        return [
+            'ip'       => $this->ip,
+            'timezone' => $this->timezone,
+            'software' => $this->software,
+            'protocol' => $this->protocol,
+            'os'       => $this->os,
+        ];
     }
 }

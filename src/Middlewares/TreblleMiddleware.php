@@ -202,7 +202,7 @@ final class TreblleMiddleware
      */
     private function isIgnoredMethod(Request $request): bool
     {
-        $ignored = array_map('strtoupper', (array) config('treblle.ignored_methods', []));
+        $ignored = array_map('strtoupper', (array) config('treblle.ignored_methods', ['HEAD', 'OPTIONS']));
 
         return in_array(mb_strtoupper($request->method()), $ignored, true);
     }

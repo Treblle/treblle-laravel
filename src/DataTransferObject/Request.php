@@ -23,6 +23,16 @@ final readonly class Request implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return get_object_vars($this);
+        return [
+            'timestamp'  => $this->timestamp,
+            'url'        => $this->url,
+            'ip'         => $this->ip,
+            'user_agent' => $this->user_agent,
+            'method'     => $this->method,
+            'headers'    => $this->headers,
+            'query'      => $this->query,
+            'body'       => $this->body,
+            'route_path' => $this->route_path,
+        ];
     }
 }

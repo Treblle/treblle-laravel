@@ -16,6 +16,9 @@ final readonly class Language implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return get_object_vars($this);
+        return [
+            'name'    => $this->name,
+            'version' => $this->version,
+        ];
     }
 }
