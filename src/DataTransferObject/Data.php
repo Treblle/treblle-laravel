@@ -25,12 +25,12 @@ final readonly class Data implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'server'   => $this->server,
-            'language' => $this->language,
-            'request'  => $this->request,
-            'response' => $this->response,
-            'errors'   => $this->errors,
-            'metadata' => $this->metadata,
+            'server'   => $this->server->jsonSerialize(),
+            'language' => $this->language->jsonSerialize(),
+            'request'  => $this->request->jsonSerialize(),
+            'response' => $this->response->jsonSerialize(),
+            'errors'   => array_map(fn (Error $e) => $e->jsonSerialize(), $this->errors),
+            'metadata' => (object) $this->metadata,
         ];
     }
 }

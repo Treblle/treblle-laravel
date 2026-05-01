@@ -24,7 +24,7 @@ final readonly class Server implements JsonSerializable
             'timezone' => $this->timezone,
             'software' => $this->software,
             'protocol' => $this->protocol,
-            'os'       => $this->os,
+            'os'       => $this->os->jsonSerialize(),
         ];
     }
 }

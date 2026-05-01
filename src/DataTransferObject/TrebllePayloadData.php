@@ -35,7 +35,7 @@ final readonly class TrebllePayloadData
             'sdk_token' => $this->sdkToken,
             'sdk' => $this->sdkName,
             'version' => $this->sdkVersion,
-            'data' => $this->data,
+            'data' => $this->data->jsonSerialize(),
         ];
     }
 }
