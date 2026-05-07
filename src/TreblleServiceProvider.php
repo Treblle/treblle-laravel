@@ -36,7 +36,7 @@ final class TreblleServiceProvider extends ServiceProvider
     /**
      * The current version of the Treblle Laravel SDK.
      */
-    public const SDK_VERSION = 6.0;
+    public const SDK_VERSION = 6.1;
 
     /**
      * Bootstrap any application services.

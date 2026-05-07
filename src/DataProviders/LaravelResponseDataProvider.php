@@ -37,7 +37,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
     public function getResponse(): Response
     {
         $rawBody = $this->response->getContent() ?: '{}';
-        $size = mb_strlen($rawBody);
+        $size = strlen($rawBody);
 
         // Enforce 2MB limit before decoding to avoid processing a huge string
         if ($size > 2 * 1024 * 1024) {
@@ -49,7 +49,7 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
             ));
 
             $rawBody = (string) json_encode(['error' => 'Payload too large', 'size' => $size]);
-            $size = mb_strlen($rawBody);
+            $size = strlen($rawBody);
         }
 
         return new Response(

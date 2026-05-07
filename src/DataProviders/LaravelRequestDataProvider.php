@@ -58,8 +58,8 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
         $masked = $this->fieldMasker->mask($this->getRawBody());
         $encoded = json_encode($masked);
 
-        if (false !== $encoded && mb_strlen($encoded) > 2 * 1024 * 1024) {
-            return ['error' => 'Payload too large', 'size' => mb_strlen($encoded)];
+        if (false !== $encoded && strlen($encoded) > 2 * 1024 * 1024) {
+            return ['error' => 'Payload too large', 'size' => strlen($encoded)];
         }
 
         return $masked;

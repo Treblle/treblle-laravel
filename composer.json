@@ -1,27 +1,26 @@
 {
     "name": "treblle/treblle-laravel",
-    "description": "Stay in tune with your APIs",
+    "description": "Runtime Intelligence Platform",
+    "version": "6.1.0",
     "license": "MIT",
     "homepage": "https://treblle.com/",
     "type": "library",
     "keywords": [
-        "api",
-        "debuging",
-        "documentation",
-        "laravel",
+        "treblle",
+        "intelligence",
+        "runtime",
         "monitoring",
-        "treblle"
+        "observability",
+        "laravel",
+        "php",
+        "analytics",
+        "governance",
+        "logs"
     ],
     "authors": [
         {
             "role": "Developer",
-            "name": "Bhushan Gaikwad",
-            "email": "bhushan@treblle.com",
-            "homepage": "https://treblle.com/"
-        },
-        {
-            "role": "Developer",
-            "name": "Vedran Cindrić",
+            "name": "Vedran Cindric",
             "email": "vedran@treblle.com",
             "homepage": "https://treblle.com/"
         }
