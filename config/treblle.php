@@ -9,9 +9,9 @@ return [
     'enable' => env('TREBLLE_ENABLE', true),
 
     /*
-     * An override while debugging.
+     * The Treblle ingress endpoint. Override via TREBLLE_API_URL for custom deployments.
      */
-    'url' => null,
+    'url' => env('TREBLLE_API_URL', 'https://ingress.treblle.com'),
 
     /*
      * Your Treblle SDK Token. You can get started for FREE by visiting https://treblle.com/
@@ -29,6 +29,23 @@ return [
      * Define which environments should Treblle ignore and not monitor
      */
     'ignored_environments' => env('TREBLLE_IGNORED_ENV', 'dev,test,testing'),
+
+    /*
+     * Static metadata included in every request payload.
+     * Per-request metadata can be added by setting the 'treblle_metadata' request attribute:
+     *   $request->attributes->set('treblle_metadata', ['key' => 'value']);
+     * Per-request values are merged over these static values.
+     */
+    'metadata' => [],
+
+    /*
+     * HTTP methods that Treblle should never monitor.
+     * OPTIONS and HEAD are excluded by default — they are high-volume noise that
+     * carry no request body and pollute the Treblle dashboard.
+     *
+     * Add any other methods you want to skip, e.g. 'PATCH', 'DELETE'.
+     */
+    'ignored_methods' => ['HEAD', 'OPTIONS'],
 
     /*
      * Define which fields should be masked before leaving the server

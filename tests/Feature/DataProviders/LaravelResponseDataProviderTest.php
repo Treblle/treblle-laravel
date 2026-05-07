@@ -1,0 +1,176 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Treblle\Laravel\Tests\Feature\DataProviders;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Treblle\Laravel\Tests\TestCase;
+use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\DataProviders\InMemoryErrorDataProvider;
+use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
+
+final class LaravelResponseDataProviderTest extends TestCase
+{
+    public function test_extracts_status_code(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $response = new Response('{"message":"ok"}', 200, ['Content-Type' => 'application/json']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame(200, $serialized['code']);
+    }
+
+    public function test_extracts_json_body(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $response = new Response('{"user":"Alice","role":"admin"}', 200, ['Content-Type' => 'application/json']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame('Alice', $serialized['body']['user']);
+        $this->assertSame('admin', $serialized['body']['role']);
+    }
+
+    public function test_masks_sensitive_fields_in_body(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $body = json_encode(['user' => 'Alice', 'api_key' => 'secret-key-value']);
+        $response = new Response($body, 200);
+        $masker = new SensitiveDataMasker(['api_key']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider($masker, $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame(str_repeat('*', mb_strlen('secret-key-value')), $serialized['body']['api_key']);
+    }
+
+    public function test_handles_empty_response_body(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $response = new Response('', 204);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame(204, $serialized['code']);
+        $this->assertIsArray($serialized['body']);
+    }
+
+    public function test_response_too_large_returns_error_body(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $largeBody = json_encode(['data' => str_repeat('x', 2 * 1024 * 1024 + 1)]);
+        $response = new Response($largeBody, 200);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame('Payload too large', $serialized['body']['error']);
+        $this->assertArrayHasKey('size', $serialized['body']);
+    }
+
+    public function test_response_too_large_adds_error_to_provider(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $largeBody = json_encode(['data' => str_repeat('x', 2 * 1024 * 1024 + 1)]);
+        $response = new Response($largeBody, 200);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $provider->getResponse();
+
+        $errors = $errorProvider->getErrors();
+
+        $this->assertCount(1, $errors);
+        $this->assertSame('Response payload too large', $errors[0]->getMessage());
+    }
+
+    public function test_size_reflects_body_byte_length(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $body = '{"ok":true}';
+        $response = new Response($body, 200);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame((float) mb_strlen($body), $serialized['size']);
+    }
+
+    public function test_load_time_uses_request_attribute(): void
+    {
+        $startTime = microtime(true) - 0.5; // 500ms ago
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $request->attributes->set('treblle_request_started_at', $startTime);
+        $response = new Response('{}', 200);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertGreaterThanOrEqual(400.0, $serialized['load_time']);
+        $this->assertLessThan(2000.0, $serialized['load_time']);
+    }
+
+    public function test_load_time_uses_request_time_float_server_var(): void
+    {
+        $startTime = microtime(true) - 0.2; // 200ms ago
+        $_SERVER['REQUEST_TIME_FLOAT'] = $startTime;
+
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $response = new Response('{}', 200);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertGreaterThan(0.0, $serialized['load_time']);
+
+        unset($_SERVER['REQUEST_TIME_FLOAT']);
+    }
+
+    public function test_load_time_returns_zero_when_no_start_time(): void
+    {
+        $savedRequestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? null;
+        unset($_SERVER['REQUEST_TIME_FLOAT']);
+
+        $request = Request::create('http://localhost/api/test', 'GET');
+        $response = new Response('{}', 200);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        // Without any start time anchor, load_time is >= 0
+        $this->assertGreaterThanOrEqual(0.0, $serialized['load_time']);
+
+        if (null !== $savedRequestTimeFloat) {
+            $_SERVER['REQUEST_TIME_FLOAT'] = $savedRequestTimeFloat;
+        }
+    }
+
+    public function test_404_response_preserves_status_code(): void
+    {
+        $request = Request::create('http://localhost/api/missing', 'GET');
+        $body = json_encode(['message' => 'Not Found']);
+        $response = new Response($body, 404);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame(404, $serialized['code']);
+        $this->assertSame('Not Found', $serialized['body']['message']);
+    }
+}

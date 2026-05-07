@@ -19,7 +19,7 @@
         "concat_space": {
             "spacing": "one"
         },
-        "final_class": true,
+        "final_class": false,
         "declare_parentheses": true,
         "declare_strict_types": true,
         "explicit_string_variable": true,
@@ -33,7 +33,7 @@
         "no_unused_imports": true,
         "lambda_not_used_import": true,
         "logical_operators": true,
-        "mb_str_functions": true,
+        "mb_str_functions": false,
         "method_chaining_indentation": true,
         "modernize_strpos": true,
         "trailing_comma_in_multiline": true,
