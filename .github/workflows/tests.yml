@@ -27,9 +27,6 @@ jobs:
           - php: '8.4'
             testbench: '^11.0'
             laravel: '12.x'
-          - php: '8.4'
-            testbench: '^12.0'
-            laravel: '13.x'
 
     steps:
       - name: Checkout
