@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Treblle\Laravel\Helpers\HeaderFilter;
 use Treblle\Laravel\DataTransferObject\Request;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Illuminate\Http\Request as IlluminateRequest;
 use Treblle\Laravel\Contracts\RequestDataProvider;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
@@ -25,7 +26,7 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
 {
     public function __construct(
         private SensitiveDataMasker $fieldMasker,
-        private \Illuminate\Http\Request|SymfonyRequest $request,
+        private IlluminateRequest|SymfonyRequest $request,
     ) {
     }
 
@@ -42,7 +43,7 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
             ),
             query: $this->fieldMasker->mask($this->request->query->all()),
             body: $this->buildBody(),
-            route_path: $this->request instanceof \Illuminate\Http\Request
+            route_path: $this->request instanceof IlluminateRequest
                 ? $this->request->route()?->uri()
                 : null,
         );
@@ -84,11 +85,11 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
         }
 
         // Merge in file metadata from the actual files bag
-        if ($this->request instanceof \Illuminate\Http\Request) {
+        if ($this->request instanceof IlluminateRequest) {
             foreach ($this->request->files->all() as $key => $file) {
                 try {
                     $payload[$key] = $this->normalizeFile($file);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     $payload[$key] = ['error' => 'file metadata unavailable'];
                 }
             }
