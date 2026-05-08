@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Treblle\Laravel\Tests\TestCase;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
 use Treblle\Laravel\DataProviders\LaravelRequestDataProvider;
+use Symfony\Component\HttpFoundation\File\UploadedFile as SymfonyUploadedFile;
 
 final class LaravelRequestDataProviderTest extends TestCase
 {
@@ -160,5 +161,32 @@ final class LaravelRequestDataProviderTest extends TestCase
         $serialized = $provider->getRequest()->jsonSerialize();
 
         $this->assertSame('MyClient/1.0', $serialized['user_agent']);
+    }
+
+    public function test_normalizes_raw_symfony_uploaded_file(): void
+    {
+        // Real HTTP requests populate the FileBag with raw Symfony UploadedFile
+        // instances, not Illuminate ones. The bug was that files->all() was used
+        // instead of allFiles(), causing a TypeError against the Illuminate type
+        // hint in normalizeFile() — silently caught and returned as
+        // ['error' => 'file metadata unavailable'].
+        $tmp = tempnam(sys_get_temp_dir(), 'treblle_test_');
+        file_put_contents($tmp, '{"openapi":"3.0.0"}');
+
+        $symfonyFile = new SymfonyUploadedFile($tmp, 'spec.json', 'application/json', UPLOAD_ERR_OK, true);
+
+        $request = Request::create('http://localhost/api/upload', 'POST');
+        $request->files->set('openapi_spec', $symfonyFile);
+
+        $provider  = new LaravelRequestDataProvider(new SensitiveDataMasker(), $request);
+        $serialized = $provider->getRequest()->jsonSerialize();
+
+        $this->assertArrayNotHasKey('error', $serialized['body']['openapi_spec']);
+        $this->assertSame('spec.json', $serialized['body']['openapi_spec']['name']);
+        $this->assertSame('json', $serialized['body']['openapi_spec']['extension']);
+        $this->assertArrayHasKey('size', $serialized['body']['openapi_spec']);
+        $this->assertArrayHasKey('mime_type', $serialized['body']['openapi_spec']);
+
+        @unlink($tmp);
     }
 }
