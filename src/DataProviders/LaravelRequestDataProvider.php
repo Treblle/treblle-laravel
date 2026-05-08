@@ -72,21 +72,26 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
      */
     private function getRawBody(): array
     {
-        // Use original payload captured by TreblleEarlyMiddleware if available
+        // TreblleEarlyMiddleware captures both text fields and file metadata at request
+        // start — before any controller can move/delete uploaded files. Use it as-is.
         if ($this->request->attributes->has('treblle_original_payload')) {
-            $payload = $this->request->attributes->get('treblle_original_payload');
-        } else {
-            try {
-                $payload = $this->request->input();
-            } catch (Throwable) {
-                $payload = [];
-            }
+            return $this->request->attributes->get('treblle_original_payload');
         }
 
-        // Merge in file metadata from the actual files bag
+        // Fallback when early middleware did not run.
+        try {
+            $payload = $this->request->input();
+        } catch (Throwable) {
+            $payload = [];
+        }
+
         if ($this->request instanceof \Illuminate\Http\Request) {
             foreach ($this->request->files->all() as $key => $file) {
-                $payload[$key] = $this->normalizeFile($file);
+                try {
+                    $payload[$key] = $this->normalizeFile($file);
+                } catch (Throwable) {
+                    // File may have been moved/deleted by the controller; skip
+                }
             }
         }
 

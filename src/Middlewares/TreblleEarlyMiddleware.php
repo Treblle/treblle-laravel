@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Treblle\Laravel\Middlewares;
 
 use Closure;
+use Throwable;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Early Capture Middleware for Treblle Monitoring.
@@ -40,8 +42,32 @@ final class TreblleEarlyMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $request->attributes->set('treblle_original_payload', $request->input());
+        $payload = $request->input();
+
+        foreach ($request->files->all() as $key => $file) {
+            try {
+                $payload[$key] = $this->normalizeFile($file);
+            } catch (Throwable) {
+                // Skip files that can't be read (should not happen at request start)
+            }
+        }
+
+        $request->attributes->set('treblle_original_payload', $payload);
 
         return $next($request);
+    }
+
+    private function normalizeFile(UploadedFile|array $file): array
+    {
+        if (is_array($file)) {
+            return array_map([$this, 'normalizeFile'], $file);
+        }
+
+        return [
+            'name'      => $file->getClientOriginalName(),
+            'size'      => $file->getSize(),
+            'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+            'extension' => $file->getClientOriginalExtension(),
+        ];
     }
 }

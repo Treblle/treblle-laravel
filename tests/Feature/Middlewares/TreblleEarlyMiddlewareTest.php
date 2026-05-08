@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Treblle\Laravel\Tests\Feature\Middlewares;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Treblle\Laravel\Tests\TestCase;
 use Treblle\Laravel\Middlewares\TreblleEarlyMiddleware;
 
@@ -65,5 +66,43 @@ final class TreblleEarlyMiddlewareTest extends TestCase
         $result = $middleware->handle($request, fn ($req) => $expectedResponse);
 
         $this->assertSame($expectedResponse, $result);
+    }
+
+    public function test_captures_file_metadata_in_payload(): void
+    {
+        $request = Request::create('http://localhost/api/upload', 'POST', ['title' => 'Report']);
+        $file = UploadedFile::fake()->create('report.pdf', 200, 'application/pdf');
+        $request->files->set('attachment', $file);
+
+        $middleware = new TreblleEarlyMiddleware();
+        $middleware->handle($request, fn ($req) => response('ok'));
+
+        $payload = $request->attributes->get('treblle_original_payload');
+
+        $this->assertSame('Report', $payload['title']);
+        $this->assertSame('report.pdf', $payload['attachment']['name']);
+        $this->assertSame('pdf', $payload['attachment']['extension']);
+        $this->assertArrayHasKey('size', $payload['attachment']);
+        $this->assertArrayHasKey('mime_type', $payload['attachment']);
+    }
+
+    public function test_captures_multiple_file_uploads(): void
+    {
+        $request = Request::create('http://localhost/api/upload', 'POST');
+        $files = [
+            UploadedFile::fake()->create('a.jpg', 50, 'image/jpeg'),
+            UploadedFile::fake()->create('b.jpg', 60, 'image/jpeg'),
+        ];
+        $request->files->set('images', $files);
+
+        $middleware = new TreblleEarlyMiddleware();
+        $middleware->handle($request, fn ($req) => response('ok'));
+
+        $payload = $request->attributes->get('treblle_original_payload');
+
+        $this->assertIsArray($payload['images']);
+        $this->assertCount(2, $payload['images']);
+        $this->assertSame('a.jpg', $payload['images'][0]['name']);
+        $this->assertSame('b.jpg', $payload['images'][1]['name']);
     }
 }

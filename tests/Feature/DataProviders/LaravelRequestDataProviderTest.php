@@ -113,6 +113,28 @@ final class LaravelRequestDataProviderTest extends TestCase
         $this->assertSame('captured-before-transform', $serialized['body']['original']);
     }
 
+    public function test_uses_file_metadata_from_early_payload(): void
+    {
+        // Simulate TreblleEarlyMiddleware having already captured file metadata.
+        // Files added to $request->files AFTER the early capture should not overwrite
+        // the early-captured data — this is the key correctness guarantee.
+        $request = Request::create('http://localhost/api/upload', 'POST');
+        $request->attributes->set('treblle_original_payload', [
+            'attachment' => [
+                'name'      => 'early-captured.pdf',
+                'size'      => 1024,
+                'mime_type' => 'application/pdf',
+                'extension' => 'pdf',
+            ],
+        ]);
+
+        $provider = new LaravelRequestDataProvider(new SensitiveDataMasker(), $request);
+        $serialized = $provider->getRequest()->jsonSerialize();
+
+        $this->assertSame('early-captured.pdf', $serialized['body']['attachment']['name']);
+        $this->assertSame(1024, $serialized['body']['attachment']['size']);
+    }
+
     public function test_request_body_too_large_returns_error(): void
     {
         // Create a body that exceeds 2MB
