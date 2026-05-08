@@ -111,9 +111,9 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
         }
 
         return [
-            'name' => $file->getClientOriginalName(),
-            'size' => $file->getSize(),
-            'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+            'name'      => $file->getClientOriginalName(),
+            'size'      => $file->getSize(),
+            'mime_type' => $file->getClientMimeType(),
             'extension' => $file->getClientOriginalExtension(),
         ];
     }
