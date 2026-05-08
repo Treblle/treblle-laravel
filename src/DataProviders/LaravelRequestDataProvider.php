@@ -86,7 +86,11 @@ final readonly class LaravelRequestDataProvider implements RequestDataProvider
         // Merge in file metadata from the actual files bag
         if ($this->request instanceof \Illuminate\Http\Request) {
             foreach ($this->request->files->all() as $key => $file) {
-                $payload[$key] = $this->normalizeFile($file);
+                try {
+                    $payload[$key] = $this->normalizeFile($file);
+                } catch (\Throwable) {
+                    $payload[$key] = ['error' => 'file metadata unavailable'];
+                }
             }
         }
 
