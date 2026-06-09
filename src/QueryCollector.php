@@ -14,10 +14,10 @@ use Treblle\Laravel\DataTransferObject\Query;
  */
 final class QueryCollector
 {
+    private const LIMIT = 100;
+
     /** @var list<Query> */
     private array $queries = [];
-
-    private const LIMIT = 100;
 
     public function __construct()
     {

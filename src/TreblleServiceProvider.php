@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Treblle\Laravel;
 
+use Throwable;
 use function config;
 use GuzzleHttp\Client;
 use Illuminate\Routing\Router;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
 use Treblle\Laravel\Console\TestCommand;
-use Treblle\Laravel\QueryCollector;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Foundation\Console\AboutCommand;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Treblle\Laravel\Middlewares\TreblleEarlyMiddleware;
@@ -86,7 +86,7 @@ final class TreblleServiceProvider extends ServiceProvider
                 /** @var QueryCollector $collector */
                 $collector = $this->app->make(QueryCollector::class);
                 $collector->record($event->sql, $event->time ?? 0.0);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Silently ignore — query collection must never break the app
             }
         });

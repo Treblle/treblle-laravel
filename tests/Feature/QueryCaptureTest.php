@@ -81,11 +81,11 @@ final class QueryCaptureTest extends TestCase
             $payload = json_decode(gzdecode((string) $request->getBody()), true);
             $queries = $payload['data']['queries'];
 
-            return count($queries) === 2
-                && $queries[0]['sql'] === 'select * from users where id = ?'
-                && $queries[0]['time'] === 4.5
-                && $queries[1]['sql'] === 'select * from orders where user_id = ?'
-                && $queries[1]['time'] === 1.23;
+            return 2 === count($queries)
+                && 'select * from users where id = ?' === $queries[0]['sql']
+                && 4.5 === $queries[0]['time']
+                && 'select * from orders where user_id = ?' === $queries[1]['sql']
+                && 1.23 === $queries[1]['time'];
         });
     }
 
@@ -99,7 +99,7 @@ final class QueryCaptureTest extends TestCase
         $this->assertTreblleRequestSent(function ($request) {
             $payload = json_decode(gzdecode((string) $request->getBody()), true);
 
-            return $payload['data']['queries'] === [];
+            return [] === $payload['data']['queries'];
         });
     }
 
