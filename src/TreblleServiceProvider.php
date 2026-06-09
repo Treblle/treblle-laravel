@@ -84,7 +84,7 @@ final class TreblleServiceProvider extends ServiceProvider
         $events->listen(QueryExecuted::class, function (QueryExecuted $event): void {
             try {
                 /** @var QueryCollector $collector */
-                $collector = $this->app->make(QueryCollector::class);
+                $collector = app(QueryCollector::class);
                 $collector->record($event->sql, $event->time ?? 0.0);
             } catch (Throwable) {
                 // Silently ignore — query collection must never break the app
