@@ -1,7 +1,7 @@
 {
     "name": "treblle/treblle-laravel",
     "description": "Runtime Intelligence Platform",
-    "version": "6.1.4",
+    "version": "6.1.5",
     "license": "MIT",
     "homepage": "https://treblle.com/",
     "type": "library",

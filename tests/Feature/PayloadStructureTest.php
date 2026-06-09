@@ -56,12 +56,14 @@ final class PayloadStructureTest extends TestCase
         $this->assertArrayHasKey('request', $data);
         $this->assertArrayHasKey('response', $data);
         $this->assertArrayHasKey('errors', $data);
+        $this->assertArrayHasKey('queries', $data);
 
         $this->assertIsArray($data['server']);
         $this->assertIsArray($data['language']);
         $this->assertIsArray($data['request']);
         $this->assertIsArray($data['response']);
         $this->assertIsArray($data['errors']);
+        $this->assertIsArray($data['queries']);
     }
 
     public function test_server_schema_matches_sample(): void
@@ -168,7 +170,7 @@ final class PayloadStructureTest extends TestCase
 
             $data = $decoded['data'];
 
-            return isset($data['server'], $data['language'], $data['request'], $data['response'], $data['errors']);
+            return isset($data['server'], $data['language'], $data['request'], $data['response'], $data['errors'], $data['queries']);
         });
     }
 
