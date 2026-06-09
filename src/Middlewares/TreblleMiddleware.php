@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Treblle\Laravel\Jobs\SendTreblleData;
+use Treblle\Laravel\QueryCollector;
 use Treblle\Laravel\TreblleServiceProvider;
 use Treblle\Laravel\DataTransferObject\Data;
 use Treblle\Laravel\DataTransferObject\Error;
@@ -181,6 +182,8 @@ final class TreblleMiddleware
             (array) $request->attributes->get('treblle_metadata', []),
         );
 
+        $queries = app(QueryCollector::class)->all();
+
         return new TrebllePayloadData(
             apiKey: $apiKey,
             sdkToken: (string) config('treblle.sdk_token'),
@@ -192,6 +195,7 @@ final class TreblleMiddleware
                 request: $requestProvider->getRequest(),
                 response: $responseProvider->getResponse(),
                 errors: $errorProvider->getErrors(),
+                queries: $queries,
                 metadata: $metadata,
             ),
         );

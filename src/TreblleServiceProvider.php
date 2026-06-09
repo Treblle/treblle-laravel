@@ -10,8 +10,10 @@ use Illuminate\Routing\Router;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
 use Treblle\Laravel\Console\TestCommand;
+use Treblle\Laravel\QueryCollector;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\Console\AboutCommand;
+use Illuminate\Database\Events\QueryExecuted;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Treblle\Laravel\Middlewares\TreblleEarlyMiddleware;
@@ -79,6 +81,16 @@ final class TreblleServiceProvider extends ServiceProvider
             $event->request->attributes->set('treblle_request_started_at', microtime(true));
         });
 
+        $events->listen(QueryExecuted::class, function (QueryExecuted $event): void {
+            try {
+                /** @var QueryCollector $collector */
+                $collector = $this->app->make(QueryCollector::class);
+                $collector->record($event->sql, $event->time ?? 0.0);
+            } catch (\Throwable) {
+                // Silently ignore — query collection must never break the app
+            }
+        });
+
         AboutCommand::add(
             section: 'Treblle',
             data: static fn (): array => [
@@ -141,6 +153,10 @@ final class TreblleServiceProvider extends ServiceProvider
         $this->app->scoped(Treblle::class, fn ($app) => new Treblle(
             $app->make(\Illuminate\Http\Request::class)
         ));
+
+        // Scoped binding: one QueryCollector per request, reset automatically
+        // under Octane between requests so queries never bleed across requests.
+        $this->app->scoped(QueryCollector::class, fn () => new QueryCollector());
 
         // Persistent Guzzle client: reuses TCP connections and TLS sessions to
         // Treblle's ingress endpoint across requests instead of opening a new

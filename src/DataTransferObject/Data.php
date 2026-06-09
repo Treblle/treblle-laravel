@@ -10,6 +10,7 @@ final readonly class Data implements JsonSerializable
 {
     /**
      * @param list<Error> $errors
+     * @param list<Query> $queries
      * @param array<string, mixed> $metadata
      */
     public function __construct(
@@ -18,6 +19,7 @@ final readonly class Data implements JsonSerializable
         private Request $request,
         private Response $response,
         private array $errors,
+        private array $queries = [],
         private array $metadata = [],
     ) {
     }
@@ -30,6 +32,7 @@ final readonly class Data implements JsonSerializable
             'request'  => $this->request->jsonSerialize(),
             'response' => $this->response->jsonSerialize(),
             'errors'   => array_map(fn (Error $e) => $e->jsonSerialize(), $this->errors),
+            'queries'  => array_map(fn (Query $q) => $q->jsonSerialize(), $this->queries),
             'metadata' => (object) $this->metadata,
         ];
     }
