@@ -15,6 +15,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Console\AboutCommand;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Helpers\StreamCaptureBudget;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Treblle\Laravel\Middlewares\TreblleEarlyMiddleware;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -157,6 +158,13 @@ final class TreblleServiceProvider extends ServiceProvider
         // Scoped binding: one QueryCollector per request, reset automatically
         // under Octane between requests so queries never bleed across requests.
         $this->app->scoped(QueryCollector::class, fn () => new QueryCollector());
+
+        // Singleton stream-capture budget: a process-wide byte counter shared by
+        // all concurrent stream captures so their combined memory stays bounded.
+        // MUST be a singleton (not scoped) so it is shared across the concurrent
+        // requests of one Octane worker; a scoped binding would reset per request
+        // and defeat the aggregate bound.
+        $this->app->singleton(StreamCaptureBudget::class, fn () => new StreamCaptureBudget());
 
         // Persistent Guzzle client: reuses TCP connections and TLS sessions to
         // Treblle's ingress endpoint across requests instead of opening a new

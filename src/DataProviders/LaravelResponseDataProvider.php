@@ -44,11 +44,14 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
         $rawBody = $this->resolveRawBody($capture);
         $size = strlen($rawBody);
 
-        // A streamed body that hit the capture limit is reported like the
-        // oversize case so the truncation is visible in Treblle.
+        // A streamed body that stopped growing early is reported so the
+        // truncation is visible in Treblle. The reason distinguishes the
+        // per-stream 2MB cap from the shared memory budget being exhausted.
         if (null !== $capture && $capture->isTruncated()) {
             $this->errorDataProvider->addError(new Error(
-                message: 'Streamed response truncated at capture limit',
+                message: 'memory_budget' === $capture->reason()
+                    ? 'Streamed response body not fully captured (memory budget reached)'
+                    : 'Streamed response truncated at capture limit',
                 file: '',
                 line: 0,
                 type: 'E_USER_WARNING',

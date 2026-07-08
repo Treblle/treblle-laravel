@@ -11,6 +11,7 @@ use Illuminate\Http\Response;
 use GuzzleHttp\Handler\MockHandler;
 use Treblle\Laravel\Tests\TestCase;
 use GuzzleHttp\Exception\ConnectException;
+use Treblle\Laravel\Helpers\StreamCaptureBudget;
 use GuzzleHttp\Psr7\Request as GuzzlePsr7Request;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
 use Treblle\Laravel\Helpers\StreamedResponseCapture;
@@ -253,6 +254,60 @@ final class TreblleMiddlewareTest extends TestCase
         (new TreblleMiddleware())->handle($request, fn () => new Response('ok', 200));
 
         $this->assertNull($request->attributes->get('treblle_streamed_capture'));
+    }
+
+    public function test_stream_capture_releases_its_budget_after_sending(): void
+    {
+        // Real wiring: the wrapped callback reserves from the shared budget as it
+        // streams and releases in its finally, so used() is back to 0 afterwards.
+        $budget = new StreamCaptureBudget(max: 1024);
+        $this->app->instance(StreamCaptureBudget::class, $budget);
+
+        $request = Request::create('http://localhost/api/stream', 'GET');
+
+        $response = (new TreblleMiddleware())->handle(
+            $request,
+            fn () => new StreamedResponse(function (): void {
+                echo 'chunk';
+            }, 200, ['Content-Type' => 'text/plain']),
+        );
+
+        ob_start();
+        $response->sendContent();
+        ob_end_clean();
+
+        $this->assertSame('chunk', $request->attributes->get('treblle_streamed_capture')->getContent());
+        $this->assertSame(0, $budget->used()); // released in the finally — no leak
+    }
+
+    public function test_over_budget_stream_is_monitored_without_a_body(): void
+    {
+        // A tiny shared budget that is already full: the stream still streams to
+        // the client, but its body is not captured and the reason is recorded.
+        $budget = new StreamCaptureBudget(max: 4);
+        $budget->tryReserve(4); // pre-fill: no headroom left
+        $this->app->instance(StreamCaptureBudget::class, $budget);
+
+        $request = Request::create('http://localhost/api/stream', 'GET');
+
+        $response = (new TreblleMiddleware())->handle(
+            $request,
+            fn () => new StreamedResponse(function (): void {
+                echo 'hello world';
+            }, 200, ['Content-Type' => 'text/plain']),
+        );
+
+        ob_start();
+        $response->sendContent();
+        $clientOutput = ob_get_clean();
+
+        // Client still gets the full stream...
+        $this->assertSame('hello world', $clientOutput);
+
+        // ...but Treblle captured no body and flagged why.
+        $capture = $request->attributes->get('treblle_streamed_capture');
+        $this->assertSame('', $capture->getContent());
+        $this->assertSame('memory_budget', $capture->reason());
     }
 
     public function test_streamed_sse_body_reaches_treblle_as_events(): void

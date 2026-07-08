@@ -15,6 +15,7 @@ use Treblle\Laravel\TreblleServiceProvider;
 use Treblle\Laravel\DataTransferObject\Data;
 use Treblle\Laravel\DataTransferObject\Error;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Helpers\StreamCaptureBudget;
 use Treblle\Laravel\Helpers\StreamedResponseCapture;
 use Treblle\Laravel\DataProviders\ServerDataProvider;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -149,7 +150,9 @@ final class TreblleMiddleware
             return;
         }
 
-        $capture = new StreamedResponseCapture();
+        $capture = new StreamedResponseCapture(
+            budget: app(StreamCaptureBudget::class),
+        );
         $request->attributes->set('treblle_streamed_capture', $capture);
 
         $response->setCallback(static function () use ($original, $capture): void {
@@ -178,6 +181,11 @@ final class TreblleMiddleware
                         break; // non-removable buffer; avoid an infinite loop
                     }
                 }
+
+                // Return this stream's reserved bytes to the shared budget. This
+                // runs on normal completion, error, or client abort, so the
+                // budget can never leak — the invariant the whole design relies on.
+                $capture->releaseBudget();
             }
         });
     }

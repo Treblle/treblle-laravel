@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Treblle\Laravel\Tests\TestCase;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Helpers\StreamCaptureBudget;
 use Treblle\Laravel\Helpers\StreamedResponseCapture;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Treblle\Laravel\DataProviders\InMemoryErrorDataProvider;
@@ -260,6 +261,26 @@ final class LaravelResponseDataProviderTest extends TestCase
 
         $this->assertCount(1, $errors);
         $this->assertSame('Streamed response truncated at capture limit', $errors[0]->getMessage());
+    }
+
+    public function test_budget_capped_streamed_capture_reports_memory_budget_reason(): void
+    {
+        $budget = new StreamCaptureBudget(max: 3);
+        $capture = new StreamedResponseCapture(budget: $budget);
+        $capture->append('abcdef'); // 6 bytes > 3 budget → denied, reason memory_budget
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'text/plain']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $provider->getResponse();
+
+        $errors = $errorProvider->getErrors();
+
+        $this->assertCount(1, $errors);
+        $this->assertSame('Streamed response body not fully captured (memory budget reached)', $errors[0]->getMessage());
     }
 
     public function test_404_response_preserves_status_code(): void
