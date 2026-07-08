@@ -336,6 +336,59 @@ final class TreblleMiddlewareTest extends TestCase
         $this->assertSame('chunk1chunk2', $this->lastTrebllePayload()['data']['response']['body']['raw']);
     }
 
+    public function test_capture_flushes_buffer_left_open_by_callback(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+
+        $response = (new TreblleMiddleware())->handle(
+            $request,
+            fn () => new StreamedResponse(function (): void {
+                echo 'before';
+                ob_start(); // callback opens its own buffer and never closes it
+                echo 'inside';
+            }, 200, ['Content-Type' => 'text/plain']),
+        );
+
+        $outerLevel = ob_get_level();
+
+        ob_start();
+        $response->sendContent();
+        $clientOutput = ob_get_clean();
+
+        // The wrapper unwound its own buffer and the one the callback leaked,
+        // restoring the buffer depth and flushing all content through.
+        $this->assertSame($outerLevel, ob_get_level());
+        $this->assertSame('beforeinside', $clientOutput);
+        $this->assertSame('beforeinside', $request->attributes->get('treblle_streamed_capture')->getContent());
+    }
+
+    public function test_capture_does_not_close_preexisting_buffers(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+
+        $response = (new TreblleMiddleware())->handle(
+            $request,
+            // Callback that tears down exactly the wrapper's own buffer, leaving
+            // the buffer that existed beneath it intact.
+            fn () => new StreamedResponse(function (): void {
+                echo 'x';
+                ob_end_flush();
+            }, 200, ['Content-Type' => 'text/plain']),
+        );
+
+        // A framework-style buffer that existed before the wrapper ran.
+        ob_start();
+        $preexistingLevel = ob_get_level();
+
+        $response->sendContent();
+
+        // The callback already closed the wrapper's buffer; the wrapper's finally
+        // must NOT go on to close the pre-existing buffer beneath it.
+        $this->assertSame($preexistingLevel, ob_get_level());
+
+        ob_end_clean();
+    }
+
     /**
      * Decode the gzip-compressed JSON payload sent to the Treblle ingress.
      *

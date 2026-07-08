@@ -153,6 +153,10 @@ final class TreblleMiddleware
         $request->attributes->set('treblle_streamed_capture', $capture);
 
         $response->setCallback(static function () use ($original, $capture): void {
+            // Remember the buffer depth before we add ours so we only ever tear
+            // down buffers we are responsible for, never a pre-existing one.
+            $baseLevel = ob_get_level();
+
             // chunk_size = 1 flushes the handler on every write, so the client
             // still receives chunks incrementally while we tee a copy.
             ob_start(static function (string $chunk) use ($capture): string {
@@ -164,8 +168,15 @@ final class TreblleMiddleware
             try {
                 $original();
             } finally {
-                if (ob_get_level() > 0) {
-                    ob_end_flush();
+                // Flush and close our buffer plus any the callback left open on
+                // top of it. If the callback already tore ours down (e.g. it ran
+                // its own `while (ob_get_level()) ob_end_flush()`), the level is
+                // at or below $baseLevel and this loop is a no-op, so we never
+                // close a buffer that existed before us.
+                while (ob_get_level() > $baseLevel) {
+                    if (! ob_end_flush()) {
+                        break; // non-removable buffer; avoid an infinite loop
+                    }
                 }
             }
         });
