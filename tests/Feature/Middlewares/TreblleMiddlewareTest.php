@@ -13,6 +13,8 @@ use Treblle\Laravel\Tests\TestCase;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as GuzzlePsr7Request;
 use Treblle\Laravel\Middlewares\TreblleMiddleware;
+use Treblle\Laravel\Helpers\StreamedResponseCapture;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class TreblleMiddlewareTest extends TestCase
 {
@@ -216,5 +218,134 @@ final class TreblleMiddlewareTest extends TestCase
         $result  = (new TreblleMiddleware())->handle($request, fn ($req) => new Response('ok', 200));
 
         $this->assertSame(200, $result->getStatusCode());
+    }
+
+    public function test_wraps_streamed_response_and_tees_output_to_capture(): void
+    {
+        $sse = "event: message\ndata: {\"token\":\"hi\"}\n\n";
+        $request = Request::create('http://localhost/api/stream', 'GET');
+
+        $response = (new TreblleMiddleware())->handle(
+            $request,
+            fn () => new StreamedResponse(function () use ($sse): void {
+                echo $sse;
+            }, 200, ['Content-Type' => 'text/event-stream']),
+        );
+
+        // Simulate Laravel sending the streamed body to the client.
+        ob_start();
+        $response->sendContent();
+        $clientOutput = ob_get_clean();
+
+        // The client still receives the streamed bytes unchanged...
+        $this->assertSame($sse, $clientOutput);
+
+        // ...and Treblle captured a copy for the payload.
+        $capture = $request->attributes->get('treblle_streamed_capture');
+        $this->assertInstanceOf(StreamedResponseCapture::class, $capture);
+        $this->assertSame($sse, $capture->getContent());
+    }
+
+    public function test_does_not_wrap_non_streamed_responses(): void
+    {
+        $request = Request::create('http://localhost/api/test', 'GET');
+
+        (new TreblleMiddleware())->handle($request, fn () => new Response('ok', 200));
+
+        $this->assertNull($request->attributes->get('treblle_streamed_capture'));
+    }
+
+    public function test_streamed_sse_body_reaches_treblle_as_events(): void
+    {
+        $sse = "event: greeting\ndata: {\"msg\":\"hello\"}\n\n";
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $middleware = new TreblleMiddleware();
+
+        $response = $middleware->handle(
+            $request,
+            fn () => new StreamedResponse(function () use ($sse): void {
+                echo $sse;
+            }, 200, ['Content-Type' => 'text/event-stream']),
+        );
+
+        ob_start();
+        $response->sendContent();
+        ob_end_clean();
+
+        $middleware->terminate($request, $response);
+
+        $this->assertTreblleRequestSent();
+        $payload = $this->lastTrebllePayload();
+        $events = $payload['data']['response']['body'];
+
+        $this->assertSame('greeting', $events[0]['event']);
+        $this->assertSame(['msg' => 'hello'], $events[0]['data']);
+    }
+
+    public function test_real_event_stream_helper_is_captured_and_parsed(): void
+    {
+        // Exercises Laravel's response()->eventStream() including its internal
+        // ob_flush()/flush() calls composed with our capture buffer, in the
+        // real HTTP order: handle() -> sendContent() -> terminate().
+        $request = Request::create('http://localhost/api/chat', 'GET');
+        $middleware = new TreblleMiddleware();
+
+        $response = $middleware->handle($request, fn () => response()->eventStream(function () {
+            yield 'Hello';
+            yield ['token' => 'world'];
+        }));
+
+        ob_start();
+        $response->sendContent();
+        ob_end_clean();
+
+        $capture = $request->attributes->get('treblle_streamed_capture');
+        $this->assertInstanceOf(StreamedResponseCapture::class, $capture);
+        $this->assertStringContainsString('data: Hello', $capture->getContent());
+
+        $middleware->terminate($request, $response);
+
+        $this->assertTreblleRequestSent();
+        $events = $this->lastTrebllePayload()['data']['response']['body'];
+        $data = array_column($events, 'data');
+
+        $this->assertContains('Hello', $data);
+        $this->assertContains(['token' => 'world'], $data);
+    }
+
+    public function test_real_stream_helper_is_captured_as_raw(): void
+    {
+        $request = Request::create('http://localhost/api/download', 'GET');
+        $middleware = new TreblleMiddleware();
+
+        $response = $middleware->handle($request, fn () => response()->stream(function (): void {
+            echo 'chunk1';
+            echo 'chunk2';
+        }, 200, ['Content-Type' => 'text/plain']));
+
+        ob_start();
+        $response->sendContent();
+        ob_end_clean();
+
+        $capture = $request->attributes->get('treblle_streamed_capture');
+        $this->assertInstanceOf(StreamedResponseCapture::class, $capture);
+        $this->assertSame('chunk1chunk2', $capture->getContent());
+
+        $middleware->terminate($request, $response);
+
+        $this->assertSame('chunk1chunk2', $this->lastTrebllePayload()['data']['response']['body']['raw']);
+    }
+
+    /**
+     * Decode the gzip-compressed JSON payload sent to the Treblle ingress.
+     *
+     * @return array<string, mixed>
+     */
+    private function lastTrebllePayload(): array
+    {
+        /** @var \Psr\Http\Message\RequestInterface $request */
+        $request = $this->treblleSentRequests[0]['request'];
+
+        return json_decode((string) gzdecode((string) $request->getBody()), true);
     }
 }

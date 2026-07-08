@@ -8,10 +8,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Treblle\Laravel\Helpers\HeaderFilter;
 use Treblle\Laravel\DataTransferObject\Error;
+use Treblle\Laravel\Helpers\EventStreamParser;
 use Treblle\Laravel\Contracts\ErrorDataProvider;
 use Treblle\Laravel\DataTransferObject\Response;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
 use Treblle\Laravel\Contracts\ResponseDataProvider;
+use Treblle\Laravel\Helpers\StreamedResponseCapture;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
@@ -36,8 +39,21 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
 
     public function getResponse(): Response
     {
-        $rawBody = $this->response->getContent() ?: '{}';
+        $capture = $this->streamedCapture();
+        $streamed = $this->isStreamed();
+        $rawBody = $this->resolveRawBody($capture);
         $size = strlen($rawBody);
+
+        // A streamed body that hit the capture limit is reported like the
+        // oversize case so the truncation is visible in Treblle.
+        if (null !== $capture && $capture->isTruncated()) {
+            $this->errorDataProvider->addError(new Error(
+                message: 'Streamed response truncated at capture limit',
+                file: '',
+                line: 0,
+                type: 'E_USER_WARNING',
+            ));
+        }
 
         // Enforce 2MB limit before decoding to avoid processing a huge string
         if ($size > 2 * 1024 * 1024) {
@@ -50,15 +66,105 @@ final class LaravelResponseDataProvider implements ResponseDataProvider
 
             $rawBody = (string) json_encode(['error' => 'Payload too large', 'size' => $size]);
             $size = strlen($rawBody);
+
+            return $this->buildResponse($size, $this->fieldMasker->mask((array) json_decode($rawBody, true)));
         }
 
+        return $this->buildResponse($size, $this->fieldMasker->mask($this->decodeBody($rawBody, $streamed)));
+    }
+
+    /**
+     * Whether the underlying response streams its body from a callback.
+     */
+    private function isStreamed(): bool
+    {
+        return $this->response instanceof StreamedResponse;
+    }
+
+    /**
+     * The capture holder the middleware teed the streamed output into, if any.
+     */
+    private function streamedCapture(): ?StreamedResponseCapture
+    {
+        if (! $this->isStreamed()) {
+            return null;
+        }
+
+        $capture = $this->request->attributes->get('treblle_streamed_capture');
+
+        return $capture instanceof StreamedResponseCapture ? $capture : null;
+    }
+
+    /**
+     * Resolve the raw response body.
+     *
+     * Streamed responses (stream, eventStream/SSE, streamJson) return false from
+     * getContent(), so their body is read from the capture holder that the
+     * middleware teed the streamed output into.
+     */
+    private function resolveRawBody(?StreamedResponseCapture $capture): string
+    {
+        if (null !== $capture) {
+            return $capture->getContent() ?: '{}';
+        }
+
+        return $this->response->getContent() ?: '{}';
+    }
+
+    /**
+     * Decode the raw body into the array stored in the payload.
+     *
+     * SSE bodies are parsed into a structured events array; everything else is
+     * JSON-decoded (covering streamJson and standard JSON responses). Non-JSON
+     * streamed bodies fall back to a raw string wrapper so streamed text is not
+     * silently discarded.
+     *
+     * @return array<int|string, mixed>
+     */
+    private function decodeBody(string $rawBody, bool $streamed): array
+    {
+        // '{}' is the empty-body sentinel from resolveRawBody(); treat as no body.
+        if ('' === $rawBody || '{}' === $rawBody) {
+            return [];
+        }
+
+        if ($streamed && $this->isEventStream()) {
+            return EventStreamParser::parse($rawBody);
+        }
+
+        $decoded = json_decode($rawBody, true);
+
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        if ($streamed && '{}' !== $rawBody) {
+            return ['raw' => $rawBody];
+        }
+
+        return [];
+    }
+
+    /**
+     * Whether the response advertises the SSE (text/event-stream) content type.
+     */
+    private function isEventStream(): bool
+    {
+        $contentType = $this->response->headers->get('Content-Type', '');
+
+        return str_contains(strtolower((string) $contentType), 'text/event-stream');
+    }
+
+    /**
+     * @param array<int|string, mixed> $body
+     */
+    private function buildResponse(int $size, array $body): Response
+    {
         return new Response(
             code: $this->response->getStatusCode(),
             size: $size,
             load_time: $this->getLoadTimeInMilliseconds(),
-            body: $this->fieldMasker->mask(
-                json_decode($rawBody, true) ?? []
-            ),
+            body: $body,
             headers: $this->fieldMasker->mask(
                 HeaderFilter::filter($this->response->headers->all(), config('treblle.excluded_headers', []))
             ),

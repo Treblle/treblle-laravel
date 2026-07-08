@@ -15,7 +15,9 @@ use Treblle\Laravel\TreblleServiceProvider;
 use Treblle\Laravel\DataTransferObject\Data;
 use Treblle\Laravel\DataTransferObject\Error;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Helpers\StreamedResponseCapture;
 use Treblle\Laravel\DataProviders\ServerDataProvider;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Treblle\Laravel\DataProviders\LanguageDataProvider;
 use Treblle\Laravel\DataTransferObject\TrebllePayloadData;
 use Treblle\Laravel\DataProviders\InMemoryErrorDataProvider;
@@ -84,7 +86,11 @@ final class TreblleMiddleware
             return $next($request);
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        $this->wrapStreamedResponse($request, $response);
+
+        return $response;
     }
 
     /**
@@ -115,6 +121,54 @@ final class TreblleMiddleware
         }
 
         $this->sendSynchronously($request, $response, $apiKey);
+    }
+
+    /**
+     * Tee a streamed response body into a capture holder as it is sent.
+     *
+     * Streamed responses (stream, eventStream/SSE, streamJson) generate their
+     * body from a callback during send, so getContent() returns false and there
+     * is nothing to capture in terminate(). We wrap the callback with a
+     * pass-through output buffer that copies each chunk into a holder stored on
+     * the request, which the response data provider reads when building the
+     * payload. The chunk is returned unchanged so real-time streaming to the
+     * client is preserved.
+     *
+     * This must never throw — it honors the middleware's "never break the app"
+     * contract via the instanceof and null-callback guards.
+     */
+    private function wrapStreamedResponse(Request $request, mixed $response): void
+    {
+        if (! $response instanceof StreamedResponse) {
+            return;
+        }
+
+        $original = $response->getCallback();
+
+        if (null === $original) {
+            return;
+        }
+
+        $capture = new StreamedResponseCapture();
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response->setCallback(static function () use ($original, $capture): void {
+            // chunk_size = 1 flushes the handler on every write, so the client
+            // still receives chunks incrementally while we tee a copy.
+            ob_start(static function (string $chunk) use ($capture): string {
+                $capture->append($chunk);
+
+                return $chunk;
+            }, 1);
+
+            try {
+                $original();
+            } finally {
+                if (ob_get_level() > 0) {
+                    ob_end_flush();
+                }
+            }
+        });
     }
 
     /**
