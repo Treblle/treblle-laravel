@@ -15,7 +15,10 @@ use Treblle\Laravel\TreblleServiceProvider;
 use Treblle\Laravel\DataTransferObject\Data;
 use Treblle\Laravel\DataTransferObject\Error;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Helpers\StreamCaptureBudget;
+use Treblle\Laravel\Helpers\StreamedResponseCapture;
 use Treblle\Laravel\DataProviders\ServerDataProvider;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Treblle\Laravel\DataProviders\LanguageDataProvider;
 use Treblle\Laravel\DataTransferObject\TrebllePayloadData;
 use Treblle\Laravel\DataProviders\InMemoryErrorDataProvider;
@@ -84,7 +87,11 @@ final class TreblleMiddleware
             return $next($request);
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        $this->wrapStreamedResponse($request, $response);
+
+        return $response;
     }
 
     /**
@@ -115,6 +122,72 @@ final class TreblleMiddleware
         }
 
         $this->sendSynchronously($request, $response, $apiKey);
+    }
+
+    /**
+     * Tee a streamed response body into a capture holder as it is sent.
+     *
+     * Streamed responses (stream, eventStream/SSE, streamJson) generate their
+     * body from a callback during send, so getContent() returns false and there
+     * is nothing to capture in terminate(). We wrap the callback with a
+     * pass-through output buffer that copies each chunk into a holder stored on
+     * the request, which the response data provider reads when building the
+     * payload. The chunk is returned unchanged so real-time streaming to the
+     * client is preserved.
+     *
+     * This must never throw — it honors the middleware's "never break the app"
+     * contract via the instanceof and null-callback guards.
+     */
+    private function wrapStreamedResponse(Request $request, mixed $response): void
+    {
+        if (! $response instanceof StreamedResponse) {
+            return;
+        }
+
+        $original = $response->getCallback();
+
+        if (null === $original) {
+            return;
+        }
+
+        $capture = new StreamedResponseCapture(
+            budget: app(StreamCaptureBudget::class),
+        );
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response->setCallback(static function () use ($original, $capture): void {
+            // Remember the buffer depth before we add ours so we only ever tear
+            // down buffers we are responsible for, never a pre-existing one.
+            $baseLevel = ob_get_level();
+
+            // chunk_size = 1 flushes the handler on every write, so the client
+            // still receives chunks incrementally while we tee a copy.
+            ob_start(static function (string $chunk) use ($capture): string {
+                $capture->append($chunk);
+
+                return $chunk;
+            }, 1);
+
+            try {
+                $original();
+            } finally {
+                // Flush and close our buffer plus any the callback left open on
+                // top of it. If the callback already tore ours down (e.g. it ran
+                // its own `while (ob_get_level()) ob_end_flush()`), the level is
+                // at or below $baseLevel and this loop is a no-op, so we never
+                // close a buffer that existed before us.
+                while (ob_get_level() > $baseLevel) {
+                    if (! ob_end_flush()) {
+                        break; // non-removable buffer; avoid an infinite loop
+                    }
+                }
+
+                // Return this stream's reserved bytes to the shared budget. This
+                // runs on normal completion, error, or client abort, so the
+                // budget can never leak — the invariant the whole design relies on.
+                $capture->releaseBudget();
+            }
+        });
     }
 
     /**
