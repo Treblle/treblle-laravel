@@ -738,6 +738,47 @@ Headers listed in `excluded_headers` are completely removed from the data sent t
 
 ---
 
+### Streamed & SSE Responses
+
+Treblle captures streamed responses — `response()->stream()`,
+`response()->eventStream()` (Server-Sent Events), and `response()->streamJson()`.
+Because these responses generate their body from a callback while it is sent to
+the client, the SDK tees the streamed output into a buffer as it flows (without
+affecting real-time delivery) and includes it in the payload.
+
+For SSE responses (`Content-Type: text/event-stream`), the body is parsed into a
+structured list of events, e.g.:
+
+```json
+"body": [
+    { "id": "1", "event": "message", "data": { "token": "Hello" } },
+    { "id": "2", "event": "message", "data": { "token": " world" } }
+]
+```
+
+Event `data` is JSON-decoded when it is valid JSON, otherwise kept as a string.
+Sensitive-field masking still applies to the parsed `data`.
+
+**Things to know:**
+
+- **Reporting happens when the stream closes.** Treblle transmits after the
+  response finishes (Laravel's terminable phase), so a stream is reported once it
+  completes. A **truly infinite** SSE connection that never closes is never
+  reported.
+- **`load_time` covers the whole stream.** For a streamed response, load time
+  reflects the full connection duration by design.
+- **Capture is capped at 2MB.** Longer streams are truncated in the captured
+  body and an error is recorded on the request in Treblle (real-time delivery to
+  the client is unaffected).
+- **Force-clearing output buffers defeats capture.** If your stream callback
+  runs `while (ob_get_level()) { ob_end_flush(); }`, it removes Treblle's tee
+  buffer and the body will not be captured.
+- **Octane:** streamed-body capture is validated on the standard FPM/CLI SAPIs.
+  Behavior under Laravel Octane (Swoole/RoadRunner), where output handling
+  differs, has not been verified.
+
+---
+
 ### Debug Mode
 
 Enable debug mode to log Treblle warnings and errors to your Laravel log file:

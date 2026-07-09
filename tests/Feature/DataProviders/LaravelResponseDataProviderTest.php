@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Treblle\Laravel\Tests\TestCase;
 use Treblle\Laravel\Helpers\SensitiveDataMasker;
+use Treblle\Laravel\Helpers\StreamCaptureBudget;
+use Treblle\Laravel\Helpers\StreamedResponseCapture;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Treblle\Laravel\DataProviders\InMemoryErrorDataProvider;
 use Treblle\Laravel\DataProviders\LaravelResponseDataProvider;
 
@@ -158,6 +161,126 @@ final class LaravelResponseDataProviderTest extends TestCase
         if (null !== $savedRequestTimeFloat) {
             $_SERVER['REQUEST_TIME_FLOAT'] = $savedRequestTimeFloat;
         }
+    }
+
+    public function test_streamed_sse_response_body_is_parsed_into_events(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $capture = new StreamedResponseCapture();
+        $capture->append("event: greeting\ndata: {\"msg\":\"hello\"}\n\nevent: farewell\ndata: bye\n\n");
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'text/event-stream']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertCount(2, $serialized['body']);
+        $this->assertSame('greeting', $serialized['body'][0]['event']);
+        $this->assertSame(['msg' => 'hello'], $serialized['body'][0]['data']);
+        $this->assertSame('bye', $serialized['body'][1]['data']);
+        $this->assertSame((float) strlen($capture->getContent()), $serialized['size']);
+    }
+
+    public function test_streamed_json_response_body_is_decoded(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $capture = new StreamedResponseCapture();
+        $capture->append('{"users":[{"id":1},{"id":2}]}');
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'application/json']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame([['id' => 1], ['id' => 2]], $serialized['body']['users']);
+    }
+
+    public function test_generic_stream_non_json_body_falls_back_to_raw(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $capture = new StreamedResponseCapture();
+        $capture->append('plain streamed text');
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'text/plain']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame('plain streamed text', $serialized['body']['raw']);
+    }
+
+    public function test_streamed_response_without_capture_is_empty_body(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'text/event-stream']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame([], $serialized['body']);
+    }
+
+    public function test_streamed_sse_masks_sensitive_data_fields(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $capture = new StreamedResponseCapture();
+        $capture->append("data: {\"api_key\":\"secret-value\"}\n\n");
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'text/event-stream']);
+        $masker = new SensitiveDataMasker(['api_key']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider($masker, $request, $response, $errorProvider);
+        $serialized = $provider->getResponse()->jsonSerialize();
+
+        $this->assertSame(str_repeat('*', mb_strlen('secret-value')), $serialized['body'][0]['data']['api_key']);
+    }
+
+    public function test_truncated_streamed_capture_adds_error(): void
+    {
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $capture = new StreamedResponseCapture(limit: 10);
+        $capture->append(str_repeat('x', 50)); // exceeds the 10 byte limit
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'text/plain']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $provider->getResponse();
+
+        $errors = $errorProvider->getErrors();
+
+        $this->assertCount(1, $errors);
+        $this->assertSame('Streamed response truncated at capture limit', $errors[0]->getMessage());
+    }
+
+    public function test_budget_capped_streamed_capture_reports_memory_budget_reason(): void
+    {
+        $budget = new StreamCaptureBudget(max: 3);
+        $capture = new StreamedResponseCapture(budget: $budget);
+        $capture->append('abcdef'); // 6 bytes > 3 budget → denied, reason memory_budget
+        $request = Request::create('http://localhost/api/stream', 'GET');
+        $request->attributes->set('treblle_streamed_capture', $capture);
+
+        $response = new StreamedResponse(fn () => null, 200, ['Content-Type' => 'text/plain']);
+        $errorProvider = new InMemoryErrorDataProvider();
+
+        $provider = new LaravelResponseDataProvider(new SensitiveDataMasker(), $request, $response, $errorProvider);
+        $provider->getResponse();
+
+        $errors = $errorProvider->getErrors();
+
+        $this->assertCount(1, $errors);
+        $this->assertSame('Streamed response body not fully captured (memory budget reached)', $errors[0]->getMessage());
     }
 
     public function test_404_response_preserves_status_code(): void
