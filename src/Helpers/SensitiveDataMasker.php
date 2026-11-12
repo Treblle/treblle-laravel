@@ -7,8 +7,9 @@ namespace Treblle\Laravel\Helpers;
 /**
  * Masks sensitive data in request/response payloads.
  *
- * Handles field name matching (case-insensitive), authorization header masking,
- * base64 image detection, and recursive masking of nested arrays.
+ * Only keys listed in the configured fields are masked (case-insensitive), in
+ * bodies, query strings and headers alike. Also handles base64 image detection
+ * and recursive masking of nested arrays.
  */
 final class SensitiveDataMasker
 {
@@ -67,11 +68,9 @@ final class SensitiveDataMasker
         $lowerKey = mb_strtolower($key);
 
         if (isset($this->lowerFields[$lowerKey])) {
-            return $this->star($value);
-        }
-
-        if ($this->isSensitiveHeader($lowerKey)) {
-            return $this->maskAuthorization($value);
+            return 'authorization' === $lowerKey
+                ? $this->maskAuthorization($value)
+                : $this->star($value);
         }
 
         if ($this->isBase64Image($value)) {
@@ -81,6 +80,10 @@ final class SensitiveDataMasker
         return $value;
     }
 
+    /**
+     * Masks an authorization value while keeping a known scheme prefix readable
+     * (e.g. "Bearer *****"). Only used when 'authorization' is a masked field.
+     */
     private function maskAuthorization(string $value): string
     {
         $parts = explode(' ', $value, 2);
@@ -94,11 +97,6 @@ final class SensitiveDataMasker
         }
 
         return $this->star($value);
-    }
-
-    private function isSensitiveHeader(string $key): bool
-    {
-        return in_array($key, ['authorization', 'x-api-key'], true);
     }
 
     private function isBase64Image(string $string): bool
