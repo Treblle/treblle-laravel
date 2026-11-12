@@ -13,7 +13,7 @@ final class SensitiveDataMaskerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->masker = new SensitiveDataMasker(['password', 'secret', 'api_key', 'credit_score']);
+        $this->masker = new SensitiveDataMasker(['password', 'secret', 'api_key', 'credit_score', 'authorization']);
     }
 
     public function test_masks_exact_field_match(): void
@@ -61,11 +61,27 @@ final class SensitiveDataMaskerTest extends TestCase
         $this->assertSame(str_repeat('*', mb_strlen('Token abc123')), $result['authorization']);
     }
 
-    public function test_masks_x_api_key_header(): void
+    public function test_does_not_mask_authorization_header_when_not_listed(): void
+    {
+        $masker = new SensitiveDataMasker(['password']);
+        $result = $masker->mask(['authorization' => 'Bearer some-jwt-token']);
+
+        $this->assertSame('Bearer some-jwt-token', $result['authorization']);
+    }
+
+    public function test_does_not_mask_x_api_key_header_when_not_listed(): void
     {
         $result = $this->masker->mask(['x-api-key' => 'super-secret-key']);
 
-        $this->assertSame(str_repeat('*', mb_strlen('super-secret-key')), $result['x-api-key']);
+        $this->assertSame('super-secret-key', $result['x-api-key']);
+    }
+
+    public function test_masks_x_api_key_header_when_listed(): void
+    {
+        $masker = new SensitiveDataMasker(['x-api-key']);
+        $result = $masker->mask(['X-Api-Key' => 'super-secret-key']);
+
+        $this->assertSame(str_repeat('*', mb_strlen('super-secret-key')), $result['X-Api-Key']);
     }
 
     public function test_replaces_base64_images(): void

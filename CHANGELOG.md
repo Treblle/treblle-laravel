@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Masking is driven only by `masked_fields`** — the `Authorization` and `X-Api-Key` headers are no longer masked by hardcoded rules. `authorization` is now part of the default `masked_fields` list, so default installs keep masking it; remove it from the list to send the header unmasked
+- **`X-Api-Key` is no longer masked by default** — add `'x-api-key'` to `masked_fields` to keep masking it
+- **Published configs** — a published `config/treblle.php` replaces the default `masked_fields` list entirely; add `'authorization'` (and `'x-api-key'` if needed) to keep those headers masked
+
 ## [6.1.0] - 2026-05-07
 
 ### Added

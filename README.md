@@ -19,7 +19,7 @@ Discover, Govern, and Secure APIs, Agents, and AI Across Any Cloud, Gateway or T
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Registering Middleware](#registering-middleware)
-  - [Laravel 11 and 12](#laravel-11-and-12)
+  - [Laravel 11, 12 and 13](#laravel-11-12-and-13)
   - [Laravel 10 and below](#laravel-10-and-below)
 - [Applying Middleware to Routes](#applying-middleware-to-routes)
 - [Excluding Routes from Monitoring](#excluding-routes-from-monitoring)
@@ -99,7 +99,7 @@ The `treblle` and `treblle.early` middleware aliases are registered automaticall
 
 If for some reason you need to register them manually, here's how:
 
-### Laravel 11 and 12
+### Laravel 11, 12 and 13
 
 In `bootstrap/app.php`:
 
@@ -315,11 +315,14 @@ return [
     |--------------------------------------------------------------------------
     | Field names listed here will have their values replaced with asterisks
     | before the data leaves your server. Matching is case-insensitive and
-    | applies to both request body and response body.
+    | applies to request/response bodies, query parameters and
+    | request/response headers.
     |
-    | The fields below are masked by default. Add your own sensitive fields.
+    | Only the fields listed here are masked. Add your own sensitive fields,
+    | or remove an entry to send its value unmasked.
     */
     'masked_fields' => [
+        'authorization',
         'password',
         'pwd',
         'secret',
@@ -668,6 +671,7 @@ Fields listed in `masked_fields` have their values replaced with `*****` before 
 ```php
 // config/treblle.php
 'masked_fields' => [
+    'authorization',
     'password',
     'pwd',
     'secret',
@@ -686,7 +690,11 @@ Fields listed in `masked_fields` have their values replaced with `*****` before 
 ],
 ```
 
-Masking is case-insensitive and applies recursively to nested objects and arrays in both request and response bodies.
+Masking is case-insensitive and applies recursively to nested objects and arrays in request and response bodies, query parameters, and request and response headers.
+
+`masked_fields` is the only source of masking — nothing is masked unless it is listed. The `Authorization` header is in the default list, so it is sent as `Bearer *****` (the scheme is kept for `Bearer`, `Basic` and `Digest`). Remove `authorization` from the list to send it unmasked, or add other header names such as `x-api-key` to mask them.
+
+> If you have published `config/treblle.php`, your `masked_fields` list replaces the package default entirely. Add `'authorization'` to it to keep the `Authorization` header masked.
 
 **Example:**
 

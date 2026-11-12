@@ -48,9 +48,13 @@ return [
     'ignored_methods' => ['HEAD', 'OPTIONS'],
 
     /*
-     * Define which fields should be masked before leaving the server
+     * Define which fields should be masked before leaving the server.
+     * Applies to request/response bodies, query parameters and request/response
+     * headers. Only the names listed here are masked — remove an entry to send
+     * its value unmasked.
      */
     'masked_fields' => [
+        'authorization',
         'password',
         'pwd',
         'secret',
